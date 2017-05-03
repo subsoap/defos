@@ -3,7 +3,7 @@ local M = {}
 local ffi = package.preload.ffi()
 
 
--- https://github.com/ffi/ffi/wiki/Types
+-- https://github.com/glfw/glfw-legacy/tree/master/lib
 -- https://github.com/luapower/winapi/blob/master/winapi/window.lua
 --http://www.glfw.org/GLFWReference27.pdf
 

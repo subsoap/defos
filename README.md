@@ -1,5 +1,5 @@
 # DefOS
-Extra native OS functions
+Extra native OS functions for games written using the Defold game engine
 
 Currently uses FFI, but when Native Extensions are released for all platforms will likely switch to that. Only supports some functions on Windows right now. Contribute!
 

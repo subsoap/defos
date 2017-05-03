@@ -1,15 +1,15 @@
-local defos = require("defos.defos")
-
+--local defos = require("defos.defos") --windows only
 function init(self)
-	defos.disable_maximize_button()
-	defos.disable_minimize_button()
-	defos.disable_window_resize()
-	defos.disable_mouse_cursor()
-	defos.enable_mouse_cursor()
-	defos.set_window_size(-1,-1,800,600)
 	
-	msg.post(".", "acquire_input_focus")
-	self.cursor_state = true
+ 	defos.disable_maximize_button()
+ 	defos.disable_minimize_button()
+ 	defos.disable_window_resize()
+ 	defos.disable_mouse_cursor()
+ 	defos.enable_mouse_cursor()
+ 	defos.set_window_size(-1,-1,800,600)
+-- 	
+-- 	msg.post(".", "acquire_input_focus")
+-- 	self.cursor_state = true
 end
 
 local function toggle_mouse_cursor(self)

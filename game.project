@@ -1,7 +1,7 @@
 [project]
 title = DefOS
 version = 1.0
-dependencies = https://github.com/subsoap/defos/archive/master.zip
+dependencies = 
 
 [bootstrap]
 main_collection = /example/example.collectionc

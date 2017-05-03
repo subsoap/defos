@@ -1,0 +1,18 @@
+#ifndef GL_ES
+#define lowp
+#define mediump
+#define highp
+#endif
+uniform mediump mat4 view_proj;
+
+// positions are in world space
+attribute mediump vec4 position;
+attribute mediump vec2 texcoord0;
+
+varying mediump vec2 var_texcoord0;
+
+void main()
+{
+    gl_Position = view_proj * vec4(position.xyz, 1.0);
+    var_texcoord0 = texcoord0;
+}

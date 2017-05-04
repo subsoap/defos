@@ -1,16 +1,22 @@
---local defos = require("defos.defos") --windows only
+local defos = require("defos.defos") --windows only
 function init(self)
-	
+
  	defos.disable_maximize_button()
  	defos.disable_minimize_button()
  	defos.disable_window_resize()
  	defos.disable_mouse_cursor()
  	defos.enable_mouse_cursor()
  	defos.set_window_size(-1,-1,800,600)
--- 	
--- 	msg.post(".", "acquire_input_focus")
--- 	self.cursor_state = true
+--
+ 	msg.post(".", "acquire_input_focus")
+ 	self.cursor_state = true
 end
+
+function update(self)
+	local pos = defos.get_mouse_pos()	
+	go.set_position(pos, "cursor")
+end
+
 
 local function toggle_mouse_cursor(self)
 	if self.cursor_state == true then
@@ -19,7 +25,7 @@ local function toggle_mouse_cursor(self)
 	else
 		self.cursor_state = true
 		defos.enable_mouse_cursor()
-	end	
+	end
 end
 
 function on_input(self, action_id, action)

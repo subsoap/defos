@@ -42,12 +42,22 @@ if ffi.os == "Windows" then
     		POINT   ptScreenPos;
     	} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
 
+			typedef struct tagRECT
+			{
+			    LONG    left;
+			    LONG    top;
+			    LONG    right;
+			    LONG    bottom;
+			} RECT, *PRECT, *NPRECT, *LPRECT;
+
 
 			BOOL GetCursorInfo(PCURSORINFO pci);
 
 			int  GetSystemMetrics(int nIndex);
 
 			HWND GetActiveWindow();
+
+			BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
 
 			BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 
@@ -59,6 +69,32 @@ if ffi.os == "Windows" then
 
 			LONG SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
 	]])
+end
+
+-- TODO: a rough way to map cursor position to window coordinate
+local function range_to_window(x, y)
+	local rect = ffi.new("RECT")
+	local hwnd = C.GetActiveWindow()
+	local result = C.GetWindowRect(hwnd, rect);
+
+	-- TODO: fail?
+	local x_in_window = x - rect.left
+	if x <= rect.left then
+		x_in_window = 0
+	elseif x >= rect.right then
+		x_in_window = rect.right - rect.left
+	end
+
+	local y_in_window = y - rect.top
+	if y <= rect.top then
+		y_in_window = 0
+	elseif y >= rect.bottom then
+		y_in_window = rect.bottom - rect.top
+	end
+
+	-- now we have the offset in window, but we have to match to the defold coordinate... as the left-bottom is the (0, 0)
+	-- NOTE: now there is a precision issue, since the GetWindowRect returned width in pixel, any better way?
+	return vmath.vector3(x_in_window, rect.bottom - rect.top - y_in_window, 1)
 end
 
 
@@ -73,16 +109,21 @@ function M.get_mouse_pos()
     --]]
     --ffi.C.glfwEnable(0x00030001) --GLFW_MOUSE_CURSOR
 
-		-- TODO: try to get position with win32 api here, but not sure about the performance to get it per update
-		--[[local pci = ffi.new("CURSORINFO")
 
-		local result = user32.GetCursorInfo(pci)
+		-- NOTE: not sure about the performance to get it per update
 
-		print("result is "..result)
-		print(pci.ptScreenPos.x..pci.ptScreenPos.y)
-		]]--
+		local pci = ffi.new("CURSORINFO")
 
+		-- we have to set the size or we canont get the result
+		pci.cbSize = ffi.sizeof("CURSORINFO")
+
+		local result = C.GetCursorInfo(pci)
+
+		-- TODO: what if the result is not 0? return nil?
+		-- we make the z as 1 so we always on top of others
+		return range_to_window(pci.ptScreenPos.x, pci.ptScreenPos.y)
 end
+
 
 
 function M.set_window_size(pos_x, pos_y, width, height)

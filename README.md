@@ -1,7 +1,7 @@
 # DefOS
 Extra native OS functions for games written using the Defold game engine
 
-Currently uses FFI for Windows and Native Extension for macos, but when Native Extensions are released for all platforms will likely switch to that. Contribute!
+Currently uses FFI for Windows and Native Extension for macOS, but when Native Extensions are released for all platforms will switch to that for all targets. Contribute!
 
 ## Installation
 You can use DefOS in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
@@ -10,21 +10,22 @@ You can use DefOS in your own project by adding this project as a [Defold librar
 ### Windows
 Once added, you must require the main Lua module via
 ```
-local defos = require("defos.defos") --windows only!!!
+local defos = require("defos.defos")
 ```
-"require" - used only on Windows.
+This method is used only on Windows. macOS uses Native Extensions which will allow you to use defos methods globally.
 
 By using the dependency version, you can more easily update the module, but you may wish to keep it static. You can also download the defos.lua module file and add it to a utils folder. Then you would require via
 
 ```
-local defos = require("utils.defos") --windows only!!!
+local defos = require("utils.defos")
 ```
-### macos
-Just make Installation. Than you can use "defos" global module.
+
+### macOS
+Follow the steps in Installation to add this project as a library dependency. Then you can use the "defos" module globablly. You should not require the Lua module like is done in Windows steps.
 
 ## Methods
 
-Then you can use the module in the script including the module via
+Use DefOS module methods via
 
 ```
 function init(self)

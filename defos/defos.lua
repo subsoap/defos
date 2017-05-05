@@ -14,53 +14,75 @@ if ffi.os == "Windows" then
 	-- add definitions here,
 	-- to make it clear and avoid re-define exception (for struct) when calling a method more than 1 time
 	ffi.cdef([[
+		typedef long LONG;
+		typedef int BOOL;
+		typedef unsigned long DWORD;
+		typedef long long LONG_PTR;
+		typedef void *PVOID;
+		typedef unsigned int UINT;
+		typedef wchar_t WCHAR;
 
-			typedef long LONG;
-    	typedef int BOOL;
-    	typedef unsigned long DWORD;
-    	typedef long long LONG_PTR;
-    	typedef void *PVOID;
-    	typedef unsigned int UINT;
+		typedef const char* LPCSTR;
+		typedef wchar_t* LPWSTR;
 
+		typedef const WCHAR *LPCWSTR, *PCWSTR;
+		typedef PVOID HANDLE;
+		typedef HANDLE HICON;
+		typedef HANDLE HWND;
+		typedef HICON HCURSOR;
 
-    	typedef PVOID HANDLE;
-    	typedef HANDLE HICON;
-    	typedef HANDLE HWND;
-    	typedef HICON HCURSOR;
-
-    	typedef struct tagPOINT
-    	{
-    		LONG  x;
-    		LONG  y;
-    	} POINT, *PPOINT, *NPPOINT, *LPPOINT;
-
-
-    	typedef struct {
-    		DWORD   cbSize;
-    		DWORD   flags;
-    		HCURSOR hCursor;
-    		POINT   ptScreenPos;
-    	} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
+		typedef struct tagRECT
+		{
+			LONG    left;
+			LONG    top;
+			LONG    right;
+			LONG    bottom;
+		} RECT, *PRECT, *NPRECT, *LPRECT;
 
 
-			BOOL GetCursorInfo(PCURSORINFO pci);
+		int  GetSystemMetrics(int nIndex);
 
-			int  GetSystemMetrics(int nIndex);
+		HWND GetActiveWindow();
 
-			HWND GetActiveWindow();
+		BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
 
-			BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
+		BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 
-			int ShowCursor(BOOL bShow);
+		int ShowCursor(BOOL bShow);
 
-			HWND GetActiveWindow();
+		HWND GetActiveWindow();
 
-			LONG GetWindowLongPtrA(HWND hWnd, int nIndex);
+		LONG GetWindowLongPtrA(HWND hWnd, int nIndex);
 
-			LONG SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
+		LONG SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
+
+		BOOL SetWindowTextW(HWND hWnd,LPCWSTR lpString);
+
 	]])
 end
 
+-- https://github.com/Youka/Yutils/blob/master/lua/Yutils/string.lua
+local function get_wstring(str)
+	local kernel32 = ffi.load("kernel32")
+
+	local CP_UTF8 = 65001	-- No static values in C definitions to avoid ffi override errors
+
+	ffi.cdef([[
+		int MultiByteToWideChar(UINT, DWORD, LPCSTR, int, LPWSTR, int);
+	]])
+
+	local wlen = kernel32.MultiByteToWideChar(CP_UTF8, 0x0, str, -1, nil, 0)
+
+	if wlen > 0 then
+			local ws = ffi.new("wchar_t[?]", wlen)
+
+			if kernel32.MultiByteToWideChar(CP_UTF8, 0x0, str, -1, ws, wlen) > 0 then
+				return true, ws
+			end
+	end
+
+	return false, nil
+end
 
 -- https://github.com/glfw/glfw-legacy/tree/master/lib
 -- https://github.com/luapower/winapi/blob/master/winapi/window.lua
@@ -73,16 +95,16 @@ function M.get_mouse_pos()
     --]]
     --ffi.C.glfwEnable(0x00030001) --GLFW_MOUSE_CURSOR
 
-		-- TODO: try to get position with win32 api here, but not sure about the performance to get it per update
-		--[[local pci = ffi.new("CURSORINFO")
+	--[[
+	local pci = ffi.new("CURSORINFO")
 
-		local result = user32.GetCursorInfo(pci)
+	-- we have to set the size or we canont get the result
+	pci.cbSize = ffi.sizeof("CURSORINFO")
 
-		print("result is "..result)
-		print(pci.ptScreenPos.x..pci.ptScreenPos.y)
-		]]--
-
+	local result = C.GetCursorInfo(pci)
+	]]
 end
+
 
 
 function M.set_window_size(pos_x, pos_y, width, height)
@@ -162,6 +184,15 @@ function M.disable_minimize_button()
 		local value = C.GetWindowLongPtrA(ptr, GWL_STYLE)
 
 		C.SetWindowLongPtrA(ptr, GWL_STYLE, bit.band(value, bit.bnot(WS_MINIMIZEBOX)))
+	end
+end
+
+function M.set_window_title(title)
+	local success, wtitle = get_wstring(title)
+
+	if success then
+		local hwnd = C.GetActiveWindow()
+		C.SetWindowTextW(hwnd, wtitle)
 	end
 end
 

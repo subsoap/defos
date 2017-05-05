@@ -1,13 +1,6 @@
 local M = {}
 
-
-
 local ffi = package.preload.ffi()
-
-
-function M.test()
-	ffi.load("")
-end
 
 --[[
 http://luajit.org/ext_ffi_api.html
@@ -38,21 +31,6 @@ if ffi.os == "Windows" then
 		typedef HANDLE HWND;
 		typedef HICON HCURSOR;
 
-
-		typedef struct tagPOINT
-		{
-		LONG  x;
-		LONG  y;
-		} POINT, *PPOINT, *NPPOINT, *LPPOINT;
-
-
-		typedef struct {
-			DWORD   cbSize;
-			DWORD   flags;
-			HCURSOR hCursor;
-			POINT   ptScreenPos;
-		} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
-
 		typedef struct tagRECT
 		{
 			LONG    left;
@@ -61,8 +39,6 @@ if ffi.os == "Windows" then
 			LONG    bottom;
 		} RECT, *PRECT, *NPRECT, *LPRECT;
 
-
-		BOOL GetCursorInfo(PCURSORINFO pci);
 
 		int  GetSystemMetrics(int nIndex);
 

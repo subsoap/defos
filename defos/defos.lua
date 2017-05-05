@@ -85,6 +85,29 @@ if ffi.os == "Windows" then
 	]])
 end
 
+-- https://github.com/Youka/Yutils/blob/master/lua/Yutils/string.lua
+local function get_wstring(str)
+	local kernel32 = ffi.load("kernel32")
+
+	local CP_UTF8 = 65001	-- No static values in C definitions to avoid ffi override errors
+
+	ffi.cdef([[
+		int MultiByteToWideChar(UINT, DWORD, LPCSTR, int, LPWSTR, int);
+	]])
+
+	local wlen = kernel32.MultiByteToWideChar(CP_UTF8, 0x0, str, -1, nil, 0)
+
+	if wlen > 0 then
+			local ws = ffi.new("wchar_t[?]", wlen)
+
+			if kernel32.MultiByteToWideChar(CP_UTF8, 0x0, str, -1, ws, wlen) > 0 then
+				return true, ws
+			end
+	end
+
+	return false, nil
+end
+
 -- https://github.com/glfw/glfw-legacy/tree/master/lib
 -- https://github.com/luapower/winapi/blob/master/winapi/window.lua
 --http://www.glfw.org/GLFWReference27.pdf
@@ -188,26 +211,13 @@ function M.disable_minimize_button()
 	end
 end
 
--- https://github.com/Youka/Yutils/blob/master/lua/Yutils/string.lua
-function M.set_window_title(t)
-	local kernel32 = ffi.load("kernel32")
+function M.set_window_title(title)
+	local success, wtitle = get_wstring(title)
 
-	local CP_UTF8 = 65001	-- No static values in C definitions to avoid ffi override errors
-
-	ffi.cdef([[
-		int MultiByteToWideChar(UINT, DWORD, LPCSTR, int, LPWSTR, int);
-	]])
-
-	local wlen = kernel32.MultiByteToWideChar(CP_UTF8, 0x0, t, -1, nil, 0)
-
-	if wlen > 0 then
-			local ws = ffi.new("wchar_t[?]", wlen)
-
-			if kernel32.MultiByteToWideChar(CP_UTF8, 0x0,t, -1, ws, wlen) > 0 then
-				local hwnd = C.GetActiveWindow()
-				C.SetWindowTextW(hwnd, ws)
-			end
-		end
+	if success then
+		local hwnd = C.GetActiveWindow()
+		C.SetWindowTextW(hwnd, wtitle)
+	end
 end
 
 return M

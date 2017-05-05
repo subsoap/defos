@@ -40,6 +40,11 @@ static int set_window_size(lua_State* L) {
     return 0;
 }
 
+static int set_window_title(lua_State* L) {
+    defos_set_window_title(L);
+    return 0;
+}
+
 static const luaL_reg Module_methods[] =
 {
     {"disable_maximize_button", disable_maximize_button},
@@ -48,6 +53,7 @@ static const luaL_reg Module_methods[] =
     {"disable_mouse_cursor", disable_mouse_cursor},
     {"enable_mouse_cursor", enable_mouse_cursor},
     {"set_window_size", set_window_size},
+	{"set_window_title", set_window_title},
     {0, 0}
 };
 

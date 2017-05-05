@@ -45,5 +45,11 @@ void defos_set_window_size(lua_State* L) {
     [window setFrame:NSMakeRect(x, y, w , h) display:YES];
 }
 
+void defos_set_window_title(lua_State* L) {
+    init_window();
+    const char* title_lua = luaL_checkstring(L, 1);
+	NSString* title = [NSString stringWithUTF8String:title_lua];
+    [window setTitle:title];
+}
 
 #endif

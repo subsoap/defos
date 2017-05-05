@@ -1,6 +1,13 @@
 local M = {}
 
+
+
 local ffi = package.preload.ffi()
+
+
+function M.test()
+	ffi.load("")
+end
 
 --[[
 http://luajit.org/ext_ffi_api.html
@@ -16,30 +23,35 @@ if ffi.os == "Windows" then
 	ffi.cdef([[
 		typedef long LONG;
 		typedef int BOOL;
-    	typedef unsigned long DWORD;
-    	typedef long long LONG_PTR;
-    	typedef void *PVOID;
-    	typedef unsigned int UINT;
+		typedef unsigned long DWORD;
+		typedef long long LONG_PTR;
+		typedef void *PVOID;
+		typedef unsigned int UINT;
+		typedef wchar_t WCHAR;
+
+		typedef const char* LPCSTR;
+		typedef wchar_t* LPWSTR;
+
+		typedef const WCHAR *LPCWSTR, *PCWSTR;
+		typedef PVOID HANDLE;
+		typedef HANDLE HICON;
+		typedef HANDLE HWND;
+		typedef HICON HCURSOR;
 
 
-    	typedef PVOID HANDLE;
-    	typedef HANDLE HICON;
-    	typedef HANDLE HWND;
-    	typedef HICON HCURSOR;
-
-    	typedef struct tagPOINT
-    	{
-    		LONG  x;
-    		LONG  y;
-    	} POINT, *PPOINT, *NPPOINT, *LPPOINT;
+		typedef struct tagPOINT
+		{
+		LONG  x;
+		LONG  y;
+		} POINT, *PPOINT, *NPPOINT, *LPPOINT;
 
 
-    	typedef struct {
-    		DWORD   cbSize;
-    		DWORD   flags;
-    		HCURSOR hCursor;
-    		POINT   ptScreenPos;
-    	} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
+		typedef struct {
+			DWORD   cbSize;
+			DWORD   flags;
+			HCURSOR hCursor;
+			POINT   ptScreenPos;
+		} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
 
 		typedef struct tagRECT
 		{
@@ -67,6 +79,9 @@ if ffi.os == "Windows" then
 		LONG GetWindowLongPtrA(HWND hWnd, int nIndex);
 
 		LONG SetWindowLongPtrA(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
+
+		BOOL SetWindowTextW(HWND hWnd,LPCWSTR lpString);
+
 	]])
 end
 
@@ -171,6 +186,28 @@ function M.disable_minimize_button()
 
 		C.SetWindowLongPtrA(ptr, GWL_STYLE, bit.band(value, bit.bnot(WS_MINIMIZEBOX)))
 	end
+end
+
+-- https://github.com/Youka/Yutils/blob/master/lua/Yutils/string.lua
+function M.set_window_title(t)
+	local kernel32 = ffi.load("kernel32")
+
+	local CP_UTF8 = 65001	-- No static values in C definitions to avoid ffi override errors
+
+	ffi.cdef([[
+		int MultiByteToWideChar(UINT, DWORD, LPCSTR, int, LPWSTR, int);
+	]])
+
+	local wlen = kernel32.MultiByteToWideChar(CP_UTF8, 0x0, t, -1, nil, 0)
+
+	if wlen > 0 then
+			local ws = ffi.new("wchar_t[?]", wlen)
+
+			if kernel32.MultiByteToWideChar(CP_UTF8, 0x0,t, -1, ws, wlen) > 0 then
+				local hwnd = C.GetActiveWindow()
+				C.SetWindowTextW(hwnd, ws)
+			end
+		end
 end
 
 return M

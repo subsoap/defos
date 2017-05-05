@@ -8,5 +8,6 @@ extern void defos_disable_window_resize();
 extern void defos_disable_mouse_cursor();
 extern void defos_enable_mouse_cursor();
 extern void defos_set_window_size(lua_State* L);
+extern void defos_set_window_title(lua_State* L);
 
 void init_window();

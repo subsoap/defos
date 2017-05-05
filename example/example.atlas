@@ -1,9 +1,6 @@
 images {
   image: "/example/defold-icon.png"
 }
-images {
-  image: "/example/cursor_hand.png"
-}
 margin: 0
 extrude_borders: 0
 inner_padding: 0

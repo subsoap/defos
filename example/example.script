@@ -1,4 +1,4 @@
---local defos = require("defos.defos") --windows only
+local defos = require("defos.defos") --windows only
 function init(self)
 
  	defos.disable_maximize_button()
@@ -13,9 +13,7 @@ function init(self)
 end
 
 function update(self)
-	-- NOTE: for windows only now, and there is a precision issue
-	--local pos = defos.get_mouse_pos()
-	--go.set_position(pos, "cursor")
+
 end
 
 

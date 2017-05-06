@@ -36,6 +36,18 @@ void defos_enable_mouse_cursor() {
     [NSCursor unhide];
 }
 
+void defos_toggle_fullscreen() {
+	init_window();
+	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    [window toggleFullScreen:window];
+}
+
+bool defos_isFullScreen() {
+	init_window();
+    BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+    return fullscreen == YES;
+}
+
 void defos_set_window_size(lua_State* L) {
     init_window();
     int x = luaL_checkint(L, 1);

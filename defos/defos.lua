@@ -39,6 +39,12 @@ if ffi.os == "Windows" then
 			LONG    bottom;
 		} RECT, *PRECT, *NPRECT, *LPRECT;
 
+		typedef struct tagPOINT
+		{
+			LONG  x;
+			LONG  y;
+		} POINT, *PPOINT, *NPPOINT, *LPPOINT;
+
 		typedef struct HMONITOR__
 		{
 			int unused;
@@ -52,6 +58,13 @@ if ffi.os == "Windows" then
 			DWORD   dwFlags;
 		} MONITORINFO, *LPMONITORINFO;
 
+		typedef struct {
+			DWORD   cbSize;
+			DWORD   flags;
+			HCURSOR hCursor;
+			POINT   ptScreenPos;
+		} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
+
 
 		int  GetSystemMetrics(int nIndex);
 
@@ -62,6 +75,8 @@ if ffi.os == "Windows" then
 		BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 
 		int ShowCursor(BOOL bShow);
+
+		BOOL GetCursorInfo(PCURSORINFO pci);
 
 		HWND GetActiveWindow();
 
@@ -138,6 +153,27 @@ if ffi.os == "Windows" then
 
 		return (success and mi) or nil
 	end
+
+-- https://github.com/glfw/glfw-legacy/tree/master/lib
+-- https://github.com/luapower/winapi/blob/master/winapi/window.lua
+--http://www.glfw.org/GLFWReference27.pdf
+function M.get_mouse_pos()
+ 		-- definitions
+
+		--ffi.cdef[[
+		--void glfwEnable(int token);
+		 --]]
+		 --ffi.C.glfwEnable(0x00030001) --GLFW_MOUSE_CURSOR
+
+		-- NOTE: try to get position with win32 api here, but not sure about the performance to get it per update
+		local pci = ffi.new("CURSORINFO")
+		-- we have to set the size or we canont get the result
+		pci.cbSize = ffi.sizeof("CURSORINFO")
+
+		local result = C.GetCursorInfo(pci)
+
+		return {x = pci.ptScreenPos.x, y = pci.ptScreenPos.y}
+ end
 
 	local is_fullscreen = false;
 

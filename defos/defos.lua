@@ -14,6 +14,7 @@ if ffi.os == "Windows" then
 	-- add definitions here,
 	-- to make it clear and avoid re-define exception (for struct) when calling a method more than 1 time
 	ffi.cdef([[
+		
 		typedef long LONG;
 		typedef int BOOL;
 		typedef unsigned long DWORD;
@@ -21,15 +22,19 @@ if ffi.os == "Windows" then
 		typedef void *PVOID;
 		typedef unsigned int UINT;
 		typedef wchar_t WCHAR;
-
+		typedef unsigned char BYTE;
 		typedef const char* LPCSTR;
 		typedef wchar_t* LPWSTR;
-
+		typedef unsigned short      WORD;
 		typedef const WCHAR *LPCWSTR, *PCWSTR;
 		typedef PVOID HANDLE;
 		typedef HANDLE HICON;
 		typedef HANDLE HWND;
 		typedef HICON HCURSOR;
+		typedef BYTE BCHAR;
+		
+		static const int	CCHDEVICENAME = 32;
+		static const int 	CCHFORMNAME = 32;
 
 		typedef struct tagRECT
 		{
@@ -44,6 +49,12 @@ if ffi.os == "Windows" then
 			LONG  x;
 			LONG  y;
 		} POINT, *PPOINT, *NPPOINT, *LPPOINT;
+		
+		typedef struct _POINTL
+		{
+			LONG  x;
+			LONG  y;
+		} POINTL, *PPOINTL;
 
 		typedef struct HMONITOR__
 		{
@@ -64,7 +75,56 @@ if ffi.os == "Windows" then
 			HCURSOR hCursor;
 			POINT   ptScreenPos;
 		} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
-
+		
+		typedef struct _devicemode {
+			BCHAR  dmDeviceName[CCHDEVICENAME];
+			WORD   dmSpecVersion;
+			WORD   dmDriverVersion;
+			WORD   dmSize;
+			WORD   dmDriverExtra;
+			DWORD  dmFields;
+			union {
+				struct {
+					short dmOrientation;
+					short dmPaperSize;
+					short dmPaperLength;
+					short dmPaperWidth;
+					short dmScale;
+					short dmCopies;
+					short dmDefaultSource;
+					short dmPrintQuality;
+				};
+				POINTL dmPosition;
+				DWORD  dmDisplayOrientation;
+				DWORD  dmDisplayFixedOutput;
+			};
+			
+			short  dmColor;
+			short  dmDuplex;
+			short  dmYResolution;
+			short  dmTTOption;
+			short  dmCollate;
+			BYTE  dmFormName[CCHFORMNAME];
+			WORD  dmLogPixels;
+			DWORD  dmBitsPerPel;
+			DWORD  dmPelsWidth;
+			DWORD  dmPelsHeight;
+			union {
+				DWORD  dmDisplayFlags;
+				DWORD  dmNup;
+			};
+			DWORD  dmDisplayFrequency;
+			DWORD  dmICMMethod;
+			DWORD  dmICMIntent;
+			DWORD  dmMediaType;
+			DWORD  dmDitherType;
+			DWORD  dmReserved1;
+			DWORD  dmReserved2;
+			DWORD  dmPanningWidth;
+			DWORD  dmPanningHeight;
+		} DEVMODE, *PDEVMODE;
+		
+		
 
 		int  GetSystemMetrics(int nIndex);
 
@@ -91,6 +151,8 @@ if ffi.os == "Windows" then
 		BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi);
 
 		BOOL MoveWindow(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
+		
+		HWND GetDesktopWindow(void);
 	]])
 
 
@@ -125,13 +187,14 @@ if ffi.os == "Windows" then
 	-- set window style (not EXT_StYLE) using SetWindowLongPtrA on Windows
 	-- @number window style from https://msdn.microsoft.com/en-us/library/windows/desktop/ms632600(v=vs.85).aspx
 	-- @usage set_window_style(bit.band(bit.bnot(WS_MAXIMIZEBOX), bit.bnot(WS_MINIMIZEBOX))) or set_window_style(bit.bnot(WS_SIZEBOX))
+	-- @return true if success to change style, or false
 	local function set_window_style(style)
 
 		local GWL_STYLE = -16
 		local ptr = C.GetActiveWindow()
 		local value = C.GetWindowLongPtrA(ptr, GWL_STYLE)
 
-		C.SetWindowLongPtrA(ptr, GWL_STYLE, bit.band(value, style))
+		return C.SetWindowLongPtrA(ptr, GWL_STYLE, bit.band(value, style)) ~= 0
 	end
 
 	-- get the nearest (always the monitor window in) monitor info
@@ -176,80 +239,112 @@ function M.get_mouse_pos()
  end
 
 	local is_fullscreen = false;
+	local previous_state = {style = nil, rect = nil}
+	
+	function M.isFullScreen()
+		return is_fullscreen
+	end
 
 	function M.toggle_fullscreen()
-			local mi = get_monitor_info()
-
-			if mi then
-				-- success to get monitor info
-				print(mi.rcMonitor.top)
-				print(mi.rcMonitor.bottom)
-				print(mi.rcMonitor.left)
-				print(mi.rcMonitor.right)
-
-				local hwnd = C.GetActiveWindow()
-
-				-- TODO: here we should save the state before changing, then restore it
-
-				-- TODO: there is a gap here, seems like we should change the style too
-				C.MoveWindow(hwnd, mi.rcMonitor.top, mi.rcMonitor.left, mi.rcMonitor.right, mi.rcMonitor.bottom, true)
-
-
-				--local rect = ffi.new("RECT")
-				--C.GetWindowRect(hwnd, rect)
-
-				--print(rect.left..","..rect.right..","..rect.top..","..rect.bottom)
+		
+		-- TODO: shall we move const to out to make it re-usable?
+		local GWL_STYLE = -16
+		local WS_POPUP = 0x80000000
+		local WS_CAPTION = 0x00C00000
+		local WS_SYSMENU = 0x00080000
+		local WS_MINIMIZEBOX = 0x00020000
+		local WS_MAXIMIZEBOX = 0x00010000
+		local SWP_NOZORDER = 0x0004
+		
+		local hwnd = C.GetActiveWindow()
+		
+		if not is_fullscreen then
+			
+			-- first remember current style and rect
+			local prect = ffi.new("RECT")
+			
+			C.GetWindowRect(hwnd, prect)
+			
+			-- TODO: exception handle?
+			previous_state.rect = prect
+			previous_state.style = C.GetWindowLongPtrA(hwnd, GWL_STYLE)
+			
+			local rc = ffi.new("RECT")
+			local dhwnd = C.GetDesktopWindow() -- get desktop handle, or we can use get_monitor_info
+			
+			C.GetWindowRect(dhwnd, rc) -- get desktop rect
+		
+			local windowed_fullscreen_style = bit.band(bit.bnot(WS_CAPTION), bit.bnot(WS_SYSMENU), bit.bnot(WS_MINIMIZEBOX), bit.bnot(WS_MAXIMIZEBOX))
+		
+			if set_window_style(windowed_fullscreen_style) then
+				if C.SetWindowPos(hwnd, nil, 0, 0, rc.right, rc.bottom, SWP_NOZORDER) then
+					-- we are in fullscreen mode
+					is_fullscreen = true
+				end
 			end
+		else
+			-- TODO: exception handle?
+			-- restore the style
+			C.SetWindowLongPtrA(hwnd, GWL_STYLE, previous_state.style)
+			C.SetWindowPos(hwnd, 
+				nil, 
+				previous_state.rect.left,
+				previous_state.rect.top, 
+				previous_state.rect.right - previous_state.rect.left, 
+				previous_state.rect.bottom - previous_state.rect.top, 
+				SWP_NOZORDER)
+			is_fullscreen = false
+		end
 	end
 
 	function M.set_window_size(pos_x, pos_y, width, height)
-			local HWND_TOP = 0
-			local SWP_NOMOVE = 0x0002
-			local SWP_NOZORDER = 0x0004
-			local SM_CXSCREEN = 0
-			local SM_CYSCREEN = 1
+		local HWND_TOP = 0
+		local SWP_NOMOVE = 0x0002
+		local SWP_NOZORDER = 0x0004
+		local SM_CXSCREEN = 0
+		local SM_CYSCREEN = 1
 
-			local ptr = C.GetActiveWindow()
+		local ptr = C.GetActiveWindow()
 
-			if pos_x == -1 then
-				local x_pos = (C.GetSystemMetrics(SM_CXSCREEN) - width) / 2
-				local y_pos = (C.GetSystemMetrics(SM_CYSCREEN) - height) / 2
-				C.SetWindowPos(ptr, ptr, x_pos, y_pos, width, height, SWP_NOZORDER)
-			else
-				C.SetWindowPos(ptr, ptr, pos_x, pos_y, width, height, SWP_NOZORDER)
-			end
+		if pos_x == -1 then
+			local x_pos = (C.GetSystemMetrics(SM_CXSCREEN) - width) / 2
+			local y_pos = (C.GetSystemMetrics(SM_CYSCREEN) - height) / 2
+			C.SetWindowPos(ptr, ptr, x_pos, y_pos, width, height, SWP_NOZORDER)
+		else
+			C.SetWindowPos(ptr, ptr, pos_x, pos_y, width, height, SWP_NOZORDER)
+		end
 	end
 
 
 	function M.disable_mouse_cursor()
-			C.ShowCursor(false)
+		C.ShowCursor(false)
 	end
 
 
 	function M.enable_mouse_cursor()
-			C.ShowCursor(true)
+		C.ShowCursor(true)
 	end
 
 
 	function M.disable_window_resize()
-			local WS_SIZEBOX = 0x00040000
+		local WS_SIZEBOX = 0x00040000
 
-			set_window_style(bit.bnot(WS_SIZEBOX))
+		set_window_style(bit.bnot(WS_SIZEBOX))
 	end
 
 
 	function M.disable_maximize_button()
-			local WS_MAXIMIZEBOX = 0x00010000
+		local WS_MAXIMIZEBOX = 0x00010000
 
-			set_window_style(bit.bnot(WS_MAXIMIZEBOX))
-		end
+		set_window_style(bit.bnot(WS_MAXIMIZEBOX))
+	end
 
 
 	function M.disable_minimize_button()
-			local WS_MINIMIZEBOX = 0x00020000
+		local WS_MINIMIZEBOX = 0x00020000
 
-			set_window_style(bit.bnot(WS_MINIMIZEBOX))
-		end
+		set_window_style(bit.bnot(WS_MINIMIZEBOX))
+	end
 
 
 	function M.set_window_title(title)

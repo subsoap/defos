@@ -11,6 +11,15 @@ according to the document, we do not need to load user32.dll manually:
 local C = ffi.C
 
 if ffi.os == "Windows" then
+	local GWL_STYLE = -16
+	local WS_POPUP = 0x80000000
+	local WS_CAPTION = 0x00C00000
+	local WS_SYSMENU = 0x00080000
+	local WS_SIZEBOX = 0x00040000
+	local WS_MAXIMIZEBOX = 0x00010000
+	local WS_MINIMIZEBOX = 0x00020000
+	local SWP_NOZORDER = 0x0004
+
 	-- add definitions here,
 	-- to make it clear and avoid re-define exception (for struct) when calling a method more than 1 time
 	ffi.cdef([[
@@ -202,8 +211,6 @@ if ffi.os == "Windows" then
 	-- @usage set_window_style(bit.band(bit.bnot(WS_MAXIMIZEBOX), bit.bnot(WS_MINIMIZEBOX))) or set_window_style(bit.bnot(WS_SIZEBOX))
 	-- @return true if success to change style, or false
 	local function set_window_style(style)
-
-		local GWL_STYLE = -16
 		local ptr = C.GetActiveWindow()
 		local value = C.GetWindowLongPtrA(ptr, GWL_STYLE)
 
@@ -215,12 +222,12 @@ if ffi.os == "Windows" then
 	local function get_monitor_info()
 		--https://blogs.msdn.microsoft.com/oldnewthing/20050505-04/?p=35703/
 
-		local MONITOR_DEFAULTTONULL    =   0x00000000 -- Returns NULL.
-		local MONITOR_DEFAULTTOPRIMARY =   0x00000001 -- Returns a handle to the primary display monitor.
+		--local MONITOR_DEFAULTTONULL    =   0x00000000 -- Returns NULL.
+		--local MONITOR_DEFAULTTOPRIMARY =   0x00000001 -- Returns a handle to the primary display monitor.
 		local MONITOR_DEFAULTTONEAREST =   0x00000002 -- Returns a handle to the display monitor that is nearest to the window.
 
 		local hwnd = C.GetActiveWindow()
-		local monitor = C.MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY)
+		local monitor = C.MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST)
 		local mi = ffi.new("MONITORINFO")
 
 		mi.cbSize = ffi.sizeof("MONITORINFO")
@@ -232,7 +239,7 @@ if ffi.os == "Windows" then
 
 	-- Retrieves the show state and the restored, minimized, and maximized positions of window.
 	-- @return WINDOWPLACEMENT if success, or nil
-	function get_window_placement(hwnd)
+	local function get_window_placement(hwnd)
 		local placement = ffi.new("WINDOWPLACEMENT")
 		placement.length = ffi.sizeof("WINDOWPLACEMENT")
 
@@ -241,7 +248,8 @@ if ffi.os == "Windows" then
 		return (successed > 0 and placement) or nil
 	end
 
-	function set_window_placement(hwnd, placement)
+	-- set the window placement, always used to restore window state
+	local function set_window_placement(hwnd, placement)
 		if hwnd and placement then
 			C.SetWindowPlacement(hwnd, placement)
 		end
@@ -277,32 +285,16 @@ function M.get_mouse_pos()
 
 	function M.toggle_fullscreen()
 
-		-- TODO: shall we move const to out to make it re-usable?
-		local GWL_STYLE = -16
-		local WS_POPUP = 0x80000000
-		local WS_CAPTION = 0x00C00000
-		local WS_SYSMENU = 0x00080000
-		local WS_MINIMIZEBOX = 0x00020000
-		local WS_MAXIMIZEBOX = 0x00010000
-		local SWP_NOZORDER = 0x0004
-
 		local hwnd = C.GetActiveWindow()
 
 		if not is_fullscreen then
-
-			-- first remember current style and rect
-			local prect = ffi.new("RECT")
-
-			C.GetWindowRect(hwnd, prect)
-
 			-- TODO: exception handle?
 			previous_state.style = C.GetWindowLongPtrA(hwnd, GWL_STYLE)
 			previous_state.placement = get_window_placement(hwnd)
 
+			-- get desktop rect, or we can use get_monitor_info?
 			local rc = ffi.new("RECT")
 			local dhwnd = C.GetDesktopWindow()
-			
-			-- get desktop rect, or we can use get_monitor_info?
 			C.GetWindowRect(dhwnd, rc)
 
 			-- for fullscreen, we remove these styles
@@ -325,9 +317,9 @@ function M.get_mouse_pos()
 	end
 
 	function M.set_window_size(pos_x, pos_y, width, height)
-		local HWND_TOP = 0
-		local SWP_NOMOVE = 0x0002
-		local SWP_NOZORDER = 0x0004
+		--local HWND_TOP = 0
+		--local SWP_NOMOVE = 0x0002
+		--local SWP_NOZORDER = 0x0004
 		local SM_CXSCREEN = 0
 		local SM_CYSCREEN = 1
 
@@ -354,22 +346,16 @@ function M.get_mouse_pos()
 
 
 	function M.disable_window_resize()
-		local WS_SIZEBOX = 0x00040000
-
 		set_window_style(bit.bnot(WS_SIZEBOX))
 	end
 
 
 	function M.disable_maximize_button()
-		local WS_MAXIMIZEBOX = 0x00010000
-
 		set_window_style(bit.bnot(WS_MAXIMIZEBOX))
 	end
 
 
 	function M.disable_minimize_button()
-		local WS_MINIMIZEBOX = 0x00020000
-
 		set_window_style(bit.bnot(WS_MINIMIZEBOX))
 	end
 

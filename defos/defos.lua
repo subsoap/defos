@@ -14,7 +14,7 @@ if ffi.os == "Windows" then
 	-- add definitions here,
 	-- to make it clear and avoid re-define exception (for struct) when calling a method more than 1 time
 	ffi.cdef([[
-		
+
 		typedef long LONG;
 		typedef int BOOL;
 		typedef unsigned long DWORD;
@@ -32,7 +32,7 @@ if ffi.os == "Windows" then
 		typedef HANDLE HWND;
 		typedef HICON HCURSOR;
 		typedef BYTE BCHAR;
-		
+
 		static const int	CCHDEVICENAME = 32;
 		static const int 	CCHFORMNAME = 32;
 
@@ -49,7 +49,7 @@ if ffi.os == "Windows" then
 			LONG  x;
 			LONG  y;
 		} POINT, *PPOINT, *NPPOINT, *LPPOINT;
-		
+
 		typedef struct _POINTL
 		{
 			LONG  x;
@@ -75,7 +75,7 @@ if ffi.os == "Windows" then
 			HCURSOR hCursor;
 			POINT   ptScreenPos;
 		} CURSORINFO, *PCURSORINFO, *LPCURSORINFO;
-		
+
 		typedef struct _devicemode {
 			BCHAR  dmDeviceName[CCHDEVICENAME];
 			WORD   dmSpecVersion;
@@ -98,7 +98,7 @@ if ffi.os == "Windows" then
 				DWORD  dmDisplayOrientation;
 				DWORD  dmDisplayFixedOutput;
 			};
-			
+
 			short  dmColor;
 			short  dmDuplex;
 			short  dmYResolution;
@@ -123,8 +123,17 @@ if ffi.os == "Windows" then
 			DWORD  dmPanningWidth;
 			DWORD  dmPanningHeight;
 		} DEVMODE, *PDEVMODE;
-		
-		
+
+		typedef struct tagWINDOWPLACEMENT {
+			UINT  length;
+			UINT  flags;
+			UINT  showCmd;
+			POINT ptMinPosition;
+			POINT ptMaxPosition;
+			RECT  rcNormalPosition;
+		} WINDOWPLACEMENT, *PWINDOWPLACEMENT, *LPWINDOWPLACEMENT;
+
+
 
 		int  GetSystemMetrics(int nIndex);
 
@@ -151,8 +160,12 @@ if ffi.os == "Windows" then
 		BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi);
 
 		BOOL MoveWindow(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
-		
+
 		HWND GetDesktopWindow(void);
+
+		BOOL GetWindowPlacement(HWND hWnd, WINDOWPLACEMENT *lpwndpl);
+
+		BOOL SetWindowPlacement(HWND hWnd,const WINDOWPLACEMENT *lpwndpl);
 	]])
 
 
@@ -217,6 +230,23 @@ if ffi.os == "Windows" then
 		return (success and mi) or nil
 	end
 
+	-- Retrieves the show state and the restored, minimized, and maximized positions of window.
+	-- @return WINDOWPLACEMENT if success, or nil
+	function get_window_placement(hwnd)
+		local placement = ffi.new("WINDOWPLACEMENT")
+		placement.length = ffi.sizeof("WINDOWPLACEMENT")
+
+		local successed = C.GetWindowPlacement(hwnd, placement)
+
+		return (successed > 0 and placement) or nil
+	end
+
+	function set_window_placement(hwnd, placement)
+		if hwnd and placement then
+			C.SetWindowPlacement(hwnd, placement)
+		end
+	end
+
 -- https://github.com/glfw/glfw-legacy/tree/master/lib
 -- https://github.com/luapower/winapi/blob/master/winapi/window.lua
 --http://www.glfw.org/GLFWReference27.pdf
@@ -239,14 +269,14 @@ function M.get_mouse_pos()
  end
 
 	local is_fullscreen = false;
-	local previous_state = {style = nil, rect = nil}
-	
+	local previous_state = {style = nil, placement=nil}
+
 	function M.isFullScreen()
 		return is_fullscreen
 	end
 
 	function M.toggle_fullscreen()
-		
+
 		-- TODO: shall we move const to out to make it re-usable?
 		local GWL_STYLE = -16
 		local WS_POPUP = 0x80000000
@@ -255,44 +285,41 @@ function M.get_mouse_pos()
 		local WS_MINIMIZEBOX = 0x00020000
 		local WS_MAXIMIZEBOX = 0x00010000
 		local SWP_NOZORDER = 0x0004
-		
+
 		local hwnd = C.GetActiveWindow()
-		
+
 		if not is_fullscreen then
-			
+
 			-- first remember current style and rect
 			local prect = ffi.new("RECT")
-			
+
 			C.GetWindowRect(hwnd, prect)
-			
+
 			-- TODO: exception handle?
-			previous_state.rect = prect
 			previous_state.style = C.GetWindowLongPtrA(hwnd, GWL_STYLE)
-			
+			previous_state.placement = get_window_placement(hwnd)
+
 			local rc = ffi.new("RECT")
-			local dhwnd = C.GetDesktopWindow() -- get desktop handle, or we can use get_monitor_info
+			local dhwnd = C.GetDesktopWindow()
 			
-			C.GetWindowRect(dhwnd, rc) -- get desktop rect
-		
+			-- get desktop rect, or we can use get_monitor_info?
+			C.GetWindowRect(dhwnd, rc)
+
+			-- for fullscreen, we remove these styles
 			local windowed_fullscreen_style = bit.band(bit.bnot(WS_CAPTION), bit.bnot(WS_SYSMENU), bit.bnot(WS_MINIMIZEBOX), bit.bnot(WS_MAXIMIZEBOX))
-		
+
 			if set_window_style(windowed_fullscreen_style) then
-				if C.SetWindowPos(hwnd, nil, 0, 0, rc.right, rc.bottom, SWP_NOZORDER) then
+				if C.SetWindowPos(hwnd, nil, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, SWP_NOZORDER) then
 					-- we are in fullscreen mode
 					is_fullscreen = true
 				end
 			end
 		else
 			-- TODO: exception handle?
-			-- restore the style
+			-- restore the style and position/size
 			C.SetWindowLongPtrA(hwnd, GWL_STYLE, previous_state.style)
-			C.SetWindowPos(hwnd, 
-				nil, 
-				previous_state.rect.left,
-				previous_state.rect.top, 
-				previous_state.rect.right - previous_state.rect.left, 
-				previous_state.rect.bottom - previous_state.rect.top, 
-				SWP_NOZORDER)
+			set_window_placement(hwnd, previous_state.placement)
+
 			is_fullscreen = false
 		end
 	end

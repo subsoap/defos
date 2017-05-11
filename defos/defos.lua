@@ -19,6 +19,7 @@ if ffi.os == "Windows" then
 	local WS_MAXIMIZEBOX = 0x00010000
 	local WS_MINIMIZEBOX = 0x00020000
 	local SWP_NOZORDER = 0x0004
+	local SW_MAXIMIZE = 3
 
 	-- add definitions here,
 	-- to make it clear and avoid re-define exception (for struct) when calling a method more than 1 time
@@ -175,6 +176,8 @@ if ffi.os == "Windows" then
 		BOOL GetWindowPlacement(HWND hWnd, WINDOWPLACEMENT *lpwndpl);
 
 		BOOL SetWindowPlacement(HWND hWnd,const WINDOWPLACEMENT *lpwndpl);
+
+		BOOL ShowWindow(HWND hWnd,int  nCmdShow);
 	]])
 
 
@@ -255,10 +258,35 @@ if ffi.os == "Windows" then
 		end
 	end
 
--- https://github.com/glfw/glfw-legacy/tree/master/lib
--- https://github.com/luapower/winapi/blob/master/winapi/window.lua
---http://www.glfw.org/GLFWReference27.pdf
-function M.get_mouse_pos()
+	local is_maximize = false
+	local is_fullscreen = false;
+	local previous_state = {style = nil, placement=nil}
+
+	function M.is_maximize()
+		return is_maximize
+	end
+
+	function M.toggle_maximize()
+		if is_fullscreen then
+			M.toggle_fullscreen()
+		end
+
+		local hwnd = C.GetActiveWindow()
+
+		if is_maximize then
+			set_window_placement(hwnd, previous_state.placement)
+			is_maximize = false
+		else
+			previous_state.placement = get_window_placement(hwnd)
+			C.ShowWindow(hwnd, SW_MAXIMIZE)
+			is_maximize = true
+		end
+	end
+
+	-- https://github.com/glfw/glfw-legacy/tree/master/lib
+	-- https://github.com/luapower/winapi/blob/master/winapi/window.lua
+	--http://www.glfw.org/GLFWReference27.pdf
+	function M.get_mouse_pos()
  		-- definitions
 
 		--ffi.cdef[[
@@ -276,14 +304,16 @@ function M.get_mouse_pos()
 		return {x = pci.ptScreenPos.x, y = pci.ptScreenPos.y}
  end
 
-	local is_fullscreen = false;
-	local previous_state = {style = nil, placement=nil}
-
 	function M.is_fullscreen()
 		return is_fullscreen
 	end
 
 	function M.toggle_fullscreen()
+
+		if is_maximize then
+			-- if itis maximized, then we need to restore it then toggle fullscreen
+			M.toggle_maximize()
+		end
 
 		local hwnd = C.GetActiveWindow()
 
@@ -298,7 +328,12 @@ function M.get_mouse_pos()
 			C.GetWindowRect(dhwnd, rc)
 
 			-- for fullscreen, we remove these styles
-			local windowed_fullscreen_style = bit.band(bit.bnot(WS_CAPTION), bit.bnot(WS_SYSMENU), bit.bnot(WS_MINIMIZEBOX), bit.bnot(WS_MAXIMIZEBOX))
+			local windowed_fullscreen_style = bit.band(
+				bit.bnot(WS_CAPTION),
+				bit.bnot(WS_SYSMENU),
+				bit.bnot(WS_MINIMIZEBOX),
+				bit.bnot(WS_MAXIMIZEBOX),
+				bit.bnot(WS_SIZEBOX))
 
 			if set_window_style(windowed_fullscreen_style) then
 				if C.SetWindowPos(hwnd, nil, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, SWP_NOZORDER) then

@@ -1,0 +1,65 @@
+local defos = require("defos.defos") --windows only
+
+local dirtylarry = require "dirtylarry/dirtylarry"
+
+function init(self)
+	self.is_cursor = true
+	msg.post(".", "acquire_input_focus")
+end
+
+local function change_mouse_label(text)
+	local label = gui.get_node("disable_mouse_cursor/larrylabel")
+	gui.set_text(label,text)
+end
+
+function on_input(self, action_id, action)
+	self.input_title = dirtylarry:input("window_title", action_id, action, gui.KEYBOARD_TYPE_DEFAULT, "Type text")
+
+    dirtylarry:button("set_window_title", action_id, action, function ()
+    	defos.set_window_title(tostring(self.input_title))
+    end)
+    
+    dirtylarry:button("disable_minimize_button", action_id, action, function ()
+    	defos.disable_minimize_button()
+    end)
+    
+    dirtylarry:button("disable_maximize_button", action_id, action, function ()
+    	defos.disable_maximize_button()
+    end)
+    
+    dirtylarry:button("disable_window_resize", action_id, action, function ()
+    	defos.disable_window_resize()
+    end)
+    
+    dirtylarry:button("random_window_size", action_id, action, function ()
+    	defos.set_window_size(math.random(1,500),math.random(1,500),math.random(100,1024),math.random(100,768))
+    end)
+    
+    dirtylarry:button("set_window_size", action_id, action, function ()
+    	defos.set_window_size(-1,-1,800,600)
+    end)
+    
+    dirtylarry:button("toggle_fullscreen", action_id, action, function ()
+    	defos.toggle_fullscreen()
+    end)
+    
+    
+    dirtylarry:button("toggle_maximize", action_id, action, function ()
+    	defos.toggle_maximize()
+    end)
+    
+    dirtylarry:button("disable_mouse_cursor", action_id, action, function ()
+    	if self.is_cursor then
+    		defos.disable_mouse_cursor()
+    		self.is_cursor = false
+    		change_mouse_label("Enable mouse cursor")
+    	else
+    		defos.enable_mouse_cursor()
+    		self.is_cursor = true
+    		change_mouse_label("Disable mouse cursor")
+    	end
+    end)
+    
+    gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
+    gui.set_text(gui.get_node("is_maximize"),"is_maximize "..tostring(defos.is_maximize()))
+end

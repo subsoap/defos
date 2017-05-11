@@ -1,7 +1,7 @@
 [project]
 title = DefOS
 version = 1.0
-dependencies = 
+dependencies =  latest zip URL as a dependency in your Defold project: https://github.com/andsve/dirtylarry/archive/master.zip
 
 [bootstrap]
 main_collection = /example/example.collectionc
@@ -10,8 +10,8 @@ main_collection = /example/example.collectionc
 game_binding = /input/game.input_bindingc
 
 [display]
-width = 800
-height = 600
+width = 1024
+height = 768
 
 [physics]
 scale = 0.02

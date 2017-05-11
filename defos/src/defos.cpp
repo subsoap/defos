@@ -66,7 +66,7 @@ static const luaL_reg Module_methods[] =
     {"set_window_size", set_window_size},
 	{"set_window_title", set_window_title},
 	{"toggle_fullscreen", toggle_fullscreen},
-	{"isFullScreen", isFullScreen},
+	{"is_fullscreen", isFullScreen},
     {0, 0}
 };
 

@@ -241,7 +241,7 @@ function M.get_mouse_pos()
 	local is_fullscreen = false;
 	local previous_state = {style = nil, rect = nil}
 	
-	function M.isFullScreen()
+	function M.is_fullscreen()
 		return is_fullscreen
 	end
 

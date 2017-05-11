@@ -7,6 +7,9 @@
 
 NSWindow* window;
 
+bool is_maximize = false;
+CGRect previous_state;
+
 void init_window(){
     if (window == NULL) {
         window = dmGraphics::GetNativeOSXNSWindow();
@@ -37,15 +40,38 @@ void defos_enable_mouse_cursor() {
 }
 
 void defos_toggle_fullscreen() {
+    if (is_maximize){
+        defos_toggle_maximize();
+    }
 	init_window();
 	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     [window toggleFullScreen:window];
 }
 
-bool defos_isFullScreen() {
+void defos_toggle_maximize() {
+    if (defos_is_fullscreen()){
+        defos_toggle_fullscreen();
+    }
+    if (is_maximize){
+        is_maximize = false;
+        [window setFrame:previous_state display:YES];
+    }
+    else
+    {
+        is_maximize = true;
+        previous_state = [window frame];
+        [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
+    }
+}
+
+bool defos_is_fullscreen() {
 	init_window();
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;
+}
+
+bool defos_is_maximize() {
+    return is_maximize;
 }
 
 void defos_set_window_size(lua_State* L) {

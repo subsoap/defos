@@ -35,6 +35,9 @@ function init(self)
 	defos.disable_mouse_cursor()
 	defos.enable_mouse_cursor()
 	defos.set_window_size(-1,-1,800,600)
+	defos.set_window_title("I set this title using Defos")
+	defos.toggle_fullscreen()
+	defos.is_fullscreen()
 end
 ```
 Use issues for feature requests.

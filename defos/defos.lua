@@ -262,7 +262,7 @@ if ffi.os == "Windows" then
 
 
 	local is_fullscreen = false;
-	local previous_state = {style = nil, placement=nil}
+	local previous_state = {style = nil, placement=get_window_placement(C.GetActiveWindow())}
 
 	function M.is_maximize()
 		local hwnd = C.GetActiveWindow()
@@ -283,6 +283,7 @@ if ffi.os == "Windows" then
 		local hwnd = C.GetActiveWindow()
 
 		if M.is_maximize() then
+			
 			set_window_placement(hwnd, previous_state.placement)
 			is_maximize = false
 		else

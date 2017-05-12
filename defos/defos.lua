@@ -178,6 +178,8 @@ if ffi.os == "Windows" then
 		BOOL SetWindowPlacement(HWND hWnd,const WINDOWPLACEMENT *lpwndpl);
 
 		BOOL ShowWindow(HWND hWnd,int  nCmdShow);
+		
+		BOOL IsZoomed(HWND hWnd);
 	]])
 
 
@@ -258,12 +260,19 @@ if ffi.os == "Windows" then
 		end
 	end
 
-	local is_maximize = false
+
 	local is_fullscreen = false;
 	local previous_state = {style = nil, placement=nil}
 
 	function M.is_maximize()
-		return is_maximize
+		local hwnd = C.GetActiveWindow()
+		local result = C.IsZoomed(hwnd)
+		
+		if result == 0 then
+			return false
+		else
+			return true
+		end
 	end
 
 	function M.toggle_maximize()
@@ -273,7 +282,7 @@ if ffi.os == "Windows" then
 
 		local hwnd = C.GetActiveWindow()
 
-		if is_maximize then
+		if M.is_maximize() then
 			set_window_placement(hwnd, previous_state.placement)
 			is_maximize = false
 		else

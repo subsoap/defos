@@ -1,3 +1,8 @@
+-- use the native extension version if it exists
+if _G.defos then
+	return _G.defos
+end
+
 local M = {}
 
 local ffi = package.preload.ffi()

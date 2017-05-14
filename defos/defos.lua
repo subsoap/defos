@@ -267,12 +267,12 @@ if ffi.os == "Windows" then
 		end
 	end
 
-	local is_maximize = false
+	local is_maximized = false
 	local is_fullscreen = false;
 	local previous_state = {style = nil, placement=nil}
 
-	function M.is_maximize()
-		return is_maximize
+	function M.is_maximized()
+		return is_maximized
 	end
 
 	function M.toggle_maximize()
@@ -282,13 +282,13 @@ if ffi.os == "Windows" then
 
 		local hwnd = C.GetActiveWindow()
 
-		if is_maximize then
+		if is_maximized then
 			set_window_placement(hwnd, previous_state.placement)
-			is_maximize = false
+			is_maximized = false
 		else
 			previous_state.placement = get_window_placement(hwnd)
 			C.ShowWindow(hwnd, SW_MAXIMIZE)
-			is_maximize = true
+			is_maximized = true
 		end
 	end
 
@@ -319,7 +319,7 @@ if ffi.os == "Windows" then
 
 	function M.toggle_fullscreen()
 
-		if is_maximize then
+		if is_maximized then
 			-- if itis maximized, then we need to restore it then toggle fullscreen
 			M.toggle_maximize()
 		end

@@ -7,7 +7,7 @@
 
 NSWindow* window;
 
-bool is_maximize = false;
+bool is_maximized = false;
 CGRect previous_state;
 
 void init_window(){
@@ -40,7 +40,7 @@ void defos_enable_mouse_cursor() {
 }
 
 void defos_toggle_fullscreen() {
-    if (is_maximize){
+    if (is_maximized){
         defos_toggle_maximize();
     }
 	init_window();
@@ -52,13 +52,13 @@ void defos_toggle_maximize() {
     if (defos_is_fullscreen()){
         defos_toggle_fullscreen();
     }
-    if (is_maximize){
-        is_maximize = false;
+    if (is_maximized){
+        is_maximized = false;
         [window setFrame:previous_state display:YES];
     }
     else
     {
-        is_maximize = true;
+        is_maximized = true;
         previous_state = [window frame];
         [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
     }
@@ -70,8 +70,8 @@ bool defos_is_fullscreen() {
     return fullscreen == YES;
 }
 
-bool defos_is_maximize() {
-    return is_maximize;
+bool defos_is_maximized() {
+    return is_maximized;
 }
 
 void defos_set_window_size(lua_State* L) {

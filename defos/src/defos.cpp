@@ -61,9 +61,9 @@ static int toggle_maximize(lua_State* L) {
     return 0;
 }
 
-static int is_maximize(lua_State* L) {
-    bool isMaximize = defos_is_maximize();
-    lua_pushboolean(L, isMaximize);
+static int is_maximized(lua_State* L) {
+    bool isMaximized = defos_is_maximized();
+    lua_pushboolean(L, isMaximized);
     return 1;
 }
 
@@ -80,7 +80,7 @@ static const luaL_reg Module_methods[] =
 	{"toggle_fullscreen", toggle_fullscreen},
 	{"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
-    {"is_maximize", is_maximize},
+    {"is_maximized", is_maximized},
     {0, 0}
 };
 

@@ -46,9 +46,9 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "is_maximize"
+  text: "is_maximized"
   font: "larryfont"
-  id: "is_maximize"
+  id: "is_maximized"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_NW

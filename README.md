@@ -46,4 +46,4 @@ Use issues for feature requests.
 
 ## Example
 An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
-![Defos example screenshot](https://cdn.rawgit.com/AGulev/defos/4e89b3a6/docs/example_screenshot.png)
+![Defos example screenshot](https://cdn.rawgit.com/AGulev/defos/a5e377af/docs/example_screenshot.png)

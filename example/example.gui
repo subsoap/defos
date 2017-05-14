@@ -15,8 +15,8 @@ background_color {
 }
 nodes {
   position {
-    x: 213.601
-    y: 134.122
+    x: 15.0
+    y: 148.891
     z: 0.0
     w: 1.0
   }
@@ -51,7 +51,7 @@ nodes {
   id: "is_maximize"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
+  pivot: PIVOT_NW
   outline {
     x: 0.0
     y: 0.0
@@ -77,8 +77,8 @@ nodes {
 }
 nodes {
   position {
-    x: 211.945
-    y: 283.146
+    x: 15.0
+    y: 306.066
     z: 0.0
     w: 1.0
   }
@@ -113,7 +113,7 @@ nodes {
   id: "is_fullscreen"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
+  pivot: PIVOT_NW
   outline {
     x: 0.0
     y: 0.0
@@ -139,8 +139,8 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
-    y: 704.995
+    x: 165.0
+    y: 700.0
     z: 0.0
     w: 1.0
   }
@@ -300,8 +300,8 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
-    y: 470.162
+    x: 165.0
+    y: 480.0
     z: 0.0
     w: 1.0
   }
@@ -460,8 +460,8 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
-    y: 366.002
+    x: 165.0
+    y: 370.0
     z: 0.0
     w: 1.0
   }
@@ -620,7 +620,7 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
+    x: 165.0
     y: 215.004
     z: 0.0
     w: 1.0
@@ -779,7 +779,7 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
+    x: 165.0
     y: 59.275
     z: 0.0
     w: 1.0
@@ -938,8 +938,8 @@ nodes {
 }
 nodes {
   position {
-    x: 794.026
-    y: 589.473
+    x: 790.0
+    y: 590.0
     z: 0.0
     w: 1.0
   }
@@ -1364,8 +1364,8 @@ nodes {
 }
 nodes {
   position {
-    x: 167.174
-    y: 581.897
+    x: 165.0
+    y: 590.0
     z: 0.0
     w: 1.0
   }
@@ -1524,8 +1524,8 @@ nodes {
 }
 nodes {
   position {
-    x: 791.418
-    y: 474.269
+    x: 790.0
+    y: 480.0
     z: 0.0
     w: 1.0
   }
@@ -1684,8 +1684,8 @@ nodes {
 }
 nodes {
   position {
-    x: 791.418
-    y: 343.459
+    x: 790.0
+    y: 370.0
     z: 0.0
     w: 1.0
   }
@@ -1809,7 +1809,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Satandart size and pos"
+  text: "Standard size and position"
   font: "larryfont"
   id: "set_window_size/larrylabel"
   xanchor: XANCHOR_NONE

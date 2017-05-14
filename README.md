@@ -37,7 +37,7 @@ function init(self)
 	defos.set_window_size(-1,-1,800,600)
 	defos.set_window_title("I set this title using Defos")
 	defos.toggle_maximize()
-	defos.is_maximize()
+	defos.is_maximized()
 	defos.toggle_fullscreen()
 	defos.is_fullscreen()
 end

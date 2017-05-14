@@ -5,7 +5,11 @@ end
 
 local M = {}
 
-local ffi = package.preload.ffi()
+local ffi = package.preload.ffi and package.preload.ffi()
+if not ffi then
+	print("LuaJIT FFI not found")
+	return
+end
 
 --[[
 http://luajit.org/ext_ffi_api.html

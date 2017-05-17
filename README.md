@@ -36,8 +36,14 @@ function init(self)
 	defos.enable_mouse_cursor()
 	defos.set_window_size(-1,-1,800,600)
 	defos.set_window_title("I set this title using Defos")
+	defos.toggle_maximize()
+	defos.is_maximized()
 	defos.toggle_fullscreen()
 	defos.is_fullscreen()
 end
 ```
 Use issues for feature requests.
+
+## Example
+An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
+![Defos example screenshot](https://cdn.rawgit.com/AGulev/defos/a5e377af/docs/example_screenshot.png)

@@ -1,6 +1,15 @@
+-- use the native extension version if it exists
+if _G.defos then
+	return _G.defos
+end
+
 local M = {}
 
-local ffi = package.preload.ffi()
+local ffi = package.preload.ffi and package.preload.ffi()
+if not ffi then
+	print("LuaJIT FFI not found")
+	return
+end
 
 --[[
 http://luajit.org/ext_ffi_api.html
@@ -259,12 +268,11 @@ if ffi.os == "Windows" then
 			C.SetWindowPlacement(hwnd, placement)
 		end
 	end
-
-
+  
 	local is_fullscreen = false;
 	local previous_state = {style = nil, placement=get_window_placement(C.GetActiveWindow())}
 
-	function M.is_maximize()
+	function M.is_maximized()
 		local hwnd = C.GetActiveWindow()
 		local result = C.IsZoomed(hwnd)
 		
@@ -273,7 +281,7 @@ if ffi.os == "Windows" then
 		else
 			return true
 		end
-	end
+  end
 
 	function M.toggle_maximize()
 		if is_fullscreen then
@@ -282,14 +290,11 @@ if ffi.os == "Windows" then
 
 		local hwnd = C.GetActiveWindow()
 
-		if M.is_maximize() then
-			
+		if M.is_maximized() then
 			set_window_placement(hwnd, previous_state.placement)
-			is_maximize = false
 		else
 			previous_state.placement = get_window_placement(hwnd)
 			C.ShowWindow(hwnd, SW_MAXIMIZE)
-			is_maximize = true
 		end
 	end
 
@@ -320,7 +325,7 @@ if ffi.os == "Windows" then
 
 	function M.toggle_fullscreen()
 
-		if is_maximize then
+		if is_maximized then
 			-- if itis maximized, then we need to restore it then toggle fullscreen
 			M.toggle_maximize()
 		end

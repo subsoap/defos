@@ -8,7 +8,7 @@
 NSWindow* window;
 
 bool is_maximized = false;
-CGRect previous_state;
+NSRect previous_state;
 
 void init_window(){
     if (window == NULL) {

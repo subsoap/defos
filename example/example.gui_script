@@ -1,5 +1,3 @@
-local defos = require("defos.defos") --windows only
-
 local dirtylarry = require "dirtylarry/dirtylarry"
 
 function init(self)

@@ -1,7 +1,7 @@
 [project]
 title = DefOS
-version = 1.0
-dependencies = latest zip URL as a dependency in your Defold project: https://github.com/andsve/dirtylarry/archive/master.zip
+version = 1.0.1
+dependencies = https://github.com/andsve/dirtylarry/archive/master.zip
 
 [bootstrap]
 main_collection = /example/example.collectionc

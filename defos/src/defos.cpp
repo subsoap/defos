@@ -2,7 +2,6 @@
 #define LIB_NAME "defos"
 #define MODULE_NAME "defos"
 
-// Defold SDK
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
@@ -36,12 +35,17 @@ static int enable_mouse_cursor(lua_State* L) {
 }
 
 static int set_window_size(lua_State* L) {
-    defos_set_window_size(L);
+    int x = luaL_checkint(L, 1);
+    int y = luaL_checkint(L, 2);
+    int w = luaL_checkint(L, 3);
+    int h = luaL_checkint(L, 4);
+    defos_set_window_size(x, y, w, h);
     return 0;
 }
 
 static int set_window_title(lua_State* L) {
-    defos_set_window_title(L);
+	const char* title_lua = luaL_checkstring(L, 1);
+    defos_set_window_title(title_lua);
     return 0;
 }
 

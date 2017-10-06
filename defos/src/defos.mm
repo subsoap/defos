@@ -76,7 +76,9 @@ bool defos_is_maximized() {
 
 void defos_set_window_size(int x, int y, int w, int h) {
     init_window();
-    [window setFrame:NSMakeRect(x, y, w , h) display:YES];
+	//correction for result like on Windows PC
+	int win_y = [[window screen] frame].size.height - h - y;
+    [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
 void defos_set_window_title(const char* title_lua) {

@@ -90,12 +90,7 @@ void defos_toggle_maximize() {
 	}
 }
 
-void defos_set_window_size(lua_State* L) {
-	int x = luaL_checkint(L, 1);
-	int y = luaL_checkint(L, 2);
-	int w = luaL_checkint(L, 3);
-	int h = luaL_checkint(L, 4);
-
+void defos_set_window_size(int x, int y, int w, int h) {
 	if(x == -1) {
 		x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
 		y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
@@ -104,8 +99,7 @@ void defos_set_window_size(lua_State* L) {
 	SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
 }
 
-void defos_set_window_title(lua_State* L) {
-	const char* title_lua = luaL_checkstring(L, 1);
+void defos_set_window_title(const char* title_lua) {
 	SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 

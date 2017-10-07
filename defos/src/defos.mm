@@ -74,18 +74,15 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
-void defos_set_window_size(lua_State* L) {
+void defos_set_window_size(int x, int y, int w, int h) {
     init_window();
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
-    int w = luaL_checkint(L, 3);
-    int h = luaL_checkint(L, 4);
-    [window setFrame:NSMakeRect(x, y, w , h) display:YES];
+	//correction for result like on Windows PC
+	int win_y = [[window screen] frame].size.height - h - y;
+    [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
-void defos_set_window_title(lua_State* L) {
+void defos_set_window_title(const char* title_lua) {
     init_window();
-    const char* title_lua = luaL_checkstring(L, 1);
 	NSString* title = [NSString stringWithUTF8String:title_lua];
     [window setTitle:title];
 }

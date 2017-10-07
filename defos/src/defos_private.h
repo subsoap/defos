@@ -10,8 +10,8 @@ extern void defos_enable_mouse_cursor();
 extern void defos_toggle_fullscreen();
 extern void defos_toggle_maximize();
 
-extern void defos_set_window_size(lua_State* L);
-extern void defos_set_window_title(lua_State* L);
+extern void defos_set_window_size(int x, int y, int w, int h);
+extern void defos_set_window_title(const char* title_lua);
 
 extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();

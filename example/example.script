@@ -1,4 +1,3 @@
-local defos = require("defos.defos") --windows only
 function init(self)
 
  	defos.disable_maximize_button()

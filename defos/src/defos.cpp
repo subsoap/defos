@@ -6,7 +6,7 @@
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_OSX)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS)
 
 #include "defos_private.h"
 
@@ -115,6 +115,3 @@ dmExtension::Result FinalizeDefos(dmExtension::Params* params)
 
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
 #endif
-
-
-

@@ -3,11 +3,23 @@ local dirtylarry = require "dirtylarry/dirtylarry"
 function init(self)
 	self.is_cursor = true
 	msg.post(".", "acquire_input_focus")
+	
+	self.mouse_inside_label = gui.get_node("is_mouse_cursor_within_window")
 end
 
 local function change_mouse_label(text)
 	local label = gui.get_node("disable_mouse_cursor/larrylabel")
 	gui.set_text(label,text)
+end
+
+function update(self, dt)
+	self.mouse_inside = defos.is_mouse_cursor_within_window()
+	if self.mouse_inside == true then
+		gui.set_text(self.mouse_inside_label, "MOUSE IS INSIDE")
+	else
+		gui.set_text(self.mouse_inside_label, "MOUSE IS OUTSIDE")
+	end
+	
 end
 
 function on_input(self, action_id, action)
@@ -61,3 +73,4 @@ function on_input(self, action_id, action)
     gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
     gui.set_text(gui.get_node("is_maximized"),"is_maximized "..tostring(defos.is_maximized()))
 end
+

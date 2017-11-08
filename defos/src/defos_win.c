@@ -22,7 +22,37 @@ bool defos_is_fullscreen() {
 }
 
 bool defos_is_maximized() {
+	
 	return IsZoomed(dmGraphics::GetNativeWindowsHWND());
+}
+
+bool defos_is_mouse_cursor_within_window() {
+	HWND window = dmGraphics::GetNativeWindowsHWND();	
+	
+	POINT ptr;
+	ClientToScreen(window, &ptr);
+	int client_x = ptr.x;
+	int client_y = ptr.y;
+	
+	POINT pos;
+	GetCursorPos(&pos);
+	int cursor_x = pos.x;
+	int cursor_y = pos.y;
+	
+	RECT client_rect;
+	GetClientRect(window, &client_rect);
+	int client_width = client_rect.right;
+	int client_height = client_rect.bottom;
+	
+	cursor_x = cursor_x - client_x;
+	cursor_y = cursor_y - client_y;
+	
+	if ((cursor_x >= 0) && (cursor_y >=0) && (cursor_x <= client_width) && (cursor_y <= client_height)) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void defos_disable_maximize_button() {

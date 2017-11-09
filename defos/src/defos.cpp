@@ -9,6 +9,8 @@
 
 #include "defos_private.h"
 
+
+
 static int disable_maximize_button(lua_State* L) {
     defos_disable_maximize_button();
     return 0;
@@ -71,6 +73,22 @@ static int is_maximized(lua_State* L) {
     return 1;
 }
 
+static int show_console(lua_State* L) {
+    defos_show_console();
+    return 0;
+}
+
+static int hide_console(lua_State* L) {
+    defos_hide_console();
+    return 0;
+}
+
+static int is_console_visible(lua_State* L) {
+    bool isConsoleVisible = defos_is_console_visible();
+    lua_pushboolean(L, isConsoleVisible);
+    return 1;
+}
+
 
 static const luaL_reg Module_methods[] =
 {
@@ -85,6 +103,9 @@ static const luaL_reg Module_methods[] =
 	{"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
+    {"show_console", show_console},
+	{"hide_console", hide_console},
+    {"is_console_visible", is_console_visible},	
     {0, 0}
 };
 

@@ -5,6 +5,7 @@
 
 #include <atlbase.h>
 #include <atlconv.h>
+#include <Windows.h>
 
 // keep track of window placement when going to/from fullscreen or maximized
 WINDOWPLACEMENT placement = { sizeof(placement) };
@@ -44,6 +45,19 @@ void defos_disable_mouse_cursor() {
 void defos_enable_mouse_cursor() {
 	ShowCursor(1);
 }
+
+void defos_show_console() {
+	::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+}
+
+void defos_hide_console() {
+	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+}
+
+bool defos_is_console_visible() {
+	return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
+}
+
 
 // https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
 void defos_toggle_fullscreen() {

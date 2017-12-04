@@ -5,6 +5,10 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 	
 	self.mouse_inside_label = gui.get_node("is_mouse_cursor_within_window")
+	
+	defos.watch_mouse_state(function(self, state)
+		print(state)
+	end)
 end
 
 local function change_mouse_label(text)

@@ -85,9 +85,14 @@ static int enable_subclass_window(lua_State* L){
 
 static int disable_subclass_window(lua_State* L){
     defos_disable_subclass_window();
-    return 1;
+    return 0;
 }
 
+static int watch_mouse_state(lua_State* L)
+{
+    defos_watch_mouse_state(L);
+    return 0;
+}
 
 static const luaL_reg Module_methods[] =
 {
@@ -105,6 +110,7 @@ static const luaL_reg Module_methods[] =
 	{"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
     {"enable_subclass_window", enable_subclass_window},
     {"disable_subclass_window", disable_subclass_window},
+    {"watch_mouse_state", watch_mouse_state},
     {0, 0}
 };
 

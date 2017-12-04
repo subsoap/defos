@@ -69,7 +69,15 @@ function on_input(self, action_id, action)
     		change_mouse_label("Disable mouse cursor")
     	end
     end)
-    
+
+    dirtylarry:button("subclass_window", action_id, action, function ()
+    	defos.enable_subclass_window()
+    end)	
+
+    dirtylarry:button("disable_subclass_window", action_id, action, function ()
+    	defos.disable_subclass_window()
+    end) 
+
     gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
     gui.set_text(gui.get_node("is_maximized"),"is_maximized "..tostring(defos.is_maximized()))
 end

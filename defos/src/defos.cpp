@@ -77,6 +77,17 @@ static int is_mouse_cursor_within_window(lua_State* L) {
     return 1;
 }
 
+static int enable_subclass_window(lua_State* L){
+    bool success = defos_enable_subclass_window();
+    lua_pushboolean(L, success);
+    return 1;
+}
+
+static int disable_subclass_window(lua_State* L){
+    defos_disable_subclass_window();
+    return 1;
+}
+
 
 static const luaL_reg Module_methods[] =
 {
@@ -92,6 +103,8 @@ static const luaL_reg Module_methods[] =
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
 	{"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
+    {"enable_subclass_window", enable_subclass_window},
+    {"disable_subclass_window", disable_subclass_window},
     {0, 0}
 };
 

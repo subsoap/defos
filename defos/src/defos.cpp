@@ -71,6 +71,15 @@ static int is_maximized(lua_State* L) {
     return 1;
 }
 
+static int get_window_size(lua_State* L) {
+    WinRect rect;
+    rect = defos_get_window_size();
+    lua_pushnumber(L, rect.x);
+    lua_pushnumber(L, rect.y);
+    lua_pushnumber(L, rect.w);
+    lua_pushnumber(L, rect.h);
+    return 4;
+}
 
 static const luaL_reg Module_methods[] =
 {
@@ -85,6 +94,7 @@ static const luaL_reg Module_methods[] =
 	{"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
+    {"get_window_size", get_window_size},
     {0, 0}
 };
 

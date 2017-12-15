@@ -118,4 +118,28 @@ dmExtension::Result FinalizeDefos(dmExtension::Params* params)
 }
 
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
+
+#else
+
+dmExtension::Result AppInitializeDefos(dmExtension::AppParams* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result InitializeDefos(dmExtension::Params* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result AppFinalizeDefos(dmExtension::AppParams* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result FinalizeDefos(dmExtension::Params* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
 #endif

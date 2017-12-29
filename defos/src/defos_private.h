@@ -2,6 +2,10 @@
 
 #include <dmsdk/sdk.h>
 
+struct WinRect {
+    float x,y,w,h;
+};
+
 extern void defos_init();
 extern void defos_final();
 
@@ -18,3 +22,5 @@ extern void defos_set_window_title(const char* title_lua);
 
 extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
+
+extern WinRect defos_get_window_size();

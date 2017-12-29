@@ -17,7 +17,6 @@ function init(self)
 end
 
 function update(self)
-
 end
 
 

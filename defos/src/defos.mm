@@ -81,4 +81,15 @@ void defos_set_window_title(const char* title_lua) {
     [window setTitle:title];
 }
 
+WinRect defos_get_window_size(){
+    init_window();
+    WinRect rect;
+    NSRect frame = [window frame];
+    rect.x = frame.origin.x;
+    rect.y = [[window screen] frame].size.height - frame.size.height - frame.origin.y;
+    rect.w = frame.size.width;
+    rect.h = frame.size.height;
+    return rect;
+}
+
 #endif

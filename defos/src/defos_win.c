@@ -9,6 +9,9 @@
 // keep track of window placement when going to/from fullscreen or maximized
 WINDOWPLACEMENT placement = { sizeof(placement) };
 
+void defos_init() {}
+void defos_final() {}
+
 bool set_window_style(LONG_PTR style) {
     return SetWindowLongPtrA(dmGraphics::GetNativeWindowsHWND(), GWL_STYLE, style) != 0;
 }

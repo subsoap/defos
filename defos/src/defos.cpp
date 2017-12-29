@@ -103,6 +103,7 @@ dmExtension::Result AppInitializeDefos(dmExtension::AppParams* params)
 
 dmExtension::Result InitializeDefos(dmExtension::Params* params)
 {
+    defos_init();
     LuaInit(params->m_L);
     return dmExtension::RESULT_OK;
 }
@@ -114,6 +115,7 @@ dmExtension::Result AppFinalizeDefos(dmExtension::AppParams* params)
 
 dmExtension::Result FinalizeDefos(dmExtension::Params* params)
 {
+    defos_final();
     return dmExtension::RESULT_OK;
 }
 

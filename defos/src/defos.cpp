@@ -44,7 +44,7 @@ static int set_window_size(lua_State* L) {
 }
 
 static int set_window_title(lua_State* L) {
-	const char* title_lua = luaL_checkstring(L, 1);
+    const char* title_lua = luaL_checkstring(L, 1);
     defos_set_window_title(title_lua);
     return 0;
 }
@@ -56,7 +56,7 @@ static int toggle_fullscreen(lua_State* L) {
 
 static int is_fullscreen(lua_State* L) {
     bool isFullScreen = defos_is_fullscreen();
-	lua_pushboolean(L, isFullScreen);
+    lua_pushboolean(L, isFullScreen);
     return 1;
 }
 
@@ -80,9 +80,9 @@ static const luaL_reg Module_methods[] =
     {"disable_mouse_cursor", disable_mouse_cursor},
     {"enable_mouse_cursor", enable_mouse_cursor},
     {"set_window_size", set_window_size},
-	{"set_window_title", set_window_title},
-	{"toggle_fullscreen", toggle_fullscreen},
-	{"is_fullscreen", is_fullscreen},
+    {"set_window_title", set_window_title},
+    {"toggle_fullscreen", toggle_fullscreen},
+    {"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
     {0, 0}

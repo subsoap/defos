@@ -43,8 +43,8 @@ void defos_toggle_fullscreen() {
     if (is_maximized){
         defos_toggle_maximize();
     }
-	init_window();
-	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    init_window();
+    [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     [window toggleFullScreen:window];
 }
 
@@ -65,7 +65,7 @@ void defos_toggle_maximize() {
 }
 
 bool defos_is_fullscreen() {
-	init_window();
+    init_window();
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;
 }
@@ -76,14 +76,14 @@ bool defos_is_maximized() {
 
 void defos_set_window_size(int x, int y, int w, int h) {
     init_window();
-	//correction for result like on Windows PC
-	int win_y = [[window screen] frame].size.height - h - y;
+    // correction for result like on Windows PC
+    int win_y = [[window screen] frame].size.height - h - y;
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
 void defos_set_window_title(const char* title_lua) {
     init_window();
-	NSString* title = [NSString stringWithUTF8String:title_lua];
+    NSString* title = [NSString stringWithUTF8String:title_lua];
     [window setTitle:title];
 }
 

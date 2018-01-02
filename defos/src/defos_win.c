@@ -218,6 +218,18 @@ void defos_set_window_title(const char *title_lua)
 	SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 
+WinRect defos_get_window_size(){
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    WINDOWPLACEMENT frame = { sizeof(placement) };
+    GetWindowPlacement(window, &frame);
+    WinRect rect;
+    rect.x = frame.rcNormalPosition.left;
+    rect.y = frame.rcNormalPosition.top;
+    rect.w = frame.rcNormalPosition.right - frame.rcNormalPosition.left;
+    rect.h = frame.rcNormalPosition.bottom - frame.rcNormalPosition.top;
+    return rect;
+}
+
 /********************
  * internal functions
  ********************/

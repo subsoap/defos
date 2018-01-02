@@ -20,6 +20,8 @@ static WNDPROC originalProc = NULL;
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
 LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
+void restore_window_class();
+void subclass_window();
 
 /******************
  * exposed functions
@@ -32,49 +34,12 @@ void defos_init()
 
 void defos_final()
 {
-    defos_disable_subclass_window();
+    restore_window_class();
 }
 
 void defos_event_handler_was_set(DefosEvent event)
 {
-    defos_enable_subclass_window();
-}
-
-// subclass the window
-bool defos_enable_subclass_window()
-{
-    // check if we already subclass the window
-    if (originalProc != NULL)
-    {
-        return true; // or false?
-    }
-
-    HWND window = dmGraphics::GetNativeWindowsHWND();
-
-    originalProc = (WNDPROC)SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)&custom_wndproc); // keep original proc
-
-    if (originalProc == NULL)
-    {
-        DWORD error = GetLastError();
-
-        // error handling? how?
-        dmLogError("error while subclass current window: %d\n", error);
-
-        return false;
-    }
-
-    return true;
-}
-
-// disable subclass windows
-void defos_disable_subclass_window()
-{
-    if (originalProc != NULL)
-    {
-        HWND window = dmGraphics::GetNativeWindowsHWND();
-        SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
-        originalProc = NULL;
-    }
+    subclass_window();
 }
 
 bool defos_is_fullscreen()
@@ -237,6 +202,32 @@ static bool set_window_style(LONG_PTR style)
 static LONG_PTR get_window_style()
 {
     return GetWindowLongPtrA(dmGraphics::GetNativeWindowsHWND(), GWL_STYLE);
+}
+
+static void subclass_window()
+{
+    // check if we already subclass the window
+    if (originalProc) { return; }
+
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    originalProc = (WNDPROC)SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)&custom_wndproc); // keep original proc
+
+    if (originalProc == NULL)
+    {
+        DWORD error = GetLastError();
+        dmLogError("Error while subclassing current window: %d\n", error);
+    }
+}
+
+static void restore_window_class()
+{
+    if (originalProc != NULL)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
+        SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
+        originalProc = NULL;
+    }
 }
 
 // replaced wndproc to cutomize message processing

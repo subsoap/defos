@@ -80,17 +80,6 @@ static int is_mouse_cursor_within_window(lua_State* L) {
     return 1;
 }
 
-static int enable_subclass_window(lua_State* L){
-    bool success = defos_enable_subclass_window();
-    lua_pushboolean(L, success);
-    return 1;
-}
-
-static int disable_subclass_window(lua_State* L){
-    defos_disable_subclass_window();
-    return 0;
-}
-
 static void set_event_handler(lua_State* L, int index, DefosEvent event) {
     LuaCallbackInfo* cbk = &defos_event_handlers[event];
     if (cbk->m_Callback != LUA_NOREF) {
@@ -175,8 +164,6 @@ static const luaL_reg Module_methods[] =
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
     {"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
-    {"enable_subclass_window", enable_subclass_window},
-    {"disable_subclass_window", disable_subclass_window},
     {"on_mouse_leave", on_mouse_leave},
     {"on_mouse_enter", on_mouse_enter},
     {"get_window_size", get_window_size},

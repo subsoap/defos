@@ -1,6 +1,14 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 
 function init(self)
+	defos.on_mouse_enter(function ()
+		print("Mouse entered window");
+	end)
+
+	defos.on_mouse_leave(function ()
+		print("Mouse left window");
+	end)
+	
 	self.is_cursor = true
 	msg.post(".", "acquire_input_focus")
 end

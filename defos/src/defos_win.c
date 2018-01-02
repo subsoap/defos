@@ -15,21 +15,7 @@ WINDOWPLACEMENT placement = {sizeof(placement)};
 bool is_mouse_tracking = false;
 
 // original wndproc pointer
-WNDPROC originalProc;
-
-// callback struct
-struct LuaCallbackInfo
-{
-	LuaCallbackInfo() : m_L(0), m_Callback(LUA_NOREF), m_Self(LUA_NOREF) {}
-	lua_State *m_L;
-	int m_Callback;
-	int m_Self;
-};
-
-// tracking if mouse event already hooked
-bool mouse_event_hooked = false;
-// callback of mouse state
-LuaCallbackInfo mouseStateCb;
+WNDPROC originalProc = NULL;
 
 // forward declarations
 bool set_window_style(LONG_PTR style);
@@ -44,8 +30,20 @@ void invoke_mouse_state(int state);
  * exposed functions
  ******************/
 
-void defos_init() {}
-void defos_final() {}
+void defos_init()
+{
+	is_mouse_tracking = false;
+}
+
+void defos_final()
+{
+	defos_disable_subclass_window();
+}
+
+void defos_event_handler_was_set(DefosEvent event)
+{
+	defos_enable_subclass_window();
+}
 
 // subclass the window
 bool defos_enable_subclass_window()
@@ -79,18 +77,8 @@ void defos_disable_subclass_window()
 	if (originalProc != NULL)
 	{
 		HWND window = dmGraphics::GetNativeWindowsHWND();
-		SetWindowLongPtr(window, -4, (LONG)originalProc);
-	}
-}
-
-// watch the mouse state changing
-void defos_watch_mouse_state(lua_State *L)
-{
-	if (!mouse_event_hooked)
-	{
-		register_callback(L, 1, &mouseStateCb);
-
-		mouse_event_hooked = true;
+		SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
+		originalProc = NULL;
 	}
 }
 
@@ -271,14 +259,15 @@ int __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 			is_mouse_tracking = enable_mouse_tracking();
 		}
 		break;
+
 	case WM_MOUSELEAVE:
 		is_mouse_tracking = false; // each time leave and hover reached, the mouse tracking is disabled, we need to track it again
-
-		invoke_mouse_state(0);
+		defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
 		break;
+
 	case WM_MOUSEHOVER:
 		is_mouse_tracking = false;
-		invoke_mouse_state(1);
+		defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
 		break;
 	}
 
@@ -286,71 +275,6 @@ int __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 		return CallWindowProc(originalProc, hwnd, umsg, wp, lp);
 	else
 		return 0;
-}
-
-// TODO: make a meaningful name
-// register can be a general one
-void register_callback(lua_State *L, int index, LuaCallbackInfo *cbk)
-{
-	luaL_checktype(L, index, LUA_TFUNCTION);
-	lua_pushvalue(L, index);
-	int cb = dmScript::Ref(L, LUA_REGISTRYINDEX);
-
-	if (cbk->m_Callback != LUA_NOREF)
-	{
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
-	}
-
-	cbk->m_L = dmScript::GetMainThread(L);
-	cbk->m_Callback = cb;
-
-	dmScript::GetInstance(L);
-
-	cbk->m_Self = dmScript::Ref(L, LUA_REGISTRYINDEX);
-}
-
-void unregister_callback(LuaCallbackInfo *cbk)
-{
-	if (cbk->m_Callback != LUA_NOREF)
-	{
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
-		cbk->m_Callback = LUA_NOREF;
-	}
-}
-
-// invoke the mouse state change callback, 0-leave, 1-hover
-void invoke_mouse_state(int state)
-{
-	LuaCallbackInfo *mscb = &mouseStateCb;
-
-	if (mscb->m_Callback == LUA_NOREF)
-	{
-		return;
-	}
-
-	lua_State *L = mscb->m_L;
-	int top = lua_gettop(L);
-
-	lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Callback);
-
-	// Setup self (the script instance)
-	lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Self);
-	lua_pushvalue(L, -1);
-
-	dmScript::SetInstance(L);
-
-	lua_pushnumber(L, state);
-
-	int ret = lua_pcall(L, 2, 0, 0);
-
-	if (ret != 0)
-	{
-		dmLogError("Error running callback: %s", lua_tostring(L, -1));
-		lua_pop(L, 1);
-	}
-	assert(top == lua_gettop(L));
 }
 
 #endif

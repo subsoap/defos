@@ -21,7 +21,7 @@ WNDPROC originalProc = NULL;
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
 bool enable_mouse_tracking();
-int __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
+LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
 void register_callback(lua_State *L, int index, LuaCallbackInfo *cbk);
 void unregister_callback(LuaCallbackInfo *cbk);
 void invoke_mouse_state(int state);
@@ -89,7 +89,7 @@ bool defos_is_fullscreen()
 
 bool defos_is_maximized()
 {
-	return IsZoomed(dmGraphics::GetNativeWindowsHWND());
+	return !!IsZoomed(dmGraphics::GetNativeWindowsHWND());
 }
 
 bool defos_is_mouse_cursor_within_window()
@@ -243,11 +243,11 @@ bool enable_mouse_tracking()
 	tme.hwndTrack = window;
 	tme.dwHoverTime = 1;
 
-	return TrackMouseEvent(&tme);
+	return !!TrackMouseEvent(&tme);
 }
 
 // replaced wndproc to cutomize message processing
-int __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
+LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 {
 	// NOTE: we do not handle any event here, so they will be processed by the default wndproc callback
 

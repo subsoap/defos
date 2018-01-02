@@ -18,6 +18,9 @@ void defos_init() {
 void defos_final() {
 }
 
+void defos_event_handler_was_set(DefosEvent event) {
+}
+
 void defos_disable_maximize_button() {
     [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
 }

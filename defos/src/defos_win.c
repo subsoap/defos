@@ -12,7 +12,7 @@
 WINDOWPLACEMENT placement = {sizeof(placement)};
 
 // used to check if mouse tracking enabled
-bool is_mouse_tracking = false;
+bool is_mouse_inside = false;
 
 // original wndproc pointer
 WNDPROC originalProc = NULL;
@@ -20,11 +20,7 @@ WNDPROC originalProc = NULL;
 // forward declarations
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
-bool enable_mouse_tracking();
 LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
-void register_callback(lua_State *L, int index, LuaCallbackInfo *cbk);
-void unregister_callback(LuaCallbackInfo *cbk);
-void invoke_mouse_state(int state);
 
 /******************
  * exposed functions
@@ -32,7 +28,7 @@ void invoke_mouse_state(int state);
 
 void defos_init()
 {
-	is_mouse_tracking = false;
+	is_mouse_inside = false;
 }
 
 void defos_final()
@@ -244,20 +240,6 @@ LONG_PTR get_window_style()
 	return GetWindowLongPtrA(dmGraphics::GetNativeWindowsHWND(), GWL_STYLE);
 }
 
-// enable the mouse tracking event, so that wndproc will recieve the mouse leave/hover event
-bool enable_mouse_tracking()
-{
-	HWND window = dmGraphics::GetNativeWindowsHWND();
-
-	TRACKMOUSEEVENT tme;
-	tme.cbSize = sizeof(TRACKMOUSEEVENT);
-	tme.dwFlags = TME_HOVER | TME_LEAVE;
-	tme.hwndTrack = window;
-	tme.dwHoverTime = 1;
-
-	return !!TrackMouseEvent(&tme);
-}
-
 // replaced wndproc to cutomize message processing
 LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 {
@@ -266,20 +248,21 @@ LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 	switch (umsg)
 	{
 	case WM_MOUSEMOVE:
-		if (!is_mouse_tracking)
+		if (!is_mouse_inside)
 		{
-			is_mouse_tracking = enable_mouse_tracking();
+			is_mouse_inside = true;
+			defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+
+			TRACKMOUSEEVENT tme = { sizeof(tme) };
+			tme.dwFlags = TME_LEAVE;
+			tme.hwndTrack = hwnd;
+			TrackMouseEvent(&tme);
 		}
 		break;
 
 	case WM_MOUSELEAVE:
-		is_mouse_tracking = false; // each time leave and hover reached, the mouse tracking is disabled, we need to track it again
+		is_mouse_inside = false;
 		defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
-		break;
-
-	case WM_MOUSEHOVER:
-		is_mouse_tracking = false;
-		defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
 		break;
 	}
 

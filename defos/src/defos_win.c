@@ -1,6 +1,5 @@
 #include <dmsdk/sdk.h>
 #include "defos_private.h"
-#include <dmsdk/sdk.h>
 
 #if defined(DM_PLATFORM_WINDOWS)
 
@@ -9,13 +8,13 @@
 #include <WinUser.h>
 
 // keep track of window placement when going to/from fullscreen or maximized
-WINDOWPLACEMENT placement = {sizeof(placement)};
+static WINDOWPLACEMENT placement = {sizeof(placement)};
 
-// used to check if mouse tracking enabled
-bool is_mouse_inside = false;
+// used to check if WM_MOUSELEAVE detected the mouse leaving the window
+static bool is_mouse_inside = false;
 
 // original wndproc pointer
-WNDPROC originalProc = NULL;
+static WNDPROC originalProc = NULL;
 
 // forward declarations
 bool set_window_style(LONG_PTR style);
@@ -230,18 +229,18 @@ WinRect defos_get_window_size(){
  * internal functions
  ********************/
 
-bool set_window_style(LONG_PTR style)
+static bool set_window_style(LONG_PTR style)
 {
 	return SetWindowLongPtrA(dmGraphics::GetNativeWindowsHWND(), GWL_STYLE, style) != 0;
 }
 
-LONG_PTR get_window_style()
+static LONG_PTR get_window_style()
 {
 	return GetWindowLongPtrA(dmGraphics::GetNativeWindowsHWND(), GWL_STYLE);
 }
 
 // replaced wndproc to cutomize message processing
-LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
+static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 {
 	// NOTE: we do not handle any event here, so they will be processed by the default wndproc callback
 

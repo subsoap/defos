@@ -118,12 +118,12 @@ static void set_event_handler(lua_State* L, int index, DefosEvent event) {
 }
 
 static int on_mouse_leave(lua_State* L) {
-    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_ENTER);
+    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_LEAVE);
     return 0;
 }
 
 static int on_mouse_enter(lua_State* L) {
-    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_LEAVE);
+    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_ENTER);
     return 0;
 }
 

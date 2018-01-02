@@ -8,7 +8,7 @@
 NSWindow* window = NULL;
 
 bool is_maximized = false;
-bool is_mouse_cursor_within_window = false;
+bool is_mouse_inside_window = false;
 NSRect previous_state;
 
 void defos_init() {
@@ -74,8 +74,8 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
-bool defos_is_mouse_cursor_within_window() {
-    return is_mouse_cursor_within_window;
+bool defos_is_mouse_inside_window() {
+    return is_mouse_inside_window;
 }
 
 void defos_set_window_size(int x, int y, int w, int h) {

@@ -73,9 +73,9 @@ static int is_maximized(lua_State* L) {
     return 1;
 }
 
-static int is_mouse_cursor_within_window(lua_State* L) {
+static int is_mouse_inside_window(lua_State* L) {
 
-    bool isWithin = defos_is_mouse_cursor_within_window();
+    bool isWithin = defos_is_mouse_inside_window();
     lua_pushboolean(L, isWithin);
     return 1;
 }
@@ -163,7 +163,7 @@ static const luaL_reg Module_methods[] =
     {"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
-    {"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
+    {"is_mouse_inside_window", is_mouse_inside_window},
     {"on_mouse_leave", on_mouse_leave},
     {"on_mouse_enter", on_mouse_enter},
     {"get_window_size", get_window_size},

@@ -74,14 +74,7 @@ bool defos_is_mouse_inside_window()
     cursor_x = cursor_x - client_x;
     cursor_y = cursor_y - client_y;
 
-    if ((cursor_x >= 0) && (cursor_y >= 0) && (cursor_x <= client_width) && (cursor_y <= client_height))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return ((cursor_x >= 0) && (cursor_y >= 0) && (cursor_x <= client_width) && (cursor_y <= client_height));
 }
 
 void defos_disable_maximize_button()

@@ -31,7 +31,7 @@ bool mouse_event_hooked = false;
 // callback of mouse state
 LuaCallbackInfo mouseStateCb;
 
-/*function declarations*/
+// forward declarations
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
 bool enable_mouse_tracking();
@@ -41,8 +41,11 @@ void unregister_callback(LuaCallbackInfo *cbk);
 void invoke_mouse_state(int state);
 
 /******************
- * expose functions
+ * exposed functions
  ******************/
+
+void defos_init() {}
+void defos_final() {}
 
 // subclass the window
 bool defos_enable_subclass_window()

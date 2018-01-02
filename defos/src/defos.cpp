@@ -44,7 +44,7 @@ static int set_window_size(lua_State* L) {
 }
 
 static int set_window_title(lua_State* L) {
-	const char* title_lua = luaL_checkstring(L, 1);
+    const char* title_lua = luaL_checkstring(L, 1);
     defos_set_window_title(title_lua);
     return 0;
 }
@@ -56,7 +56,7 @@ static int toggle_fullscreen(lua_State* L) {
 
 static int is_fullscreen(lua_State* L) {
     bool isFullScreen = defos_is_fullscreen();
-	lua_pushboolean(L, isFullScreen);
+    lua_pushboolean(L, isFullScreen);
     return 1;
 }
 
@@ -72,6 +72,7 @@ static int is_maximized(lua_State* L) {
 }
 
 static int is_mouse_cursor_within_window(lua_State* L) {
+
     bool isWithin = defos_is_mouse_cursor_within_window();
     lua_pushboolean(L, isWithin);
     return 1;
@@ -94,6 +95,16 @@ static int watch_mouse_state(lua_State* L)
     return 0;
 }
 
+static int get_window_size(lua_State* L) {
+    WinRect rect;
+    rect = defos_get_window_size();
+    lua_pushnumber(L, rect.x);
+    lua_pushnumber(L, rect.y);
+    lua_pushnumber(L, rect.w);
+    lua_pushnumber(L, rect.h);
+    return 4;
+}
+
 static const luaL_reg Module_methods[] =
 {
     {"disable_maximize_button", disable_maximize_button},
@@ -102,15 +113,16 @@ static const luaL_reg Module_methods[] =
     {"disable_mouse_cursor", disable_mouse_cursor},
     {"enable_mouse_cursor", enable_mouse_cursor},
     {"set_window_size", set_window_size},
-	{"set_window_title", set_window_title},
-	{"toggle_fullscreen", toggle_fullscreen},
-	{"is_fullscreen", is_fullscreen},
+    {"set_window_title", set_window_title},
+    {"toggle_fullscreen", toggle_fullscreen},
+    {"is_fullscreen", is_fullscreen},
     {"toggle_maximize", toggle_maximize},
     {"is_maximized", is_maximized},
-	{"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
+    {"is_mouse_cursor_within_window", is_mouse_cursor_within_window},
     {"enable_subclass_window", enable_subclass_window},
     {"disable_subclass_window", disable_subclass_window},
     {"watch_mouse_state", watch_mouse_state},
+    {"get_window_size", get_window_size},
     {0, 0}
 };
 
@@ -129,7 +141,33 @@ dmExtension::Result AppInitializeDefos(dmExtension::AppParams* params)
 
 dmExtension::Result InitializeDefos(dmExtension::Params* params)
 {
+    defos_init();
     LuaInit(params->m_L);
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result AppFinalizeDefos(dmExtension::AppParams* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result FinalizeDefos(dmExtension::Params* params)
+{
+    defos_final();
+    return dmExtension::RESULT_OK;
+}
+
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
+
+#else
+
+dmExtension::Result AppInitializeDefos(dmExtension::AppParams* params)
+{
+    return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result InitializeDefos(dmExtension::Params* params)
+{
     return dmExtension::RESULT_OK;
 }
 

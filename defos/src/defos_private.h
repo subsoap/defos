@@ -7,23 +7,23 @@ struct WinRect {
 };
 
 struct LuaCallbackInfo {
-	LuaCallbackInfo() : m_L(0), m_Callback(LUA_NOREF), m_Self(LUA_NOREF) {}
-	lua_State *m_L;
-	int m_Callback;
-	int m_Self;
+    LuaCallbackInfo() : m_L(0), m_Callback(LUA_NOREF), m_Self(LUA_NOREF) {}
+    lua_State *m_L;
+    int m_Callback;
+    int m_Self;
 };
 
 typedef enum {
-  DEFOS_EVENT_MOUSE_LEAVE,
-  DEFOS_EVENT_MOUSE_ENTER,
-  DEFOS_EVENT_COUNT
+    DEFOS_EVENT_MOUSE_LEAVE,
+    DEFOS_EVENT_MOUSE_ENTER,
+    DEFOS_EVENT_COUNT
 } DefosEvent;
 
 extern LuaCallbackInfo defos_event_handlers[];
 extern void defos_emit_event(DefosEvent event);
 extern void defos_event_handler_was_set(DefosEvent event);
 inline bool defos_event_is_bound(DefosEvent event) {
-  return defos_event_handlers[event].m_Callback != LUA_NOREF;
+    return defos_event_handlers[event].m_Callback != LUA_NOREF;
 }
 
 extern void defos_init();

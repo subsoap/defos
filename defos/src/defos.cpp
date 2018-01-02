@@ -93,25 +93,25 @@ static int disable_subclass_window(lua_State* L){
 
 static void set_event_handler(lua_State* L, int index, DefosEvent event) {
     LuaCallbackInfo* cbk = &defos_event_handlers[event];
-	if (cbk->m_Callback != LUA_NOREF) {
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
-		dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
-	}
+    if (cbk->m_Callback != LUA_NOREF) {
+        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
+        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
+    }
 
     if (lua_isnil(L, index)) {
         cbk->m_Callback = LUA_NOREF;
     } else {
-    	luaL_checktype(L, index, LUA_TFUNCTION);
-    	lua_pushvalue(L, index);
-    	int cb = dmScript::Ref(L, LUA_REGISTRYINDEX);
+        luaL_checktype(L, index, LUA_TFUNCTION);
+        lua_pushvalue(L, index);
+        int cb = dmScript::Ref(L, LUA_REGISTRYINDEX);
 
 
-    	cbk->m_L = dmScript::GetMainThread(L);
-    	cbk->m_Callback = cb;
+        cbk->m_L = dmScript::GetMainThread(L);
+        cbk->m_Callback = cb;
 
-    	dmScript::GetInstance(L);
+        dmScript::GetInstance(L);
 
-    	cbk->m_Self = dmScript::Ref(L, LUA_REGISTRYINDEX);
+        cbk->m_Self = dmScript::Ref(L, LUA_REGISTRYINDEX);
     }
 
     defos_event_handler_was_set(event);
@@ -138,27 +138,27 @@ static int get_window_size(lua_State* L) {
 }
 
 void defos_emit_event(DefosEvent event) {
-	LuaCallbackInfo *mscb = &defos_event_handlers[event];
+    LuaCallbackInfo *mscb = &defos_event_handlers[event];
 
-	if (mscb->m_Callback == LUA_NOREF) { return; }
+    if (mscb->m_Callback == LUA_NOREF) { return; }
 
-	lua_State *L = mscb->m_L;
-	int top = lua_gettop(L);
+    lua_State *L = mscb->m_L;
+    int top = lua_gettop(L);
 
-	lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Callback);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Callback);
 
-	// Setup self (the script instance)
-	lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Self);
-	dmScript::SetInstance(L);
+    // Setup self (the script instance)
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mscb->m_Self);
+    dmScript::SetInstance(L);
 
-	int ret = lua_pcall(L, 0, 0, 0);
+    int ret = lua_pcall(L, 0, 0, 0);
 
-	if (ret != 0)
-	{
-		dmLogError("Error running event handler: %s", lua_tostring(L, -1));
-		lua_pop(L, 1);
-	}
-	assert(top == lua_gettop(L));
+    if (ret != 0)
+    {
+        dmLogError("Error running event handler: %s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+    assert(top == lua_gettop(L));
 }
 
 static const luaL_reg Module_methods[] =

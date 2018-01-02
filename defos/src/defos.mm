@@ -72,7 +72,7 @@ bool defos_is_maximized() {
 }
 
 bool defos_is_mouse_cursor_within_window() {
-	return is_mouse_cursor_within_window;
+    return is_mouse_cursor_within_window;
 }
 
 void defos_set_window_size(int x, int y, int w, int h) {

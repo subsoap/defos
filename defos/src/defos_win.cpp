@@ -30,6 +30,7 @@ void subclass_window();
 void defos_init()
 {
     is_mouse_inside = false;
+    subclass_window();
 }
 
 void defos_final()
@@ -39,7 +40,6 @@ void defos_final()
 
 void defos_event_handler_was_set(DefosEvent event)
 {
-    subclass_window();
 }
 
 bool defos_is_fullscreen()
@@ -54,27 +54,7 @@ bool defos_is_maximized()
 
 bool defos_is_mouse_inside_window()
 {
-    HWND window = dmGraphics::GetNativeWindowsHWND();
-
-    POINT ptr;
-    ClientToScreen(window, &ptr);
-    int client_x = ptr.x;
-    int client_y = ptr.y;
-
-    POINT pos;
-    GetCursorPos(&pos);
-    int cursor_x = pos.x;
-    int cursor_y = pos.y;
-
-    RECT client_rect;
-    GetClientRect(window, &client_rect);
-    int client_width = client_rect.right;
-    int client_height = client_rect.bottom;
-
-    cursor_x = cursor_x - client_x;
-    cursor_y = cursor_y - client_y;
-
-    return ((cursor_x >= 0) && (cursor_y >= 0) && (cursor_x <= client_width) && (cursor_y <= client_height));
+    return is_mouse_inside;
 }
 
 void defos_disable_maximize_button()
@@ -176,10 +156,10 @@ WinRect defos_get_window_size(){
     WINDOWPLACEMENT frame = { sizeof(placement) };
     GetWindowPlacement(window, &frame);
     WinRect rect;
-    rect.x = frame.rcNormalPosition.left;
-    rect.y = frame.rcNormalPosition.top;
-    rect.w = frame.rcNormalPosition.right - frame.rcNormalPosition.left;
-    rect.h = frame.rcNormalPosition.bottom - frame.rcNormalPosition.top;
+    rect.x = (float)frame.rcNormalPosition.left;
+    rect.y = (float)frame.rcNormalPosition.top;
+    rect.w = (float)(frame.rcNormalPosition.right - frame.rcNormalPosition.left);
+    rect.h = (float)(frame.rcNormalPosition.bottom - frame.rcNormalPosition.top);
     return rect;
 }
 

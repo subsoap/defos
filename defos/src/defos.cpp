@@ -74,7 +74,6 @@ static int is_maximized(lua_State* L) {
 }
 
 static int is_mouse_inside_window(lua_State* L) {
-
     bool isWithin = defos_is_mouse_inside_window();
     lua_pushboolean(L, isWithin);
     return 1;

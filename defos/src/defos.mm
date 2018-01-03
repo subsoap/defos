@@ -16,6 +16,7 @@ static void disable_mouse_tracking();
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
+    enable_mouse_tracking();
 }
 
 void defos_final() {
@@ -23,11 +24,6 @@ void defos_final() {
 }
 
 void defos_event_handler_was_set(DefosEvent event) {
-    if (defos_event_is_bound(DEFOS_EVENT_MOUSE_ENTER) || defos_event_is_bound(DEFOS_EVENT_MOUSE_LEAVE)) {
-      enable_mouse_tracking();
-    } else {
-      disable_mouse_tracking();
-    }
 }
 
 void defos_disable_maximize_button() {

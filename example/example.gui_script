@@ -2,11 +2,11 @@ local dirtylarry = require "dirtylarry/dirtylarry"
 
 function init(self)
 	defos.on_mouse_enter(function ()
-		print("Mouse entered window");
+		print("Mouse entered window")
 	end)
 
 	defos.on_mouse_leave(function ()
-		print("Mouse left window");
+		print("Mouse left window")
 	end)
 
 	self.is_cursor = true
@@ -61,7 +61,7 @@ function on_input(self, action_id, action)
 	dirtylarry:button("toggle_maximize", action_id, action, function ()
 		defos.toggle_maximize()
 	end)
-	
+
 	dirtylarry:button("disable_mouse_cursor", action_id, action, function ()
 		if self.is_cursor then
 			defos.disable_mouse_cursor()

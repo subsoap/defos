@@ -26,10 +26,10 @@ function init(self)
 	defos.toggle_fullscreen()
 	defos.is_fullscreen()
 	defos.on_mouse_enter(function ()
-		print("Mouse entered window");
+		print("Mouse entered window")
 	end)
 	defos.on_mouse_leave(function ()
-		print("Mouse left window");
+		print("Mouse left window")
 	end)
 end
 ```

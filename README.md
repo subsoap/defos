@@ -1,7 +1,7 @@
 # DefOS
 Extra native OS functions for games written using the Defold game engine
 
-Currently uses Native Extension for macOS and Windows. Contribute!
+Currently uses Native Extension for macOS, Windows and HTML5. Contribute!
 
 ## Installation
 You can use DefOS in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:

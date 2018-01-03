@@ -5,20 +5,29 @@
 #include <AppKit/AppKit.h>
 #include <CoreGraphics/CoreGraphics.h>
 
-NSWindow* window = NULL;
+static NSWindow* window = NULL;
 
-bool is_maximized = false;
-bool is_mouse_inside_window = false;
-NSRect previous_state;
+static bool is_maximized = false;
+static bool is_mouse_inside_window = false;
+static NSRect previous_state;
+
+static void enable_mouse_tracking();
+static void disable_mouse_tracking();
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
 }
 
 void defos_final() {
+    disable_mouse_tracking();
 }
 
 void defos_event_handler_was_set(DefosEvent event) {
+    if (defos_event_is_bound(DEFOS_EVENT_MOUSE_ENTER) || defos_event_is_bound(DEFOS_EVENT_MOUSE_LEAVE)) {
+      enable_mouse_tracking();
+    } else {
+      disable_mouse_tracking();
+    }
 }
 
 void defos_disable_maximize_button() {
@@ -97,6 +106,45 @@ WinRect defos_get_window_size(){
     rect.w = frame.size.width;
     rect.h = frame.size.height;
     return rect;
+}
+
+@interface DefOSMouseTracker : NSObject
+@end
+@implementation DefOSMouseTracker
+- (void)mouseEntered:(NSEvent *)event {
+    is_mouse_inside_window = true;
+    defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+}
+- (void)mouseExited:(NSEvent *)event {
+    is_mouse_inside_window = false;
+    defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+}
+@end
+
+static DefOSMouseTracker* mouse_tracker = nil;
+static NSTrackingArea* tracking_area = nil;
+
+static void enable_mouse_tracking() {
+    if (tracking_area) { return; }
+    mouse_tracker = [[DefOSMouseTracker alloc] init];
+    tracking_area = [[NSTrackingArea alloc]
+        initWithRect:NSZeroRect
+        options: NSTrackingMouseEnteredAndExited | NSTrackingInVisibleRect | NSTrackingActiveAlways
+        owner: mouse_tracker
+        userInfo: nil
+    ];
+    [dmGraphics::GetNativeOSXNSView() addTrackingArea:tracking_area];
+    [tracking_area release];
+}
+
+static void disable_mouse_tracking() {
+    if (!tracking_area) { return; }
+
+    [dmGraphics::GetNativeOSXNSView() removeTrackingArea:tracking_area];
+    tracking_area = nil;
+
+    [mouse_tracker release];
+    mouse_tracker = nil;
 }
 
 #endif

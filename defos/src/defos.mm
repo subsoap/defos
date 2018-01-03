@@ -5,16 +5,25 @@
 #include <AppKit/AppKit.h>
 #include <CoreGraphics/CoreGraphics.h>
 
-NSWindow* window = NULL;
+static NSWindow* window = NULL;
 
-bool is_maximized = false;
-NSRect previous_state;
+static bool is_maximized = false;
+static bool is_mouse_inside_window = false;
+static NSRect previous_state;
+
+static void enable_mouse_tracking();
+static void disable_mouse_tracking();
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
+    enable_mouse_tracking();
 }
 
 void defos_final() {
+    disable_mouse_tracking();
+}
+
+void defos_event_handler_was_set(DefosEvent event) {
 }
 
 void defos_disable_maximize_button() {
@@ -70,6 +79,10 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
+bool defos_is_mouse_inside_window() {
+    return is_mouse_inside_window;
+}
+
 void defos_set_window_size(int x, int y, int w, int h) {
     // correction for result like on Windows PC
     int win_y = [[window screen] frame].size.height - h - y;
@@ -89,6 +102,45 @@ WinRect defos_get_window_size(){
     rect.w = frame.size.width;
     rect.h = frame.size.height;
     return rect;
+}
+
+@interface DefOSMouseTracker : NSObject
+@end
+@implementation DefOSMouseTracker
+- (void)mouseEntered:(NSEvent *)event {
+    is_mouse_inside_window = true;
+    defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+}
+- (void)mouseExited:(NSEvent *)event {
+    is_mouse_inside_window = false;
+    defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+}
+@end
+
+static DefOSMouseTracker* mouse_tracker = nil;
+static NSTrackingArea* tracking_area = nil;
+
+static void enable_mouse_tracking() {
+    if (tracking_area) { return; }
+    mouse_tracker = [[DefOSMouseTracker alloc] init];
+    tracking_area = [[NSTrackingArea alloc]
+        initWithRect:NSZeroRect
+        options: NSTrackingMouseEnteredAndExited | NSTrackingInVisibleRect | NSTrackingActiveAlways
+        owner: mouse_tracker
+        userInfo: nil
+    ];
+    [dmGraphics::GetNativeOSXNSView() addTrackingArea:tracking_area];
+    [tracking_area release];
+}
+
+static void disable_mouse_tracking() {
+    if (!tracking_area) { return; }
+
+    [dmGraphics::GetNativeOSXNSView() removeTrackingArea:tracking_area];
+    tracking_area = nil;
+
+    [mouse_tracker release];
+    mouse_tracker = nil;
 }
 
 #endif

@@ -5,7 +5,7 @@
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 
 #include "defos_private.h"
 

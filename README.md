@@ -1,7 +1,7 @@
 # DefOS
 Extra native OS functions for games written using the Defold game engine
 
-Currently uses Native Extension for macOS and Windows. Contribute!
+Currently uses Native Extension for macOS, Windows and HTML5. Contribute!
 
 ## Installation
 You can use DefOS in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
@@ -19,7 +19,8 @@ function init(self)
 	defos.disable_window_resize()
 	defos.disable_mouse_cursor()
 	defos.enable_mouse_cursor()
-	defos.set_window_size(-1,-1,800,600)
+	defos.get_window_size()
+	defos.set_window_size(10, 10, 800, 600)
 	defos.set_window_title("I set this title using Defos")
 	defos.toggle_maximize()
 	defos.is_maximized()
@@ -37,4 +38,4 @@ Use issues for feature requests.
 
 ## Example
 An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
-![Defos example screenshot](https://cdn.rawgit.com/AGulev/defos/a5e377af/docs/example_screenshot.png)
+![Defos example screenshot](https://user-images.githubusercontent.com/2209596/34541914-31af02fc-f0eb-11e7-9c16-a3088366c62d.jpg)

@@ -7,20 +7,46 @@
 #include "defos_private.h"
 
 static bool is_maximized = false;
+static bool is_mouse_inside = false;
 static WinRect previous_state;
 
 void js_warn(const char* msg) {
     EM_ASM_({console.warn(UTF8ToString($0))}, msg);
 }
 
+extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) {
+    switch (event) {
+        case DEFOS_EVENT_MOUSE_ENTER:
+            is_mouse_inside = true;
+            break;
+        case DEFOS_EVENT_MOUSE_LEAVE:
+            is_mouse_inside = false;
+            break;
+    }
+    defos_emit_event(event);
+}
+
 void defos_init() {
+    EM_ASM_({
+        Module.__defosjs_mouseenter_listener = function () {
+            _defos_emit_event_from_js($0);
+        };
+        Module.__defosjs_mouseleave_listener = function () {
+            _defos_emit_event_from_js($1);
+        };
+        Module.canvas.addEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
+        Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
+    }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE);
 }
 
 void defos_final() {
+    EM_ASM(
+        Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
+        Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
+    );
 }
 
 void defos_event_handler_was_set(DefosEvent event) {
-    js_warn("Callbacks 'on_mouse_leave' and 'on_mouse_enter' don't supported in html5");
 }
 
 void defos_disable_maximize_button() {
@@ -74,7 +100,7 @@ bool defos_is_maximized() {
 }
 
 bool defos_is_mouse_inside_window() {
-    return false;
+    return is_mouse_inside;
 }
 
 void defos_set_window_size(int x, int y, int w, int h) {

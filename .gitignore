@@ -8,3 +8,4 @@ build
 builtins
 .internal
 .clang_complete
+.vscode/

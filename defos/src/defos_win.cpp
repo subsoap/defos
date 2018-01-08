@@ -110,9 +110,6 @@ void defos_toggle_fullscreen()
     {
         set_window_style(get_window_style() | WS_OVERLAPPEDWINDOW);
         SetWindowPlacement(window, &placement);
-        SetWindowPos(window, NULL,
-                     0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
     }
 }
 

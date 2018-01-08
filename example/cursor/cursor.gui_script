@@ -1,0 +1,42 @@
+local cursor = require("example.cursor.cursor")
+
+function init(self)
+	self.position = vmath.vector3(0,0,0)
+	self.enabled = true
+	msg.post(".", "acquire_input_focus")
+	self.node = gui.get_node("box")
+
+	cursor.node = self.node
+	cursor.ready = true
+	cursor.set_software_cursor_enabled(false)
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	cursor.update()
+	
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	if self.enabled == true then
+		if action.x ~= nil then
+			self.position.x = action.x 
+			self.position.y = action.y 
+		end
+		gui.set_position(self.node,self.position)
+	end
+end
+
+function on_reload(self)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end

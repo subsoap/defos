@@ -1,12 +1,20 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
+local cursor = require("example.cursor.cursor")
 
 function init(self)
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
+		if self.is_cursor == false then
+			defos.disable_mouse_cursor()
+			
+		end
 	end)
 
 	defos.on_mouse_leave(function ()
 		print("Mouse left window")
+		if self.is_cursor == false then
+			defos.enable_mouse_cursor()
+		end
 	end)
 
 	self.is_cursor = true
@@ -67,10 +75,12 @@ function on_input(self, action_id, action)
 			defos.disable_mouse_cursor()
 			self.is_cursor = false
 			change_mouse_label("Enable mouse cursor")
+			cursor.set_software_cursor_enabled(true)
 		else
 			defos.enable_mouse_cursor()
 			self.is_cursor = true
 			change_mouse_label("Disable mouse cursor")
+			cursor.set_software_cursor_enabled(false)
 		end
 	end)
 end

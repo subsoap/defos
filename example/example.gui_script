@@ -1,6 +1,7 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
 
+
 function init(self)
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
@@ -19,6 +20,14 @@ function init(self)
 
 	self.is_cursor = true
 	msg.post(".", "acquire_input_focus")
+
+	-- Console related commands only work on Windows and in bundled builds not in editor builds
+	if defos.is_console_visible() then
+		defos.hide_console()
+	else
+		defos.show_console()
+	end	
+	
 end
 
 local function change_mouse_label(text)

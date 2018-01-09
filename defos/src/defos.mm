@@ -70,6 +70,19 @@ void defos_toggle_maximize() {
     }
 }
 
+void defos_show_console() {
+	// this is for Windows only
+}
+
+void defos_hide_console() {
+	// this is for Windows only
+}
+
+bool defos_is_console_visible() {
+	// this is for Windows only
+	return false;
+}
+
 bool defos_is_fullscreen() {
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;

@@ -73,6 +73,22 @@ static int is_maximized(lua_State* L) {
     return 1;
 }
 
+static int show_console(lua_State* L) {
+	defos_show_console();
+	return 0;
+}
+
+static int hide_console(lua_State* L) {
+	defos_hide_console();
+	return 0;
+}
+
+static int is_console_visible(lua_State* L) {
+	bool isConsoleVisible = defos_is_console_visible();
+	lua_pushboolean(L, isConsoleVisible);
+	return 1;
+}
+
 static int is_mouse_inside_window(lua_State* L) {
     bool isWithin = defos_is_mouse_inside_window();
     lua_pushboolean(L, isWithin);
@@ -160,8 +176,11 @@ static const luaL_reg Module_methods[] =
     {"set_window_title", set_window_title},
     {"toggle_fullscreen", toggle_fullscreen},
     {"is_fullscreen", is_fullscreen},
-    {"toggle_maximize", toggle_maximize},
-    {"is_maximized", is_maximized},
+	{"toggle_maximize", toggle_maximize},	
+	{"is_maximized", is_maximized},
+	{"show_console", show_console},	
+	{"hide_console", hide_console},
+	{"is_console_visible", is_console_visible},
     {"is_mouse_inside_window", is_mouse_inside_window},
     {"on_mouse_leave", on_mouse_leave},
     {"on_mouse_enter", on_mouse_enter},

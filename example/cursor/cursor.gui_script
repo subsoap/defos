@@ -3,7 +3,7 @@ local cursor = require("example.cursor.cursor")
 function init(self)
 	self.position = vmath.vector3(0,0,0)
 	self.enabled = true
-	msg.post(".", "acquire_input_focus")
+	--msg.post(".", "acquire_input_focus")
 	self.node = gui.get_node("box")
 
 	cursor.node = self.node

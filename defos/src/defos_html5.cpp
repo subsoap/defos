@@ -73,6 +73,18 @@ void defos_toggle_fullscreen() {
 	js_warn("DefOS: Method 'toggle_fullscreen' is not supported in html5, you can use Module.toggleFullscreen() method in JS");
 }
 
+void defos_show_console() {
+	js_warn("DefOS: Method 'defos_show_console' is not supported in html5, it is meant for Windows builds only");
+}
+
+void defos_hide_console() {
+	js_warn("DefOS: Method 'defos_hide_console' is not supported in html5, it is meant for Windows builds only");
+}
+
+bool defos_is_console_visible() {
+	js_warn("DefOS: Method 'defos_is_console_visible' is not supported in html5, it is meant for Windows builds only");
+}
+
 void defos_toggle_maximize() {
     if (is_maximized) {
         is_maximized = false;

@@ -45,4 +45,8 @@ extern void defos_set_window_title(const char* title_lua);
 extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
 
+extern bool defos_is_console_visible();
+extern void defos_show_console();
+extern void defos_hide_console();
+
 extern WinRect defos_get_window_size();

@@ -50,15 +50,15 @@ void defos_event_handler_was_set(DefosEvent event) {
 }
 
 void defos_disable_maximize_button() {
-    js_warn("Method 'disable_maximize_button' don't supported in html5");
+    js_warn("DefOS: Method 'disable_maximize_button' is not supported in html5");
 }
 
 void defos_disable_minimize_button() {
-    js_warn("Method 'disable_minimize_button' don't supported in html5");
+	js_warn("DefOS: Method 'disable_minimize_button' is not supported in html5");
 }
 
 void defos_disable_window_resize() {
-    js_warn("Method 'disable_window_resize' don't supported in html5");
+	js_warn("DefOS: Method 'disable_window_resize' is not supported in html5");
 }
 
 void defos_disable_mouse_cursor() {
@@ -70,7 +70,7 @@ void defos_enable_mouse_cursor() {
 }
 
 void defos_toggle_fullscreen() {
-    js_warn("Method 'toggle_fullscreen' don't supported in html5, you can use Module.toggleFullscreen() method in JS");
+	js_warn("DefOS: Method 'toggle_fullscreen' is not supported in html5, you can use Module.toggleFullscreen() method in JS");
 }
 
 void defos_toggle_maximize() {

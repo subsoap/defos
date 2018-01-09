@@ -5,6 +5,7 @@
 
 #include <emscripten.h>
 #include "defos_private.h"
+#define DLIB_LOG_DOMAIN "DefOS"
 
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
@@ -50,15 +51,15 @@ void defos_event_handler_was_set(DefosEvent event) {
 }
 
 void defos_disable_maximize_button() {
-    js_warn("DefOS: Method 'disable_maximize_button' is not supported in html5");
+	dmLogInfo("Method 'disable_maximize_button' is not supported in html5");
 }
 
 void defos_disable_minimize_button() {
-	js_warn("DefOS: Method 'disable_minimize_button' is not supported in html5");
+	dmLogInfo("Method 'disable_minimize_button' is not supported in html5");
 }
 
 void defos_disable_window_resize() {
-	js_warn("DefOS: Method 'disable_window_resize' is not supported in html5");
+	dmLogInfo("Method 'disable_window_resize' is not supported in html5");
 }
 
 void defos_disable_mouse_cursor() {
@@ -70,19 +71,19 @@ void defos_enable_mouse_cursor() {
 }
 
 void defos_toggle_fullscreen() {
-	js_warn("DefOS: Method 'toggle_fullscreen' is not supported in html5, you can use Module.toggleFullscreen() method in JS");
+	dmLogInfo("Method 'toggle_fullscreen' is not supported in html5, you can use Module.toggleFullscreen() method in JS");
 }
 
 void defos_show_console() {
-	js_warn("DefOS: Method 'defos_show_console' is not supported in html5, it is meant for Windows builds only");
+	dmLogInfo("Method 'defos_show_console' is not supported in html5, it is meant for Windows builds only");
 }
 
 void defos_hide_console() {
-	js_warn("DefOS: Method 'defos_hide_console' is not supported in html5, it is meant for Windows builds only");
+	dmLogInfo("Method 'defos_hide_console' is not supported in html5, it is meant for Windows builds only");
 }
 
 bool defos_is_console_visible() {
-	js_warn("DefOS: Method 'defos_is_console_visible' is not supported in html5, it is meant for Windows builds only");
+	dmLogInfo("Method 'defos_is_console_visible' is not supported in html5, it is meant for Windows builds only");
 }
 
 void defos_toggle_maximize() {

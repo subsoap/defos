@@ -6,6 +6,7 @@
 #include <atlbase.h>
 #include <atlconv.h>
 #include <WinUser.h>
+#include <Windows.h>
 
 // keep track of window placement when going to/from fullscreen or maximized
 static WINDOWPLACEMENT placement = {sizeof(placement)};
@@ -130,6 +131,18 @@ void defos_toggle_maximize()
         GetWindowPlacement(window, &placement);
         ShowWindow(window, SW_MAXIMIZE);
     }
+}
+
+void defos_show_console() {
+	::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+}
+
+void defos_hide_console() {
+	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+}
+
+bool defos_is_console_visible() {
+	return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
 }
 
 void defos_set_window_size(int x, int y, int w, int h)

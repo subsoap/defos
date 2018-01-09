@@ -72,15 +72,15 @@ void defos_toggle_maximize() {
 }
 
 void defos_show_console() {
-	dmLogInfo("DefOS: Method 'defos_show_console' is not supported in macOS");
+	dmLogInfo("Method 'defos_show_console' is not supported in macOS");
 }
 
 void defos_hide_console() {
-	dmLogInfo("DefOS: Method 'defos_hide_console' is not supported in macOS");
+	dmLogInfo("Method 'defos_hide_console' is not supported in macOS");
 }
 
 bool defos_is_console_visible() {
-	dmLogInfo("DefOS: Method 'defos_is_console_visible' is not supported in macOS");
+	dmLogInfo("Method 'defos_is_console_visible' is not supported in macOS");
 	return false;
 }
 

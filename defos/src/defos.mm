@@ -4,6 +4,7 @@
 #if defined(DM_PLATFORM_OSX)
 #include <AppKit/AppKit.h>
 #include <CoreGraphics/CoreGraphics.h>
+#define DLIB_LOG_DOMAIN "DefOS"
 
 static NSWindow* window = NULL;
 
@@ -71,15 +72,15 @@ void defos_toggle_maximize() {
 }
 
 void defos_show_console() {
-	// this is for Windows only
+	dmLogInfo("Method 'defos_show_console' is not supported in macOS");
 }
 
 void defos_hide_console() {
-	// this is for Windows only
+	dmLogInfo("Method 'defos_hide_console' is not supported in macOS");
 }
 
 bool defos_is_console_visible() {
-	// this is for Windows only
+	dmLogInfo("Method 'defos_is_console_visible' is not supported in macOS");
 	return false;
 }
 

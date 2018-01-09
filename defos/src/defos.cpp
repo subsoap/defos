@@ -150,6 +150,28 @@ static int set_cursor_pos(lua_State* L){
     return 0;
 }
 
+static int clip_cursor(lua_State* L){
+    WinPosRect rect = defos_clip_cursor();
+
+    lua_pushnumber(L, rect.l);
+    lua_pushnumber(L, rect.r);
+    lua_pushnumber(L, rect.t);
+    lua_pushnumber(L, rect.b);
+
+    return 4;
+}
+
+static int restore_cursor_clip(lua_State* L){
+    int x = luaL_checkint(L, 1);
+    int y = luaL_checkint(L, 2);
+    int w = luaL_checkint(L, 3);
+    int h = luaL_checkint(L, 4);
+
+    defos_restore_cursor_clip(x, y, w, h);
+
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event) {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
 
@@ -195,6 +217,8 @@ static const luaL_reg Module_methods[] =
     {"on_mouse_enter", on_mouse_enter},
     {"get_window_size", get_window_size},
     {"set_cursor_pos", set_cursor_pos},
+    {"clip_cursor", clip_cursor},
+    {"restore_cursor_clip", restore_cursor_clip},
     {0, 0}
 };
 

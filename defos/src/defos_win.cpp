@@ -177,6 +177,37 @@ void defos_set_cursor_pos(int x, int y){
     SetCursorPos(x, y);
 }
 
+// NOTE: application should call this function again with oldrect to recover the mouse pos
+WinPosRect defos_clip_cursor(){
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT oldrect;
+    GetClipCursor(&oldrect);
+
+    RECT wrect;
+    GetWindowRect(window, &wrect);
+
+    ClipCursor(&wrect);
+
+    WinPosRect rect;
+    rect.l = oldrect.left;
+    rect.r = oldrect.right;
+    rect.t = oldrect.top;
+    rect.b = oldrect.bottom;
+
+    return rect;
+}
+
+void defos_restore_cursor_clip(int left, int right, int top, int bottom){
+    RECT rect;
+    rect.left = left;
+    rect.right = right;
+    rect.top = top;
+    rect.bottom = bottom;
+
+    ClipCursor(&rect);
+}
+
 /********************
  * internal functions
  ********************/

@@ -1,6 +1,6 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
-
+local oldrect = nil
 
 function init(self)
 	defos.on_mouse_enter(function ()
@@ -95,5 +95,16 @@ function on_input(self, action_id, action)
 
 	dirtylarry:button("random_cursor_pos", action_id, action, function()
 		defos.set_cursor_pos(math.random(1,500),math.random(1,500))
+	end)
+
+	dirtylarry:button("clip_cursor", action_id, action, function()
+		if not oldrect then
+			local l, r, t, b = defos.clip_cursor()
+			oldrect = {l=l, r=r, t=t, b=b}
+		else
+			-- we have to restore to old rect as cursor is a shared resource
+			defos.restore_cursor_clip(oldrect.l, oldrect.r, oldrect.t, oldrect.b)
+			oldrect = nil
+		end
 	end)
 end

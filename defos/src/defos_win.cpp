@@ -173,6 +173,10 @@ WinRect defos_get_window_size(){
     return rect;
 }
 
+void defos_set_cursor_pos(int x, int y){
+    SetCursorPos(x, y);
+}
+
 /********************
  * internal functions
  ********************/

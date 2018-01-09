@@ -50,3 +50,5 @@ extern void defos_show_console();
 extern void defos_hide_console();
 
 extern WinRect defos_get_window_size();
+
+extern void defos_set_cursor_pos(int x, int y);

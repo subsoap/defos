@@ -141,6 +141,15 @@ static int get_window_size(lua_State* L) {
     return 4;
 }
 
+static int set_cursor_pos(lua_State* L){
+    int x = luaL_checkint(L, 1);
+    int y = luaL_checkint(L, 2);
+
+    defos_set_cursor_pos(x, y);
+
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event) {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
 
@@ -185,6 +194,7 @@ static const luaL_reg Module_methods[] =
     {"on_mouse_leave", on_mouse_leave},
     {"on_mouse_enter", on_mouse_enter},
     {"get_window_size", get_window_size},
+    {"set_cursor_pos", set_cursor_pos},
     {0, 0}
 };
 

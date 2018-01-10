@@ -244,7 +244,6 @@ static const luaL_reg Module_methods[] =
         {"on_mouse_enter", on_mouse_enter},
         {"get_window_size", get_window_size},
         {"set_cursor_pos", set_cursor_pos},
-        {"move_cursor_to", move_cursor_to},
         {"clip_cursor", clip_cursor},
         {"restore_cursor_clip", restore_cursor_clip},
         {0, 0}};

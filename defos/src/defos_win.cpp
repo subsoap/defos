@@ -138,16 +138,19 @@ void defos_toggle_maximize()
     }
 }
 
-void defos_show_console() {
-	::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+void defos_show_console()
+{
+    ::ShowWindow(::GetConsoleWindow(), SW_SHOW);
 }
 
-void defos_hide_console() {
-	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+void defos_hide_console()
+{
+    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 }
 
-bool defos_is_console_visible() {
-	return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
+bool defos_is_console_visible()
+{
+    return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
 }
 
 void defos_set_window_size(int x, int y, int w, int h)
@@ -166,9 +169,10 @@ void defos_set_window_title(const char *title_lua)
     SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 
-WinRect defos_get_window_size(){
+WinRect defos_get_window_size()
+{
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    WINDOWPLACEMENT frame = { sizeof(placement) };
+    WINDOWPLACEMENT frame = {sizeof(placement)};
     GetWindowPlacement(window, &frame);
     WinRect rect;
     rect.x = (float)frame.rcNormalPosition.left;
@@ -178,11 +182,46 @@ WinRect defos_get_window_size(){
     return rect;
 }
 
-void defos_set_cursor_pos(int x, int y){
+void defos_set_cursor_pos(int x, int y)
+{
     SetCursorPos(x, y);
 }
 
-void defos_clip_cursor(){
+// move cursor to pos relative to current window
+// top-left is (0, 0)
+void defos_move_cursor_to(int x, int y)
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT wrect;
+    GetWindowRect(window, &wrect);
+
+    int tox = wrect.left + x;
+    int toy = wrect.top + y;
+
+    if (tox > wrect.right)
+    {
+        tox = wrect.right;
+    }
+    else if (tox < wrect.left)
+    {
+        tox = wrect.left;
+    }
+
+    if (toy > wrect.bottom)
+    {
+        toy = wrect.bottom;
+    }
+    else if (toy < wrect.top)
+    {
+        toy = wrect.top;
+    }
+
+    defos_set_cursor_pos(tox, toy);
+}
+
+void defos_clip_cursor()
+{
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
     RECT wrect;
@@ -192,7 +231,8 @@ void defos_clip_cursor(){
 }
 
 // NOTE: application should call this function again with oldrect to recover the mouse pos
-void defos_restore_cursor_clip(){
+void defos_restore_cursor_clip()
+{
     ClipCursor(&originalRect);
 }
 
@@ -213,7 +253,10 @@ static LONG_PTR get_window_style()
 static void subclass_window()
 {
     // check if we already subclass the window
-    if (originalProc) { return; }
+    if (originalProc)
+    {
+        return;
+    }
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
@@ -249,7 +292,7 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
             is_mouse_inside = true;
             defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
 
-            TRACKMOUSEEVENT tme = { sizeof(tme) };
+            TRACKMOUSEEVENT tme = {sizeof(tme)};
             tme.dwFlags = TME_LEAVE;
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);

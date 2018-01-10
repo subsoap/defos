@@ -2093,7 +2093,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Random cursor position"
+  text: "Random cursor within window"
   font: "larryfont"
   id: "random_cursor_pos/larrylabel"
   xanchor: XANCHOR_NONE

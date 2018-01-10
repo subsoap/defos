@@ -6,10 +6,6 @@ struct WinRect {
     float x,y,w,h;
 };
 
-struct WinPosRect{
-    LONG l, r, t, b;
-};
-
 struct LuaCallbackInfo {
     LuaCallbackInfo() : m_L(0), m_Callback(LUA_NOREF), m_Self(LUA_NOREF) {}
     lua_State *m_L;
@@ -56,6 +52,6 @@ extern void defos_hide_console();
 extern WinRect defos_get_window_size();
 
 extern void defos_set_cursor_pos(int x, int y);
-extern WinPosRect defos_clip_cursor();
-extern void defos_restore_cursor_clip(int x, int y, int w, int h);
+extern void defos_clip_cursor();
+extern void defos_restore_cursor_clip();
 

@@ -151,23 +151,13 @@ static int set_cursor_pos(lua_State* L){
 }
 
 static int clip_cursor(lua_State* L){
-    WinPosRect rect = defos_clip_cursor();
+    defos_clip_cursor();
 
-    lua_pushnumber(L, rect.l);
-    lua_pushnumber(L, rect.r);
-    lua_pushnumber(L, rect.t);
-    lua_pushnumber(L, rect.b);
-
-    return 4;
+    return 0;
 }
 
 static int restore_cursor_clip(lua_State* L){
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
-    int w = luaL_checkint(L, 3);
-    int h = luaL_checkint(L, 4);
-
-    defos_restore_cursor_clip(x, y, w, h);
+    defos_restore_cursor_clip();
 
     return 0;
 }

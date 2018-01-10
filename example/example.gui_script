@@ -1,6 +1,6 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
-local oldrect = nil
+local cursor_clipped = false
 
 function init(self)
 	defos.on_mouse_enter(function ()
@@ -98,13 +98,15 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("clip_cursor", action_id, action, function()
-		if not oldrect then
-			local l, r, t, b = defos.clip_cursor()
-			oldrect = {l=l, r=r, t=t, b=b}
+		if not cursor_clipped then
+			defos.clip_cursor()
+			cursor_clipped = true
+			gui.set_text(gui.get_node("clip_cursor/larrylabel"),"Stop clipping")
 		else
 			-- we have to restore to old rect as cursor is a shared resource
-			defos.restore_cursor_clip(oldrect.l, oldrect.r, oldrect.t, oldrect.b)
-			oldrect = nil
+			defos.restore_cursor_clip()
+			cursor_clipped = false
+			gui.set_text(gui.get_node("clip_cursor/larrylabel"),"Clip cursor")
 		end
 	end)
 end

@@ -1,6 +1,21 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
-local cursor_clipped = false
+cursor_clipped = false
+
+function window_callback(self, event, data)
+	if event == window.WINDOW_EVENT_FOCUS_LOST then
+		-- though after lost focus cursor clipping will restore, we should restore it 
+		defos.restore_cursor_clip()
+	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+		if cursor_clipped then
+			defos.clip_cursor()
+		end
+	elseif event == window.WINDOW_EVENT_RESIZED then
+		if cursor_clipped then
+			defos.clip_cursor()
+		end
+	end
+end
 
 function init(self)
 	defos.on_mouse_enter(function ()
@@ -27,7 +42,9 @@ function init(self)
 	else
 		defos.show_console()
 	end	
-	
+
+
+	window.set_listener(window_callback)
 end
 
 local function change_mouse_label(text)
@@ -41,6 +58,17 @@ function update(self, dt)
 	gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
 	gui.set_text(gui.get_node("is_maximized"),"is_maximized "..tostring(defos.is_maximized()))
 	gui.set_text(gui.get_node("is_mouse_inside_window"),"is_mouse_inside_window "..tostring(defos.is_mouse_inside_window()))
+end
+
+function update_clipping_label()
+
+	if cursor_clipped then
+		text = "Stop clipping"
+	else
+		text = "Clip cursor"
+	end
+	
+	gui.set_text(gui.get_node("clip_cursor/larrylabel"), text)
 end
 
 function on_input(self, action_id, action)
@@ -103,13 +131,13 @@ function on_input(self, action_id, action)
 		if not cursor_clipped then
 			defos.clip_cursor()
 			cursor_clipped = true
-			gui.set_text(gui.get_node("clip_cursor/larrylabel"),"Stop clipping")
 		else
 			-- we have to restore to old rect as cursor is a shared resource
 			-- or moving the window will restore it
 			defos.restore_cursor_clip()
 			cursor_clipped = false
-			gui.set_text(gui.get_node("clip_cursor/larrylabel"),"Clip cursor")
 		end
+
+		update_clipping_label()
 	end)
 end

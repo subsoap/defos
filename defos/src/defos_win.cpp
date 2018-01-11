@@ -187,6 +187,39 @@ void defos_set_cursor_pos(int x, int y)
     SetCursorPos(x, y);
 }
 
+// move cursor to pos relative to current window
+// top-left is (0, 0)
+void defos_move_cursor_to(int x, int y)
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT wrect;
+    GetWindowRect(window, &wrect);
+
+    int tox = wrect.left + x;
+    int toy = wrect.top + y;
+
+    if (tox > wrect.right)
+    {
+        tox = wrect.right;
+    }
+    else if (tox < wrect.left)
+    {
+        tox = wrect.left;
+    }
+
+    if (toy > wrect.bottom)
+    {
+        toy = wrect.bottom;
+    }
+    else if (toy < wrect.top)
+    {
+        toy = wrect.top;
+    }
+
+    defos_set_cursor_pos(tox, toy);
+}
+
 void defos_clip_cursor()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();

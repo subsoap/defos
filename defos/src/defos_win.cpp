@@ -160,6 +160,13 @@ void defos_set_window_size(int x, int y, int w, int h)
         x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
+
+    // RECT rect = {x, y, w, h};
+
+    // DWORD style = get_window_style();
+
+    // AdjustWindowRect(&rect, style, TRUE);
+    
     HWND window = dmGraphics::GetNativeWindowsHWND();
     SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
 }
@@ -194,7 +201,7 @@ void defos_move_cursor_to(int x, int y)
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
     RECT wrect;
-    GetWindowRect(window, &wrect);
+    GetClientRect(window, &wrect);
 
     int tox = wrect.left + x;
     int toy = wrect.top + y;
@@ -217,7 +224,11 @@ void defos_move_cursor_to(int x, int y)
         toy = wrect.top;
     }
 
-    defos_set_cursor_pos(tox, toy);
+    POINT pos = {tox, toy};
+
+    ClientToScreen(window, &pos);
+
+    defos_set_cursor_pos(pos.x, pos.y);
 }
 
 void defos_clip_cursor()

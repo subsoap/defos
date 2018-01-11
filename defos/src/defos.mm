@@ -103,6 +103,10 @@ void defos_set_window_size(int x, int y, int w, int h) {
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
+void defos_set_client_size(int x, int y, int w, int h){
+    dmLogInfo("Method 'defos_set_client_size' is not supported in macOS");
+}
+
 void defos_set_window_title(const char* title_lua) {
     NSString* title = [NSString stringWithUTF8String:title_lua];
     [window setTitle:title];
@@ -116,6 +120,26 @@ WinRect defos_get_window_size(){
     rect.w = frame.size.width;
     rect.h = frame.size.height;
     return rect;
+}
+
+void defos_set_cursor_pos(int x, int y)
+{
+    dmLogInfo("Method 'defos_set_cursor_pos' is not supported in macOS");
+}
+
+void defos_move_cursor_to(int x, int y)
+{
+    dmLogInfo("Method 'defos_move_cursor_to' is not supported in macOS");
+}
+
+void defos_clip_cursor()
+{
+    dmLogInfo("Method 'defos_clip_cursor' is not supported in macOS");
+}
+
+void defos_restore_cursor_clip()
+{
+    dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in macOS");
 }
 
 @interface DefOSMouseTracker : NSObject

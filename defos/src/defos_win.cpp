@@ -161,14 +161,28 @@ void defos_set_window_size(int x, int y, int w, int h)
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
 
-    // RECT rect = {x, y, w, h};
-
-    // DWORD style = get_window_style();
-
-    // AdjustWindowRect(&rect, style, TRUE);
-    
     HWND window = dmGraphics::GetNativeWindowsHWND();
     SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
+}
+
+void defos_set_client_size(int x, int y, int w, int h)
+{    
+    if (x == -1)
+    {
+        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+    }
+
+    RECT rect = {0, 0, w, h};
+
+    DWORD style = get_window_style();
+
+    // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
+    AdjustWindowRect(&rect, style, false);
+
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    SetWindowPos(window, window, x, y, rect.right-rect.left, rect.bottom-rect.top, SWP_NOZORDER);
 }
 
 void defos_set_window_title(const char *title_lua)

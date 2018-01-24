@@ -18,6 +18,29 @@ function window_callback(self, event, data)
 end
 
 function init(self)
+
+	local appname = sys.get_config("project.title")
+
+	local cursor_path = sys.get_save_file(appname, "cursor.ani")
+
+	local f = io.open(cursor_path, "wb")
+
+	local cursor_resource = resource.load("/resources/Stellaris-grey.ani")
+
+	local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
+
+	-- 
+	--print(cursor_resource)
+	f:write(raw_bytes)
+	f:flush()
+	f:close()
+
+	cursor_path = string.gsub(cursor_path, "/", "\\")
+	cursor_path = string.gsub(cursor_path, "\\", "\\\\")
+	print(cursor_path)
+
+	defos.set_cursor()
+
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
 		if self.is_cursor == false then

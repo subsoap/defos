@@ -261,6 +261,20 @@ void defos_restore_cursor_clip()
     ClipCursor(&originalRect);
 }
 
+// path of the cursor file, 
+// here we will save the cursor file to the save folder, 
+// then pass the path to this function to load
+void defos_set_cursor()
+{    
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    dmLogDebug("Changing cursor ");
+    HCURSOR cursor = LoadCursorFromFile(_T("C:\\Users\\v-chaoyu\\AppData\\Roaming\\DefOS\\cursor.ani"));
+    SetClassLong(window, -12, (LONG)cursor);
+    
+    // SetCursor(cursor);
+}
+
 /********************
  * internal functions
  ********************/

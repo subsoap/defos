@@ -205,6 +205,15 @@ static int restore_cursor_clip(lua_State *L)
     return 0;
 }
 
+static int set_cursor(lua_State *L)
+{    
+    // const char *cursor_path_lua = luaL_checkstring(L, 1);
+
+    defos_set_cursor();
+
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event)
 {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
@@ -258,6 +267,7 @@ static const luaL_reg Module_methods[] =
         {"clip_cursor", clip_cursor},
         {"restore_cursor_clip", restore_cursor_clip},
         {"set_client_size", set_client_size},
+        {"set_cursor", set_cursor},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

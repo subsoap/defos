@@ -56,4 +56,4 @@ extern void defos_set_cursor_pos(int x, int y);
 extern void defos_move_cursor_to(int x, int y);
 extern void defos_clip_cursor();
 extern void defos_restore_cursor_clip();
-
+extern void defos_set_cursor();

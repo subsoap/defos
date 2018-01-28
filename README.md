@@ -40,7 +40,7 @@ function init(self)
 	-- clip cursor to current window area
 	defos.clip_cursor()
 	defos.restore_cursor_clip()
-	-- support .ani and .cur file
+	-- support .ani and .cur file for Windows
 	defos.set_cursor("path/to/cursor")
 	-- restore the cursor to default one
 	defos.reset_cursor()

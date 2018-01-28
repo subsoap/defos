@@ -66,8 +66,11 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
-
-
+	if defos.is_console_visible() then
+		defos.hide_console()
+	else
+		defos.show_console()
+	end	
 
 	window.set_listener(window_callback)
 end

@@ -2,6 +2,12 @@ local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
 cursor_clipped = false
 
+-- custom cursors that we will change between them
+local cursors = {}
+
+local time = 0
+local current_cursor = 1
+
 function window_callback(self, event, data)
 	if event == window.WINDOW_EVENT_FOCUS_LOST then
 		-- though after lost focus cursor clipping will restore, we should restore it 
@@ -21,25 +27,27 @@ function init(self)
 
 	local appname = sys.get_config("project.title")
 
-	local cursor_path = sys.get_save_file(appname, "cursor.ani")
+	for i, v in ipairs({"cursor_01.ani","cursor_02.ani"}) do
+		-- load source file and write them to save folder, so that we can access them with fullpath
 
-	local f = io.open(cursor_path, "wb")
+		local cursor_path = sys.get_save_file(appname, v)
 
-	local cursor_resource = resource.load("/resources/Stellaris-grey.ani")
+		local f = io.open(cursor_path, "wb")
 
-	local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
+		local cursor_resource = resource.load("/resources/"..v)
 
-	-- 
-	--print(cursor_resource)
-	f:write(raw_bytes)
-	f:flush()
-	f:close()
+		local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
 
-	cursor_path = string.gsub(cursor_path, "/", "\\")
-	cursor_path = string.gsub(cursor_path, "\\", "\\\\")
-	print(cursor_path)
+		f:write(raw_bytes)
+		f:flush()
+		f:close()
 
-	defos.set_cursor()
+		print(cursor_path)
+
+		cursors[i] = cursor_path
+	end
+	
+	defos.set_cursor(cursors[current_cursor])
 
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
@@ -76,6 +84,21 @@ local function change_mouse_label(text)
 end
 
 function update(self, dt)
+	-- we change the cursor every second
+	time = time + dt
+	
+	if time > 1 then
+		time = 0
+
+		current_cursor = current_cursor + 1
+
+		if current_cursor > #cursors then
+			current_cursor = 1
+		end
+
+		defos.set_cursor(cursors[current_cursor])
+	end
+	
 	local x,y,w,h = defos.get_window_size()
 	gui.set_text(gui.get_node("position"),"position\n"..x.." "..y.." "..w.." "..h)
 	gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))

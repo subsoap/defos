@@ -142,6 +142,16 @@ void defos_restore_cursor_clip()
     dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in macOS");
 }
 
+void defos_set_cursor(const char *title_lua)
+{
+    dmLogInfo("Method 'defos_set_cursor' is not supported in macOS");
+}
+
+void defos_reset_cursor()
+{
+    dmLogInfo("Method 'defos_reset_cursor' is not supported in macOS");    
+}
+
 @interface DefOSMouseTracker : NSObject
 @end
 @implementation DefOSMouseTracker

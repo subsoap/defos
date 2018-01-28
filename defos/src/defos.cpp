@@ -206,10 +206,17 @@ static int restore_cursor_clip(lua_State *L)
 }
 
 static int set_cursor(lua_State *L)
-{    
-    // const char *cursor_path_lua = luaL_checkstring(L, 1);
+{
+    const char *cursor_path_lua = luaL_checkstring(L, 1);
 
-    defos_set_cursor();
+    defos_set_cursor(cursor_path_lua);
+
+    return 0;
+}
+
+static int reset_cursor(lua_State *L)
+{
+    defos_reset_cursor();
 
     return 0;
 }
@@ -268,6 +275,7 @@ static const luaL_reg Module_methods[] =
         {"restore_cursor_clip", restore_cursor_clip},
         {"set_client_size", set_client_size},
         {"set_cursor", set_cursor},
+        {"reset_cursor", reset_cursor},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

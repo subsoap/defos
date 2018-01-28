@@ -20,6 +20,10 @@ static WNDPROC originalProc = NULL;
 // original mouse clip rect
 static RECT originalRect;
 
+static bool is_custom_cursor_loaded;
+static HCURSOR custom_cursor;
+static HCURSOR original_cursor; // used to restore
+
 // forward declarations
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
@@ -34,7 +38,8 @@ void subclass_window();
 void defos_init()
 {
     is_mouse_inside = false;
-    GetClipCursor(&originalRect);
+    GetClipCursor(&originalRect);  // keep the original clip for restore
+    original_cursor = GetCursor(); // keep the original cursor
     subclass_window();
 }
 
@@ -166,7 +171,7 @@ void defos_set_window_size(int x, int y, int w, int h)
 }
 
 void defos_set_client_size(int x, int y, int w, int h)
-{    
+{
     if (x == -1)
     {
         x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
@@ -182,7 +187,7 @@ void defos_set_client_size(int x, int y, int w, int h)
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
-    SetWindowPos(window, window, x, y, rect.right-rect.left, rect.bottom-rect.top, SWP_NOZORDER);
+    SetWindowPos(window, window, x, y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }
 
 void defos_set_window_title(const char *title_lua)
@@ -261,18 +266,24 @@ void defos_restore_cursor_clip()
     ClipCursor(&originalRect);
 }
 
-// path of the cursor file, 
-// here we will save the cursor file to the save folder, 
+// path of the cursor file,
+// for defold it may be a good idea to save the cursor file to the save folder,
 // then pass the path to this function to load
-void defos_set_cursor()
-{    
+void defos_set_cursor(const char *title_lua)
+{
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
-    dmLogDebug("Changing cursor ");
-    HCURSOR cursor = LoadCursorFromFile(_T("C:\\Users\\v-chaoyu\\AppData\\Roaming\\DefOS\\cursor.ani"));
-    SetClassLong(window, -12, (LONG)cursor);
-    
-    // SetCursor(cursor);
+    custom_cursor = LoadCursorFromFile(_T(title_lua));
+
+    SetCursor(custom_cursor);
+
+    is_custom_cursor_loaded = true;
+}
+
+void defos_reset_cursor()
+{
+    // here we do not need to set cursor again, as we already ignore that in winproc
+    is_custom_cursor_loaded = false;
 }
 
 /********************
@@ -341,6 +352,16 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
     case WM_MOUSELEAVE:
         is_mouse_inside = false;
         defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+        break;
+
+    case WM_SETCURSOR:
+
+        if (is_custom_cursor_loaded)
+        {
+            SetCursor(custom_cursor);
+            return TRUE;
+        }
+
         break;
     }
 

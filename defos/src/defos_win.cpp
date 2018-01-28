@@ -255,8 +255,21 @@ void defos_clip_cursor()
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
     RECT wrect;
-    GetWindowRect(window, &wrect);
+    // GetWindowRect(window, &wrect);
 
+    GetClientRect(window, &wrect);
+
+    POINT left_top = {wrect.left, wrect.top};
+    POINT right_bottom = {wrect.right, wrect.bottom};
+
+    ClientToScreen(window, &left_top);
+    ClientToScreen(window, &right_bottom);
+
+    wrect.left = left_top.x;
+    wrect.top = left_top.y;
+    wrect.right = right_bottom.x;
+    wrect.bottom = right_bottom.y;
+    
     ClipCursor(&wrect);
 }
 

@@ -32,6 +32,18 @@ function init(self)
 	defos.on_mouse_leave(function ()
 		print("Mouse left window")
 	end)
+	defos.get_window_size()
+	-- on screen coordinates on Windows
+	defos.set_cursor_pos(100, 100)
+	-- on window client coordinates on Windows
+	defos.move_cursor_to(100, 100)
+	-- clip cursor to current window area
+	defos.clip_cursor()
+	defos.restore_cursor_clip()
+	-- support .ani and .cur file
+	defos.set_cursor("path/to/cursor")
+	-- restore the cursor to default one
+	defos.reset_cursor()
 end
 ```
 Use issues for feature requests.

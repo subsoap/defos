@@ -32,29 +32,31 @@ extern void defos_final();
 extern void defos_disable_maximize_button();
 extern void defos_disable_minimize_button();
 extern void defos_disable_window_resize();
-extern void defos_disable_mouse_cursor();
-extern void defos_enable_mouse_cursor();
+
 extern void defos_toggle_fullscreen();
 extern void defos_toggle_maximize();
+extern bool defos_is_fullscreen();
+extern bool defos_is_maximized();
 
-extern bool defos_is_mouse_inside_window();
+extern void defos_set_window_title(const char* title_lua);
 
 extern void defos_set_window_size(int x, int y, int w, int h);
 extern void defos_set_client_size(int x, int y, int w, int h);
-extern void defos_set_window_title(const char* title_lua);
-
-extern bool defos_is_fullscreen();
-extern bool defos_is_maximized();
+extern WinRect defos_get_window_size();
 
 extern bool defos_is_console_visible();
 extern void defos_show_console();
 extern void defos_hide_console();
 
-extern WinRect defos_get_window_size();
+extern void defos_disable_mouse_cursor();
+extern void defos_enable_mouse_cursor();
+extern bool defos_is_mouse_inside_window();
 
 extern void defos_set_cursor_pos(int x, int y);
 extern void defos_move_cursor_to(int x, int y);
+
 extern void defos_clip_cursor();
 extern void defos_restore_cursor_clip();
+
 extern void defos_set_cursor(const char *title_lua);
 extern void defos_reset_cursor();

@@ -11,6 +11,8 @@
 
 LuaCallbackInfo defos_event_handlers[DEFOS_EVENT_COUNT];
 
+// Window management
+
 static int disable_maximize_button(lua_State *L)
 {
     defos_disable_maximize_button();
@@ -29,16 +31,15 @@ static int disable_window_resize(lua_State *L)
     return 0;
 }
 
-static int disable_mouse_cursor(lua_State *L)
+static int get_window_size(lua_State *L)
 {
-    defos_disable_mouse_cursor();
-    return 0;
-}
-
-static int enable_mouse_cursor(lua_State *L)
-{
-    defos_enable_mouse_cursor();
-    return 0;
+    WinRect rect;
+    rect = defos_get_window_size();
+    lua_pushnumber(L, rect.x);
+    lua_pushnumber(L, rect.y);
+    lua_pushnumber(L, rect.w);
+    lua_pushnumber(L, rect.h);
+    return 4;
 }
 
 static int set_window_size(lua_State *L)
@@ -94,6 +95,8 @@ static int is_maximized(lua_State *L)
     return 1;
 }
 
+// Windows console
+
 static int show_console(lua_State *L)
 {
     defos_show_console();
@@ -113,6 +116,8 @@ static int is_console_visible(lua_State *L)
     return 1;
 }
 
+// Cursor and mouse
+
 static int is_mouse_inside_window(lua_State *L)
 {
     bool isWithin = defos_is_mouse_inside_window();
@@ -120,57 +125,16 @@ static int is_mouse_inside_window(lua_State *L)
     return 1;
 }
 
-static void set_event_handler(lua_State *L, int index, DefosEvent event)
+static int disable_mouse_cursor(lua_State *L)
 {
-    LuaCallbackInfo *cbk = &defos_event_handlers[event];
-    if (cbk->m_Callback != LUA_NOREF)
-    {
-        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
-        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
-    }
-
-    if (lua_isnil(L, index))
-    {
-        cbk->m_Callback = LUA_NOREF;
-    }
-    else
-    {
-        luaL_checktype(L, index, LUA_TFUNCTION);
-        lua_pushvalue(L, index);
-        int cb = dmScript::Ref(L, LUA_REGISTRYINDEX);
-
-        cbk->m_L = dmScript::GetMainThread(L);
-        cbk->m_Callback = cb;
-
-        dmScript::GetInstance(L);
-
-        cbk->m_Self = dmScript::Ref(L, LUA_REGISTRYINDEX);
-    }
-
-    defos_event_handler_was_set(event);
-}
-
-static int on_mouse_leave(lua_State *L)
-{
-    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_LEAVE);
+    defos_disable_mouse_cursor();
     return 0;
 }
 
-static int on_mouse_enter(lua_State *L)
+static int enable_mouse_cursor(lua_State *L)
 {
-    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_ENTER);
+    defos_enable_mouse_cursor();
     return 0;
-}
-
-static int get_window_size(lua_State *L)
-{
-    WinRect rect;
-    rect = defos_get_window_size();
-    lua_pushnumber(L, rect.x);
-    lua_pushnumber(L, rect.y);
-    lua_pushnumber(L, rect.w);
-    lua_pushnumber(L, rect.h);
-    return 4;
 }
 
 static int set_cursor_pos(lua_State *L)
@@ -221,6 +185,50 @@ static int reset_cursor(lua_State *L)
     return 0;
 }
 
+// Events
+
+static void set_event_handler(lua_State *L, int index, DefosEvent event)
+{
+    LuaCallbackInfo *cbk = &defos_event_handlers[event];
+    if (cbk->m_Callback != LUA_NOREF)
+    {
+        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Callback);
+        dmScript::Unref(cbk->m_L, LUA_REGISTRYINDEX, cbk->m_Self);
+    }
+
+    if (lua_isnil(L, index))
+    {
+        cbk->m_Callback = LUA_NOREF;
+    }
+    else
+    {
+        luaL_checktype(L, index, LUA_TFUNCTION);
+        lua_pushvalue(L, index);
+        int cb = dmScript::Ref(L, LUA_REGISTRYINDEX);
+
+        cbk->m_L = dmScript::GetMainThread(L);
+        cbk->m_Callback = cb;
+
+        dmScript::GetInstance(L);
+
+        cbk->m_Self = dmScript::Ref(L, LUA_REGISTRYINDEX);
+    }
+
+    defos_event_handler_was_set(event);
+}
+
+static int on_mouse_leave(lua_State *L)
+{
+    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_LEAVE);
+    return 0;
+}
+
+static int on_mouse_enter(lua_State *L)
+{
+    set_event_handler(L, 1, DEFOS_EVENT_MOUSE_ENTER);
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event)
 {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
@@ -248,6 +256,8 @@ void defos_emit_event(DefosEvent event)
     }
     assert(top == lua_gettop(L));
 }
+
+// Lua module initialization
 
 static const luaL_reg Module_methods[] =
     {

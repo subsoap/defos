@@ -224,25 +224,6 @@ void defos_move_cursor_to(int x, int y)
 
     int tox = wrect.left + x;
     int toy = wrect.top + y;
-
-    if (tox > wrect.right)
-    {
-        tox = wrect.right;
-    }
-    else if (tox < wrect.left)
-    {
-        tox = wrect.left;
-    }
-
-    if (toy > wrect.bottom)
-    {
-        toy = wrect.bottom;
-    }
-    else if (toy < wrect.top)
-    {
-        toy = wrect.top;
-    }
-
     POINT pos = {tox, toy};
 
     ClientToScreen(window, &pos);
@@ -269,7 +250,7 @@ void defos_clip_cursor()
     wrect.top = left_top.y;
     wrect.right = right_bottom.x;
     wrect.bottom = right_bottom.y;
-    
+
     ClipCursor(&wrect);
 }
 

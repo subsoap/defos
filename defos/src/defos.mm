@@ -7,9 +7,9 @@
 #include <AppKit/AppKit.h>
 #include <CoreGraphics/CoreGraphics.h>
 
-static NSWindow* window = NULL;
-static NSCursor* current_cursor = NULL;
-static NSCursor* default_cursor = NULL;
+static NSWindow* window = nil;
+static NSCursor* current_cursor = nil;
+static NSCursor* default_cursor = nil;
 
 static bool is_maximized = false;
 static bool is_mouse_inside_window = false;
@@ -24,11 +24,14 @@ void defos_init() {
     // [window resetCursorRects];
     default_cursor = NSCursor.arrowCursor;
     current_cursor = default_cursor;
+    [current_cursor retain];
     enable_mouse_tracking();
 }
 
 void defos_final() {
     disable_mouse_tracking();
+    [current_cursor release];
+    current_cursor = nil;
 }
 
 void defos_event_handler_was_set(DefosEvent event) {
@@ -161,7 +164,24 @@ void defos_restore_cursor_clip() {
 }
 
 void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {
-    dmLogInfo("Method 'defos_set_cursor' is not supported in macOS");
+    uint8_t* bytes = NULL;
+    uint32_t size = 0;
+    if (dmBuffer::GetBytes(buffer, (void**)&bytes, &size) != dmBuffer::RESULT_OK) {
+      dmLogError("defos_set_custom_cursor_mac: dmBuffer::GetBytes failed");
+      return;
+    }
+
+    uint8_t* copy = (uint8_t*)malloc(size);
+    memcpy(copy, bytes, size);
+    NSData * data = [[NSData alloc] initWithBytesNoCopy:copy length:size freeWhenDone:YES];
+
+    NSImage * image = [[NSImage alloc] initWithData:data];
+    NSCursor * cursor = [[NSCursor alloc] initWithImage:image hotSpot:NSMakePoint(hotSpotX, hotSpotY)];
+    [current_cursor release];
+    current_cursor = cursor;
+    [image release];
+    [data release];
+    [current_cursor set];
 }
 
 static NSCursor * get_cursor(DefosCursor cursor) {
@@ -182,12 +202,16 @@ static NSCursor * get_cursor(DefosCursor cursor) {
 void defos_set_cursor(DefosCursor cur) {
     NSCursor * cursor = get_cursor(cur);
     [cursor set];
+    [cursor retain];
+    [current_cursor release];
     current_cursor = cursor;
 }
 
 void defos_reset_cursor() {
+    [default_cursor set];
+    [default_cursor retain];
+    [current_cursor release];
     current_cursor = default_cursor;
-    [current_cursor set];
 }
 
 @interface DefOSMouseTracker : NSResponder
@@ -209,6 +233,7 @@ void defos_reset_cursor() {
 @end
 
 // This is unstable in case Defold renames this class
+// Maybe use the objc runtime to hook this method if there's no better solution?
 @interface GLFWContentView
 @end
 @interface GLFWContentView(CursorUpdate)

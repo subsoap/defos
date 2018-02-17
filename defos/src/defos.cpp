@@ -188,27 +188,25 @@ static int set_cursor(lua_State *L)
     #ifdef DM_PLATFORM_OSX
     luaL_checktype(L, 1, LUA_TTABLE);
 
-    lua_getfield(L, 1, "image");
-    dmBuffer::HBuffer image = dmScript::CheckBuffer(L, -1)->m_Buffer;
-    lua_pop(L, 1);
-
     lua_getfield(L, 1, "hot_spot_x");
     float hotSpotX = 0.0f;
     if (!lua_isnil(L, -1))
     {
         hotSpotX = luaL_checknumber(L, -1);
     }
-    lua_pop(L, 1);
 
-    lua_getfield(L, 1, "hot_spot_x");
+    lua_getfield(L, 1, "hot_spot_y");
     float hotSpotY = 0.0f;
     if (!lua_isnil(L, -1))
     {
         hotSpotY = luaL_checknumber(L, -1);
     }
-    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "image");
+    dmBuffer::HBuffer image = dmScript::CheckBuffer(L, -1)->m_Buffer;
 
     defos_set_custom_cursor_mac(image, hotSpotX, hotSpotY);
+    lua_pop(L, 3);
     return 0;
     #endif
 

@@ -54,6 +54,14 @@ function init(self)
 		end
 	end
 
+	if system_name == "Darwin" then
+		table.insert(self.cursors, {
+			image = resource.load("/resources/cursor_mac.tiff"),
+			hot_spot_x = 18,
+			hot_spot_y = 2,
+		})
+	end
+
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
 		if self.is_cursor == false then

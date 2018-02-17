@@ -170,7 +170,7 @@ void defos_set_window_size(int x, int y, int w, int h)
     SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
 }
 
-void defos_set_client_size(int x, int y, int w, int h)
+void defos_set_view_size(int x, int y, int w, int h)
 {
     if (x == -1)
     {

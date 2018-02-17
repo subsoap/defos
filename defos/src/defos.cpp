@@ -52,13 +52,13 @@ static int set_window_size(lua_State *L)
     return 0;
 }
 
-static int set_client_size(lua_State *L)
+static int set_view_size(lua_State *L)
 {
     int x = luaL_checkint(L, 1);
     int y = luaL_checkint(L, 2);
     int w = luaL_checkint(L, 3);
     int h = luaL_checkint(L, 4);
-    defos_set_client_size(x, y, w, h);
+    defos_set_view_size(x, y, w, h);
     return 0;
 }
 
@@ -283,7 +283,7 @@ static const luaL_reg Module_methods[] =
         {"move_cursor_to", move_cursor_to},
         {"clip_cursor", clip_cursor},
         {"restore_cursor_clip", restore_cursor_clip},
-        {"set_client_size", set_client_size},
+        {"set_view_size", set_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
         {0, 0}};

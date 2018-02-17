@@ -97,10 +97,10 @@ void defos_set_window_title(const char* title_lua) {
 }
 
 void defos_set_window_size(int x, int y, int w, int h) {
-    defos_set_client_size(x, y, w, h);
+    defos_set_view_size(x, y, w, h);
 }
 
-void defos_set_client_size(int x, int y, int w, int h) {
+void defos_set_view_size(int x, int y, int w, int h) {
     EM_ASM_({
     Module.canvas.width = $0;
     Module.canvas.height = $1;

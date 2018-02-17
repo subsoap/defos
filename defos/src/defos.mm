@@ -84,7 +84,7 @@ void defos_set_window_size(int x, int y, int w, int h) {
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
-void defos_set_client_size(int x, int y, int w, int h) {
+void defos_set_view_size(int x, int y, int w, int h) {
     int win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSRect viewFrame = [view convertRect: view.bounds toView: nil];

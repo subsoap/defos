@@ -133,7 +133,7 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("set_window_size", action_id, action, function ()
-		defos.set_window_size(100,100,1024,768)
+		defos.set_client_size(100,100,1024,768)
 	end)
 
 	dirtylarry:button("toggle_fullscreen", action_id, action, function ()

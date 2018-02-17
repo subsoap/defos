@@ -85,7 +85,17 @@ void defos_set_window_size(int x, int y, int w, int h) {
 }
 
 void defos_set_client_size(int x, int y, int w, int h) {
-    dmLogInfo("Method 'defos_set_client_size' is not supported in macOS");
+    int win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSRect viewFrame = [view convertRect: view.bounds toView: nil];
+    NSRect windowFrame = window.frame;
+    NSRect rect = NSMakeRect(
+        x - viewFrame.origin.x,
+        win_y - viewFrame.origin.x,
+        w + viewFrame.origin.x + windowFrame.size.width - viewFrame.size.width,
+        h + viewFrame.origin.y + windowFrame.size.height - viewFrame.size.height
+    );
+    [window setFrame: rect display:YES];
 }
 
 WinRect defos_get_window_size() {

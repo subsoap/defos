@@ -50,8 +50,8 @@ extern void defos_hide_console();
 
 extern void defos_disable_mouse_cursor();
 extern void defos_enable_mouse_cursor();
-extern bool defos_is_mouse_inside_window();
 
+extern bool defos_is_mouse_inside_window();
 extern void defos_set_cursor_pos(int x, int y);
 extern void defos_move_cursor_to(int x, int y);
 

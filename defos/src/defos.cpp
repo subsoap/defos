@@ -141,9 +141,7 @@ static int set_cursor_pos(lua_State *L)
 {
     int x = luaL_checkint(L, 1);
     int y = luaL_checkint(L, 2);
-
     defos_set_cursor_pos(x, y);
-
     return 0;
 }
 static int move_cursor_to(lua_State *L)
@@ -151,37 +149,77 @@ static int move_cursor_to(lua_State *L)
     int x = luaL_checkint(L, 1);
     int y = luaL_checkint(L, 2);
     defos_move_cursor_to(x, y);
-
     return 0;
 }
 
 static int clip_cursor(lua_State *L)
 {
     defos_clip_cursor();
-
     return 0;
 }
 
 static int restore_cursor_clip(lua_State *L)
 {
     defos_restore_cursor_clip();
-
     return 0;
 }
 
 static int set_cursor(lua_State *L)
 {
+    if (lua_isnil(L, 1))
+    {
+        defos_reset_cursor();
+        return 0;
+    }
+
+    if (lua_isnumber(L, 1))
+    {
+        DefosCursor cursor = (DefosCursor)luaL_checkint(L, 1);
+        defos_set_cursor(cursor);
+        return 0;
+    }
+
+    #ifdef DM_PLATFORM_WINDOWS
     const char *cursor_path_lua = luaL_checkstring(L, 1);
+    defos_set_custom_cursor_win(cursor_path_lua);
+    return 0;
+    #endif
 
-    defos_set_cursor(cursor_path_lua);
+    #ifdef DM_PLATFORM_OSX
+    luaL_checktype(L, 1, LUA_TTABLE);
 
+    lua_getfield(L, 1, "image");
+    dmBuffer::HBuffer image = dmScript::CheckBuffer(L, -1)->m_Buffer;
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "hot_spot_x");
+    float hotSpotX = 0.0f;
+    if (!lua_isnil(L, -1))
+    {
+        hotSpotX = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "hot_spot_x");
+    float hotSpotY = 0.0f;
+    if (!lua_isnil(L, -1))
+    {
+        hotSpotY = luaL_checknumber(L, -1);
+    }
+    lua_pop(L, 1);
+
+    defos_set_custom_cursor_mac(image, hotSpotX, hotSpotY);
+    return 0;
+    #endif
+
+    lua_pushstring(L, "Invalid argument");
+    lua_error(L);
     return 0;
 }
 
 static int reset_cursor(lua_State *L)
 {
     defos_reset_cursor();
-
     return 0;
 }
 
@@ -292,6 +330,14 @@ static void LuaInit(lua_State *L)
 {
     int top = lua_gettop(L);
     luaL_register(L, MODULE_NAME, Module_methods);
+    lua_pushnumber(L, DEFOS_CURSOR_ARROW);
+    lua_setfield(L, -2, "CURSOR_ARROW");
+    lua_pushnumber(L, DEFOS_CURSOR_CROSSHAIR);
+    lua_setfield(L, -2, "CURSOR_CROSSHAIR");
+    lua_pushnumber(L, DEFOS_CURSOR_HAND);
+    lua_setfield(L, -2, "CURSOR_HAND");
+    lua_pushnumber(L, DEFOS_CURSOR_IBEAM);
+    lua_setfield(L, -2, "CURSOR_IBEAM");
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
 }

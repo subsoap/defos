@@ -160,7 +160,7 @@ void defos_restore_cursor_clip() {
     dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in html5");
 }
 
-void defos_set_cursor(const char *title_lua) {
+void defos_set_cursor(DefosCursor cursor) {
     dmLogInfo("Method 'defos_set_cursor' is not supported in html5");
 }
 

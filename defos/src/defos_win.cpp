@@ -263,14 +263,17 @@ void defos_restore_cursor_clip()
 // path of the cursor file,
 // for defold it may be a good idea to save the cursor file to the save folder,
 // then pass the path to this function to load
-void defos_set_cursor(const char *title_lua)
+void defos_set_custom_cursor_win(const char *filename)
 {
-    HWND window = dmGraphics::GetNativeWindowsHWND();
-
-    custom_cursor = LoadCursorFromFile(_T(title_lua));
-
+    custom_cursor = LoadCursorFromFile(_T(filename));
     SetCursor(custom_cursor);
+    is_custom_cursor_loaded = true;
+}
 
+void defos_set_cursor(DefosCursor cursor)
+{
+    custom_cursor = LoadCursor(NULL, get_cursor(cursor));
+    SetCursor(custom_cursor);
     is_custom_cursor_loaded = true;
 }
 
@@ -283,6 +286,21 @@ void defos_reset_cursor()
 /********************
  * internal functions
  ********************/
+
+static LPCTSTR get_cursor(DefosCursor cursor) {
+    switch (cursor) {
+        case DEFOS_CURSOR_ARROW:
+            return IDC_ARROW;
+        case DEFOS_CURSOR_HAND:
+            return IDC_HAND;
+        case DEFOS_CURSOR_CROSSHAIR:
+            return IDC_CROSSHAIR:
+        case DEFOS_CURSOR_IBEAM:
+            return IDC_IBEAM;
+        default:
+            return IDC_ARROW;
+    }
+}
 
 static bool set_window_style(LONG_PTR style)
 {

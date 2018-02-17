@@ -19,6 +19,13 @@ typedef enum {
     DEFOS_EVENT_COUNT
 } DefosEvent;
 
+typedef enum {
+    DEFOS_CURSOR_ARROW,
+    DEFOS_CURSOR_CROSSHAIR,
+    DEFOS_CURSOR_HAND,
+    DEFOS_CURSOR_IBEAM,
+} DefosCursor;
+
 extern LuaCallbackInfo defos_event_handlers[];
 extern void defos_emit_event(DefosEvent event);
 extern void defos_event_handler_was_set(DefosEvent event);
@@ -58,5 +65,7 @@ extern void defos_move_cursor_to(int x, int y);
 extern void defos_clip_cursor();
 extern void defos_restore_cursor_clip();
 
-extern void defos_set_cursor(const char *title_lua);
+extern void defos_set_custom_cursor_win(const char *filename);
+extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
+extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();

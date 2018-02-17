@@ -8,6 +8,8 @@
 #include <CoreGraphics/CoreGraphics.h>
 
 static NSWindow* window = NULL;
+static NSCursor* current_cursor = NULL;
+static NSCursor* default_cursor = NULL;
 
 static bool is_maximized = false;
 static bool is_mouse_inside_window = false;
@@ -18,6 +20,10 @@ static void disable_mouse_tracking();
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
+    // [window disableCursorRects];
+    // [window resetCursorRects];
+    default_cursor = NSCursor.arrowCursor;
+    current_cursor = default_cursor;
     enable_mouse_tracking();
 }
 
@@ -154,15 +160,37 @@ void defos_restore_cursor_clip() {
     dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in macOS");
 }
 
-void defos_set_cursor(const char *title_lua) {
+void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {
     dmLogInfo("Method 'defos_set_cursor' is not supported in macOS");
 }
 
-void defos_reset_cursor() {
-    dmLogInfo("Method 'defos_reset_cursor' is not supported in macOS");
+static NSCursor * get_cursor(DefosCursor cursor) {
+  switch (cursor) {
+    case DEFOS_CURSOR_ARROW:
+        return NSCursor.arrowCursor;
+    case DEFOS_CURSOR_HAND:
+        return NSCursor.pointingHandCursor;
+    case DEFOS_CURSOR_CROSSHAIR:
+        return NSCursor.crosshairCursor;
+    case DEFOS_CURSOR_IBEAM:
+        return NSCursor.IBeamCursor;
+    default:
+        return NSCursor.arrowCursor;
+  }
 }
 
-@interface DefOSMouseTracker : NSObject
+void defos_set_cursor(DefosCursor cur) {
+    NSCursor * cursor = get_cursor(cur);
+    [cursor set];
+    current_cursor = cursor;
+}
+
+void defos_reset_cursor() {
+    current_cursor = default_cursor;
+    [current_cursor set];
+}
+
+@interface DefOSMouseTracker : NSResponder
 @end
 @implementation DefOSMouseTracker
 - (void)mouseEntered:(NSEvent *)event {
@@ -173,6 +201,23 @@ void defos_reset_cursor() {
     is_mouse_inside_window = false;
     defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
 }
+// For some reason this doesn't get called and the homonymous method
+// gets called on the view instead
+- (void)cursorUpdate:(NSEvent *)event {
+    [current_cursor set];
+}
+@end
+
+// This is unstable in case Defold renames this class
+@interface GLFWContentView
+@end
+@interface GLFWContentView(CursorUpdate)
+- (void)cursorUpdate:(NSEvent *)event;
+@end
+@implementation GLFWContentView(CursorUpdate)
+- (void)cursorUpdate:(NSEvent *)event {
+    [current_cursor set];
+}
 @end
 
 static DefOSMouseTracker* mouse_tracker = nil;
@@ -180,14 +225,15 @@ static NSTrackingArea* tracking_area = nil;
 
 static void enable_mouse_tracking() {
     if (tracking_area) { return; }
+    NSView * view = dmGraphics::GetNativeOSXNSView();
     mouse_tracker = [[DefOSMouseTracker alloc] init];
     tracking_area = [[NSTrackingArea alloc]
         initWithRect:NSZeroRect
-        options: NSTrackingMouseEnteredAndExited | NSTrackingInVisibleRect | NSTrackingActiveAlways
+        options: NSTrackingMouseEnteredAndExited | NSTrackingInVisibleRect | NSTrackingActiveAlways | NSTrackingCursorUpdate
         owner: mouse_tracker
         userInfo: nil
     ];
-    [dmGraphics::GetNativeOSXNSView() addTrackingArea:tracking_area];
+    [view addTrackingArea:tracking_area];
     [tracking_area release];
 }
 

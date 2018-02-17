@@ -80,7 +80,7 @@ void defos_set_window_title(const char* title_lua) {
 
 void defos_set_window_size(int x, int y, int w, int h) {
     // correction for result like on Windows PC
-    int win_y = [[window screen] frame].size.height - h - y;
+    int win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
@@ -92,7 +92,7 @@ WinRect defos_get_window_size() {
     WinRect rect;
     NSRect frame = [window frame];
     rect.x = frame.origin.x;
-    rect.y = [[window screen] frame].size.height - frame.size.height - frame.origin.y;
+    rect.y = NSMaxY(NSScreen.screens[0].frame) - NSMaxY(frame);
     rect.w = frame.size.width;
     rect.h = frame.size.height;
     return rect;

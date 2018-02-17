@@ -124,11 +124,16 @@ bool defos_is_mouse_inside_window() {
 }
 
 void defos_set_cursor_pos(int x, int y) {
-    dmLogInfo("Method 'defos_set_cursor_pos' is not supported in macOS");
+    CGWarpMouseCursorPosition(CGPointMake(x, y));
 }
 
 void defos_move_cursor_to(int x, int y) {
-    dmLogInfo("Method 'defos_move_cursor_to' is not supported in macOS");
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSPoint pointInWindow = [view convertPoint: NSMakePoint(x, view.bounds.size.height - y) toView: nil];
+    NSPoint windowOrigin = window.frame.origin;
+    NSPoint point = NSMakePoint(pointInWindow.x + windowOrigin.x, pointInWindow.y + windowOrigin.y);
+    point.y = NSMaxY(NSScreen.screens[0].frame) - point.y;
+    defos_set_cursor_pos(point.x, point.y);
 }
 
 void defos_clip_cursor() {

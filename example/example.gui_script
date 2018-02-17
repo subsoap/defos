@@ -2,56 +2,65 @@ local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
 cursor_clipped = false
 
+local system_name = sys.get_sys_info().system_name
+
 -- custom cursors that we will change between them
 local cursors = {}
 local current_cursor = 1
 
 function window_callback(self, event, data)
 	if event == window.WINDOW_EVENT_FOCUS_LOST then
-		-- though after lost focus cursor clipping will restore, we should restore it 
-		defos.restore_cursor_clip()
+		-- though after lost focus cursor clipping will restore, we should restore it
+		if system_name == "Windows" then
+			defos.restore_cursor_clip()
+		end
 	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
-		if cursor_clipped then
-			defos.clip_cursor()
+		if system_name == "Windows" then
+			if cursor_clipped then
+				defos.clip_cursor()
+			end
 		end
 	elseif event == window.WINDOW_EVENT_RESIZED then
-		if cursor_clipped then
-			defos.clip_cursor()
+		if system_name == "Windows" then
+			if cursor_clipped then
+				defos.clip_cursor()
+			end
 		end
 	end
 end
 
 function init(self)
-
 	local appname = sys.get_config("project.title")
 
-	for i, v in ipairs({"cursor_01.ani","cursor_02.ani"}) do
+	local cursor_resources = {}
+	if system_name == "Windows" then
+		cursor_resources = { "cursor_01.ani", "cursor_02.ani" }
+	end
+
+	for i, v in ipairs(cursor_resources) do
 		-- load source file and write them to save folder, so that we can access them with fullpath
-
-		local cursor_path = sys.get_save_file(appname, v)
-
-		local f = io.open(cursor_path, "wb")
-
 		local cursor_resource = resource.load("/resources/"..v)
-
 		local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
 
+		local cursor_path = sys.get_save_file(appname, v)
+		local f = io.open(cursor_path, "wb")
 		f:write(raw_bytes)
 		f:flush()
 		f:close()
 
 		print(cursor_path)
-
 		cursors[i] = cursor_path
 	end
-	
-	defos.set_cursor(cursors[current_cursor])
+
+	if cursors[current_cursor] then
+		defos.set_cursor(cursors[current_cursor])
+	end
 
 	defos.on_mouse_enter(function ()
 		print("Mouse entered window")
 		if self.is_cursor == false then
 			defos.disable_mouse_cursor()
-			
+
 		end
 	end)
 
@@ -66,11 +75,13 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
-	if defos.is_console_visible() then
-		defos.hide_console()
-	else
-		defos.show_console()
-	end	
+	if system_name == "Windows" then
+		if defos.is_console_visible() then
+			defos.hide_console()
+		else
+			defos.show_console()
+		end
+	end
 
 	window.set_listener(window_callback)
 end
@@ -89,13 +100,12 @@ function update(self, dt)
 end
 
 function update_clipping_label()
-
 	if cursor_clipped then
 		text = "Stop clipping"
 	else
 		text = "Clip cursor"
 	end
-	
+
 	gui.set_text(gui.get_node("clip_cursor/larrylabel"), text)
 end
 
@@ -176,6 +186,8 @@ function on_input(self, action_id, action)
 			current_cursor = 1
 		end
 
-		defos.set_cursor(cursors[current_cursor])
+		if cursors[current_cursor] then
+			defos.set_cursor(cursors[current_cursor])
+		end
 	end)
 end

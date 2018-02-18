@@ -20,6 +20,7 @@ defos.set_window_title("I set this title using Defos")
 ```
 
 Toggle maximize and full screen modes.
+On HTML5, `defos.toggle_fullscreen()` only works from `defos.on_click()`.
 
 ```lua
 defos.toggle_maximize()
@@ -87,7 +88,7 @@ defos.set_cursor_clipped(bool_value)
 bool_value = defos.is_cursor_clipped()
 ```
 
-Locks cursor movement.
+Locks cursor movement. On HTML5 this only works from `defos.on_click()`.
 
 ```lua
 defos.set_cursor_locked(bool_value)
@@ -128,6 +129,20 @@ from the Editor.
 ```
 defos.set_console_visible(bool_value)
 bool_value = defos.is_console_visible()
+```
+
+On HTML5 only, get a synchronous event when the user clicks in the canvas.
+This is necessary because some HTML5 functions only work when called
+synchronously from an event handler.
+
+This is currently needed for:
+* `defos.toggle_fullscreen()`
+* `defos.set_cursor_locked(true)`
+
+```lua
+defos.on_click(function ()
+  print("The user has clicked. I have the chance to respond synchronously")
+end)
 ```
 
 If you'd like to see any other feature, open an issue.

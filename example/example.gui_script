@@ -23,6 +23,13 @@ function window_callback(self, event, data)
 	end
 end
 
+function toggle_cursor_lock(self)
+	self.cursor_locked = not self.cursor_locked
+	defos.set_cursor_locked(self.cursor_locked)
+	local text = self.cursor_locked and "Unlock cursor" or "Lock cursor"
+	gui.set_text(gui.get_node("lock_cursor/larrylabel"), text)
+end
+
 function init(self)
 	local appname = sys.get_config("project.title")
 
@@ -77,6 +84,18 @@ function init(self)
 			defos.set_cursor_visible(true)
 		end
 	end)
+
+	if system_name == "HTML5" then
+		defos.on_click(function ()
+			-- If we're hovering over the button
+			if gui.get_flipbook(gui.get_node("lock_cursor/larrybutton")) == hash("button_pressed") then
+				toggle_cursor_lock(self)
+			end
+			if gui.get_flipbook(gui.get_node("toggle_fullscreen/larrybutton")) == hash("button_pressed") then
+				defos.toggle_fullscreen()
+			end
+		end)
+	end
 
 	self.cursor_visible = true
 	self.cursor_clipped = false
@@ -144,7 +163,9 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("toggle_fullscreen", action_id, action, function ()
-		defos.toggle_fullscreen()
+		if system_name ~= "HTML5" then
+			defos.toggle_fullscreen()
+		end
 	end)
 
 
@@ -173,10 +194,9 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("lock_cursor", action_id, action, function()
-		self.cursor_locked = not self.cursor_locked
-		defos.set_cursor_locked(self.cursor_locked)
-		local text = self.cursor_locked and "Unlock cursor" or "Lock cursor"
-		gui.set_text(gui.get_node("lock_cursor/larrylabel"), text)
+		if system_name ~= "HTML5" then
+			toggle_cursor_lock(self)
+		end
 	end)
 
 	dirtylarry:button("change_cursor", action_id, action, function()

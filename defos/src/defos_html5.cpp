@@ -42,9 +42,13 @@ void defos_init() {
         Module.__defosjs_mouseleave_listener = function () {
             _defos_emit_event_from_js($1);
         };
+        Module.__defosjs_click_listener = function () {
+            _defos_emit_event_from_js($2);
+        };
         Module.canvas.addEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
-    }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE);
+        Module.canvas.addEventListener('click', Module.__defosjs_click_listener);
+    }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
 }
 
 void defos_final() {
@@ -55,6 +59,7 @@ void defos_final() {
     EM_ASM(
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
+        Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
     );
 }
 
@@ -74,7 +79,7 @@ void defos_disable_window_resize() {
 }
 
 void defos_toggle_fullscreen() {
-    dmLogInfo("Method 'toggle_fullscreen' is not supported in html5, you can use Module.toggleFullscreen() method in JS");
+    EM_ASM(Module.toggleFullscreen(););
 }
 
 void defos_toggle_maximize() {

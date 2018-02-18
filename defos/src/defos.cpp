@@ -308,6 +308,15 @@ static int on_mouse_enter(lua_State *L)
     return 0;
 }
 
+static int on_click(lua_State *L)
+{
+    #ifndef DM_PLATFORM_HTML5
+    dmLogInfo("Event 'on_click' exists only on HTML5");
+    #endif
+    set_event_handler(L, 1, DEFOS_EVENT_CLICK);
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event)
 {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
@@ -356,6 +365,7 @@ static const luaL_reg Module_methods[] =
         {"is_cursor_visible", is_cursor_visible},
         {"on_mouse_enter", on_mouse_enter},
         {"on_mouse_leave", on_mouse_leave},
+        {"on_click", on_click},
         {"is_mouse_in_view", is_mouse_in_view},
         {"set_cursor_pos", set_cursor_pos},
         {"move_cursor_to", move_cursor_to},

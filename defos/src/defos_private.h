@@ -17,6 +17,7 @@ struct LuaCallbackInfo {
 typedef enum {
     DEFOS_EVENT_MOUSE_LEAVE,
     DEFOS_EVENT_MOUSE_ENTER,
+    DEFOS_EVENT_CLICK,
     DEFOS_EVENT_COUNT
 } DefosEvent;
 

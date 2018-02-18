@@ -63,7 +63,7 @@ function init(self)
 	end
 
 	defos.on_mouse_enter(function ()
-		print("Mouse entered window")
+		print("Mouse entered view")
 		if self.is_cursor == false then
 			defos.disable_mouse_cursor()
 
@@ -71,7 +71,7 @@ function init(self)
 	end)
 
 	defos.on_mouse_leave(function ()
-		print("Mouse left window")
+		print("Mouse left view")
 		if self.is_cursor == false then
 			defos.enable_mouse_cursor()
 		end
@@ -102,7 +102,7 @@ function update(self, dt)
 	gui.set_text(gui.get_node("position"),"position\n"..x.." "..y.." "..w.." "..h)
 	gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
 	gui.set_text(gui.get_node("is_maximized"),"is_maximized "..tostring(defos.is_maximized()))
-	gui.set_text(gui.get_node("is_mouse_inside_window"),"is_mouse_inside_window "..tostring(defos.is_mouse_inside_window()))
+	gui.set_text(gui.get_node("is_mouse_in_view"),"is_mouse_in_view "..tostring(defos.is_mouse_in_view()))
 end
 
 function update_clipping_label()

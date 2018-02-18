@@ -63,7 +63,7 @@ bool defos_is_maximized()
     return !!IsZoomed(dmGraphics::GetNativeWindowsHWND());
 }
 
-bool defos_is_mouse_inside_window()
+bool defos_is_mouse_in_view()
 {
     return is_mouse_inside;
 }

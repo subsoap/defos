@@ -140,7 +140,7 @@ void defos_enable_mouse_cursor() {
     EM_ASM(Module.canvas.style.cursor = 'default';);
 }
 
-bool defos_is_mouse_inside_window() {
+bool defos_is_mouse_in_view() {
     return is_mouse_inside;
 }
 

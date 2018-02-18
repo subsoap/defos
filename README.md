@@ -56,7 +56,7 @@ defos.enable_mouse_cursor()
 Respond to the mouse entering and leaving the game view area.
 
 ```lua
-bool_value = defos.is_mouse_inside_window()
+bool_value = defos.is_mouse_in_view()
 defos.on_mouse_enter(function ()
   print("Mouse entered view")
 end)

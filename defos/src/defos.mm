@@ -12,7 +12,7 @@ static NSCursor* current_cursor = nil;
 static NSCursor* default_cursor = nil;
 
 static bool is_maximized = false;
-static bool is_mouse_inside_window = false;
+static bool is_mouse_in_view = false;
 static NSRect previous_state;
 
 static void enable_mouse_tracking();
@@ -138,8 +138,8 @@ void defos_enable_mouse_cursor() {
     [NSCursor unhide];
 }
 
-bool defos_is_mouse_inside_window() {
-    return is_mouse_inside_window;
+bool defos_is_mouse_in_view() {
+    return is_mouse_in_view;
 }
 
 void defos_set_cursor_pos(int x, int y) {
@@ -218,11 +218,11 @@ void defos_reset_cursor() {
 @end
 @implementation DefOSMouseTracker
 - (void)mouseEntered:(NSEvent *)event {
-    is_mouse_inside_window = true;
+    is_mouse_in_view = true;
     defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
 }
 - (void)mouseExited:(NSEvent *)event {
-    is_mouse_inside_window = false;
+    is_mouse_in_view = false;
     defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
 }
 // For some reason this doesn't get called and the homonymous method

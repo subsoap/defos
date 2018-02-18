@@ -1937,9 +1937,9 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "is_mouse_inside_window"
+  text: "is_mouse_in_view"
   font: "larryfont"
-  id: "is_mouse_inside_window"
+  id: "is_mouse_in_view"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_NW

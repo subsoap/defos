@@ -118,9 +118,9 @@ static int is_console_visible(lua_State *L)
 
 // Cursor and mouse
 
-static int is_mouse_inside_window(lua_State *L)
+static int is_mouse_in_view(lua_State *L)
 {
-    bool isWithin = defos_is_mouse_inside_window();
+    bool isWithin = defos_is_mouse_in_view();
     lua_pushboolean(L, isWithin);
     return 1;
 }
@@ -311,7 +311,7 @@ static const luaL_reg Module_methods[] =
         {"show_console", show_console},
         {"hide_console", hide_console},
         {"is_console_visible", is_console_visible},
-        {"is_mouse_inside_window", is_mouse_inside_window},
+        {"is_mouse_in_view", is_mouse_in_view},
         {"on_mouse_leave", on_mouse_leave},
         {"on_mouse_enter", on_mouse_enter},
         {"get_window_size", get_window_size},

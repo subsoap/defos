@@ -89,16 +89,16 @@ void defos_set_window_title(const char* title_lua) {
 
 void defos_set_window_size(float x, float y, float w, float h) {
     if (isnan(x)) {
-      NSRect frame = window.screen.frame;
-      x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
+        NSRect frame = window.screen.frame;
+        x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
     }
     float win_y;
     if (isnan(y)) {
-      NSRect frame = window.screen.frame;
-      win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
+        NSRect frame = window.screen.frame;
+        win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
     } else {
-      // correction for result like on Windows PC
-      win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+        // correction for result like on Windows PC
+        win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     }
 
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
@@ -106,15 +106,15 @@ void defos_set_window_size(float x, float y, float w, float h) {
 
 void defos_set_view_size(float x, float y, float w, float h) {
     if (isnan(x)) {
-      NSRect frame = window.screen.frame;
-      x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
+        NSRect frame = window.screen.frame;
+        x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
     }
     float win_y;
     if (isnan(y)) {
-      NSRect frame = window.screen.frame;
-      win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
+        NSRect frame = window.screen.frame;
+        win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
     } else {
-      win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+        win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     }
 
     NSView* view = dmGraphics::GetNativeOSXNSView();
@@ -203,8 +203,8 @@ void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float
     uint8_t* bytes = NULL;
     uint32_t size = 0;
     if (dmBuffer::GetBytes(buffer, (void**)&bytes, &size) != dmBuffer::RESULT_OK) {
-      dmLogError("defos_set_custom_cursor_mac: dmBuffer::GetBytes failed");
-      return;
+        dmLogError("defos_set_custom_cursor_mac: dmBuffer::GetBytes failed");
+        return;
     }
 
     uint8_t* copy = (uint8_t*)malloc(size);
@@ -221,18 +221,18 @@ void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float
 }
 
 static NSCursor * get_cursor(DefosCursor cursor) {
-  switch (cursor) {
-    case DEFOS_CURSOR_ARROW:
-        return NSCursor.arrowCursor;
-    case DEFOS_CURSOR_HAND:
-        return NSCursor.pointingHandCursor;
-    case DEFOS_CURSOR_CROSSHAIR:
-        return NSCursor.crosshairCursor;
-    case DEFOS_CURSOR_IBEAM:
-        return NSCursor.IBeamCursor;
-    default:
-        return NSCursor.arrowCursor;
-  }
+    switch (cursor) {
+        case DEFOS_CURSOR_ARROW:
+            return NSCursor.arrowCursor;
+        case DEFOS_CURSOR_HAND:
+            return NSCursor.pointingHandCursor;
+        case DEFOS_CURSOR_CROSSHAIR:
+            return NSCursor.crosshairCursor;
+        case DEFOS_CURSOR_IBEAM:
+            return NSCursor.IBeamCursor;
+        default:
+            return NSCursor.arrowCursor;
+    }
 }
 
 void defos_set_cursor(DefosCursor cur) {

@@ -12,6 +12,7 @@ static bool current_cursor_needs_free = false;
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
 static bool is_cursor_visible = true;
+static bool is_cursor_locked = false;
 static WinRect previous_state;
 
 void js_warn(const char* msg) {
@@ -176,11 +177,28 @@ bool defos_is_cursor_clipped() {
 }
 
 extern void defos_set_cursor_locked(bool locked) {
-    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in html5");
+    is_cursor_locked = locked;
+    if (locked) {
+        EM_ASM(
+            (Module.canvas.requestPointerLock ||
+            Module.canvas.mozRequestPointerLock ||
+            Module.canvas.webkitRequestPointerLock ||
+            Module.canvas.msRequestPointerLock ||
+            function () {}).call(Module.canvas);
+        );
+    } else {
+        EM_ASM(
+            (document.exitPointerLock ||
+            document.mozExitPointerLock ||
+            document.webkitExitPointerLock ||
+            document.msExitPointerLock ||
+            function () {}).call(document);
+        );
+    }
 }
 
 bool defos_is_cursor_locked() {
-    return false;
+    return is_cursor_locked;
 }
 
 static const char * get_cursor(DefosCursor cursor) {

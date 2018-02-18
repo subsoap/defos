@@ -32,6 +32,8 @@ Get/set the window's size and position in screen coordinates. The window is
 inclusive of title bar, so the actual contained game view area might be smaller
 than the given metrics.
 
+Passing `nil` for `x` and `y` will center the window in the middle of the display.
+
 Screen coordinates start at (0, 0) in the top-left corner of the main display.
 X axis goes right. Y axis goes down.
 
@@ -44,6 +46,8 @@ Get/set the game view size and position in screen coordinates. This adjusts
 the window so that its containing game view is at the desired size and position.
 The window will be larger than the given metrics because it includes the title
 bar.
+
+Passing `nil` for `x` and `y` will center the window in the middle of the display.
 
 ```lua
 x, y, w, h = defos.get_view_size()

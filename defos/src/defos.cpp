@@ -55,8 +55,16 @@ static int get_view_size(lua_State *L)
 
 static int set_window_size(lua_State *L)
 {
-    float x = luaL_checknumber(L, 1);
-    float y = luaL_checknumber(L, 2);
+    float x = nanf("");
+    if (!lua_isnil(L, 1))
+    {
+        x = luaL_checknumber(L, 1);
+    }
+    float y = nanf("");
+    if (!lua_isnil(L, 2))
+    {
+        y = luaL_checknumber(L, 2);
+    }
     float w = luaL_checknumber(L, 3);
     float h = luaL_checknumber(L, 4);
     defos_set_window_size(x, y, w, h);
@@ -65,8 +73,16 @@ static int set_window_size(lua_State *L)
 
 static int set_view_size(lua_State *L)
 {
-    float x = luaL_checknumber(L, 1);
-    float y = luaL_checknumber(L, 2);
+    float x = nanf("");
+    if (!lua_isnil(L, 1))
+    {
+        x = luaL_checknumber(L, 1);
+    }
+    float y = nanf("");
+    if (!lua_isnil(L, 2))
+    {
+        y = luaL_checknumber(L, 2);
+    }
     float w = luaL_checknumber(L, 3);
     float h = luaL_checknumber(L, 4);
     defos_set_view_size(x, y, w, h);

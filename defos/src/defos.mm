@@ -88,13 +88,35 @@ void defos_set_window_title(const char* title_lua) {
 }
 
 void defos_set_window_size(float x, float y, float w, float h) {
-    // correction for result like on Windows PC
-    float win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    if (isnan(x)) {
+      NSRect frame = window.screen.frame;
+      x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
+    }
+    float win_y;
+    if (isnan(y)) {
+      NSRect frame = window.screen.frame;
+      win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
+    } else {
+      // correction for result like on Windows PC
+      win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    }
+
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
 void defos_set_view_size(float x, float y, float w, float h) {
-    float win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    if (isnan(x)) {
+      NSRect frame = window.screen.frame;
+      x = floorf(frame.origin.x + (frame.size.width - w) * 0.5f);
+    }
+    float win_y;
+    if (isnan(y)) {
+      NSRect frame = window.screen.frame;
+      win_y = floorf(frame.origin.y + (frame.size.height - h) * 0.5f);
+    } else {
+      win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    }
+
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSRect viewFrame = [view convertRect: view.bounds toView: nil];
     NSRect windowFrame = window.frame;

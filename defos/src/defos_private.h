@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dmsdk/sdk.h>
+#include <math.h>
 
 struct WinRect {
     float x,y,w,h;

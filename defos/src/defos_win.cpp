@@ -160,9 +160,12 @@ bool defos_is_console_visible()
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
-    if (x == -1)
+    if (isnan(x))
     {
         x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+    }
+    if (isnan(y))
+    {
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
 
@@ -172,9 +175,12 @@ void defos_set_window_size(float x, float y, float w, float h)
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
-    if (x == -1)
+    if (isnan(x))
     {
         x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+    }
+    if (isnan(y))
+    {
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
 

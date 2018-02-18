@@ -17,6 +17,17 @@ static bool is_mouse_inside = false;
 // original wndproc pointer
 static WNDPROC originalProc = NULL;
 
+// original mouse clip rect
+static RECT originalRect;
+static bool is_cursor_clipped = false;
+static POINT lock_point;
+static bool is_cursor_locked = false;
+
+static bool is_cursor_visible = true;
+static bool is_custom_cursor_loaded;
+static HCURSOR custom_cursor;
+static HCURSOR original_cursor; // used to restore
+
 // forward declarations
 bool set_window_style(LONG_PTR style);
 LONG_PTR get_window_style();
@@ -31,11 +42,15 @@ void subclass_window();
 void defos_init()
 {
     is_mouse_inside = false;
+    is_cursor_clipped = false;
+    GetClipCursor(&originalRect);  // keep the original clip for restore
+    original_cursor = GetCursor(); // keep the original cursor
     subclass_window();
 }
 
 void defos_final()
 {
+    defos_set_cursor_clipped(false);
     restore_window_class();
 }
 
@@ -53,7 +68,7 @@ bool defos_is_maximized()
     return !!IsZoomed(dmGraphics::GetNativeWindowsHWND());
 }
 
-bool defos_is_mouse_inside_window()
+bool defos_is_mouse_in_view()
 {
     return is_mouse_inside;
 }
@@ -73,14 +88,18 @@ void defos_disable_window_resize()
     set_window_style(get_window_style() & ~WS_SIZEBOX);
 }
 
-void defos_disable_mouse_cursor()
+void defos_set_cursor_visible(bool visible)
 {
-    ShowCursor(0);
+    if (visible != is_cursor_visible)
+    {
+        is_cursor_visible = visible;
+        ShowCursor(visible ? TRUE : FALSE);
+    }
 }
 
-void defos_enable_mouse_cursor()
+bool defos_is_cursor_visible()
 {
-    ShowCursor(1);
+    return is_cursor_visible;
 }
 
 // https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
@@ -133,27 +152,52 @@ void defos_toggle_maximize()
     }
 }
 
-void defos_show_console() {
-	::ShowWindow(::GetConsoleWindow(), SW_SHOW);
-}
-
-void defos_hide_console() {
-	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
-}
-
-bool defos_is_console_visible() {
-	return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
-}
-
-void defos_set_window_size(int x, int y, int w, int h)
+void defos_set_console_visible(bool visible)
 {
-    if (x == -1)
+    ::ShowWindow(::GetConsoleWindow(), visible ? SW_SHOW : SW_HIDE);
+}
+
+bool defos_is_console_visible()
+{
+    return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
+}
+
+void defos_set_window_size(float x, float y, float w, float h)
+{
+    if (isnan(x))
     {
         x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+    }
+    if (isnan(y))
+    {
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
+
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
+    SetWindowPos(window, window, (int)x, (int)y, (int)w, (int)h, SWP_NOZORDER);
+}
+
+void defos_set_view_size(float x, float y, float w, float h)
+{
+    if (isnan(x))
+    {
+        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+    }
+    if (isnan(y))
+    {
+        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+    }
+
+    RECT rect = {0, 0, (int)w, (int)h};
+
+    DWORD style = (DWORD)get_window_style();
+
+    // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
+    AdjustWindowRect(&rect, style, false);
+
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    SetWindowPos(window, window, (int)x, (int)y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }
 
 void defos_set_window_title(const char *title_lua)
@@ -161,9 +205,10 @@ void defos_set_window_title(const char *title_lua)
     SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 
-WinRect defos_get_window_size(){
+WinRect defos_get_window_size()
+{
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    WINDOWPLACEMENT frame = { sizeof(placement) };
+    WINDOWPLACEMENT frame = {sizeof(placement)};
     GetWindowPlacement(window, &frame);
     WinRect rect;
     rect.x = (float)frame.rcNormalPosition.left;
@@ -173,9 +218,145 @@ WinRect defos_get_window_size(){
     return rect;
 }
 
+WinRect defos_get_view_size()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT wrect;
+    GetClientRect(window, &wrect);
+
+    POINT pos = {wrect.left, wrect.top};
+    ClientToScreen(window, &pos);
+
+    WINDOWPLACEMENT frame = {sizeof(placement)};
+    GetWindowPlacement(window, &frame);
+    WinRect rect;
+    rect.x = (float)pos.x;
+    rect.y = (float)pos.y;
+    rect.w = (float)(wrect.right - wrect.left);
+    rect.h = (float)(wrect.bottom - wrect.top);
+    return rect;
+}
+
+void defos_set_cursor_pos(float x, float y)
+{
+    SetCursorPos((int)x, (int)y);
+}
+
+// move cursor to pos relative to current window
+// top-left is (0, 0)
+void defos_move_cursor_to(float x, float y)
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT wrect;
+    GetClientRect(window, &wrect);
+
+    int tox = wrect.left + (int)x;
+    int toy = wrect.top + (int)y;
+    POINT pos = {tox, toy};
+
+    ClientToScreen(window, &pos);
+    SetCursorPos(pos.x, pos.y);
+}
+
+void defos_set_cursor_clipped(bool clipped)
+{
+    is_cursor_clipped = clipped;
+    if (clipped)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
+
+        RECT wrect;
+        GetClientRect(window, &wrect);
+
+        POINT left_top = {wrect.left, wrect.top};
+        POINT right_bottom = {wrect.right, wrect.bottom};
+
+        ClientToScreen(window, &left_top);
+        ClientToScreen(window, &right_bottom);
+
+        wrect.left = left_top.x;
+        wrect.top = left_top.y;
+        wrect.right = right_bottom.x;
+        wrect.bottom = right_bottom.y;
+
+        ClipCursor(&wrect);
+    }
+    else
+    {
+        ClipCursor(&originalRect);
+    }
+}
+
+bool defos_is_cursor_clipped()
+{
+    return is_cursor_clipped;
+}
+
+void defos_set_cursor_locked(bool locked)
+{
+    if (!is_cursor_locked && locked)
+    {
+        GetCursorPos(&lock_point);
+    }
+    is_cursor_locked = locked;
+}
+
+bool defos_is_cursor_locked()
+{
+    return is_cursor_locked;
+}
+
+void defos_update() {
+    if (is_cursor_locked) {
+        SetCursorPos(lock_point.x, lock_point.y);
+    }
+}
+
+// path of the cursor file,
+// for defold it may be a good idea to save the cursor file to the save folder,
+// then pass the path to this function to load
+void defos_set_custom_cursor_win(const char *filename)
+{
+    custom_cursor = LoadCursorFromFile(_T(filename));
+    SetCursor(custom_cursor);
+    is_custom_cursor_loaded = true;
+}
+
+static LPCTSTR get_cursor(DefosCursor cursor);
+
+void defos_set_cursor(DefosCursor cursor)
+{
+    custom_cursor = LoadCursor(NULL, get_cursor(cursor));
+    SetCursor(custom_cursor);
+    is_custom_cursor_loaded = true;
+}
+
+void defos_reset_cursor()
+{
+    // here we do not need to set cursor again, as we already ignore that in winproc
+    is_custom_cursor_loaded = false;
+}
+
 /********************
  * internal functions
  ********************/
+
+static LPCTSTR get_cursor(DefosCursor cursor) {
+    switch (cursor) {
+        case DEFOS_CURSOR_ARROW:
+            return IDC_ARROW;
+        case DEFOS_CURSOR_HAND:
+            return IDC_HAND;
+        case DEFOS_CURSOR_CROSSHAIR:
+            return IDC_CROSS;
+        case DEFOS_CURSOR_IBEAM:
+            return IDC_IBEAM;
+        default:
+            return IDC_ARROW;
+    }
+}
 
 static bool set_window_style(LONG_PTR style)
 {
@@ -190,7 +371,10 @@ static LONG_PTR get_window_style()
 static void subclass_window()
 {
     // check if we already subclass the window
-    if (originalProc) { return; }
+    if (originalProc)
+    {
+        return;
+    }
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
@@ -226,7 +410,7 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
             is_mouse_inside = true;
             defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
 
-            TRACKMOUSEEVENT tme = { sizeof(tme) };
+            TRACKMOUSEEVENT tme = {sizeof(tme)};
             tme.dwFlags = TME_LEAVE;
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);
@@ -236,6 +420,21 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
     case WM_MOUSELEAVE:
         is_mouse_inside = false;
         defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+        break;
+
+    case WM_SETCURSOR:
+        if (is_custom_cursor_loaded)
+        {
+            SetCursor(custom_cursor);
+            return TRUE;
+        }
+        break;
+
+    case WM_SIZE:
+        if (is_cursor_locked)
+        {
+            defos_set_cursor_locked(true);
+        }
         break;
     }
 

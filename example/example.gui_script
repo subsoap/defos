@@ -1,33 +1,118 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
+local cursor_url = require("example.html5_cursor")
 
+local system_name = sys.get_sys_info().system_name
+
+function window_callback(self, event, data)
+	if event == window.WINDOW_EVENT_FOCUS_LOST then
+		-- though after lost focus cursor clipping will restore, we should restore it
+		if self.cursor_clipped then
+			defos.set_cursor_clipped(false)
+		end
+		if self.cursor_locked then
+			defos.set_cursor_locked(false)
+		end
+	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+		if self.cursor_clipped then
+			defos.set_cursor_clipped(true)
+		end
+		if self.cursor_locked then
+			defos.set_cursor_locked(true)
+		end
+	end
+end
+
+function toggle_cursor_lock(self)
+	self.cursor_locked = not self.cursor_locked
+	defos.set_cursor_locked(self.cursor_locked)
+	local text = self.cursor_locked and "Unlock cursor" or "Lock cursor"
+	gui.set_text(gui.get_node("lock_cursor/larrylabel"), text)
+end
 
 function init(self)
+	local appname = sys.get_config("project.title")
+
+	-- custom cursors we will change between
+	self.current_cursor = 0 -- start with default cursor (nil)
+	self.cursors = {
+		defos.CURSOR_HAND,
+		defos.CURSOR_ARROW,
+		defos.CURSOR_CROSSHAIR,
+		defos.CURSOR_IBEAM,
+	}
+
+	if system_name == "Windows" then
+		for i, v in ipairs({ "cursor_01.ani", "cursor_02.ani" }) do
+			-- load source file and write them to save folder, so that we can access them with fullpath
+			local cursor_resource = resource.load("/resources/"..v)
+			local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
+
+			local cursor_path = sys.get_save_file(appname, v)
+			local f = io.open(cursor_path, "wb")
+			f:write(raw_bytes)
+			f:flush()
+			f:close()
+
+			print(cursor_path)
+			table.insert(self.cursors, cursor_path)
+		end
+	end
+
+	if system_name == "Darwin" then
+		table.insert(self.cursors, {
+			image = resource.load("/resources/cursor_mac.tiff"),
+			hot_spot_x = 18,
+			hot_spot_y = 2,
+		})
+	end
+
+	if system_name == "HTML5" then
+		table.insert(self.cursors, cursor_url)
+	end
+
 	defos.on_mouse_enter(function ()
-		print("Mouse entered window")
-		if self.is_cursor == false then
-			defos.disable_mouse_cursor()
-			
+		print("Mouse entered view")
+		if not self.cursor_visible then
+			defos.set_cursor_visible(false)
 		end
 	end)
 
 	defos.on_mouse_leave(function ()
-		print("Mouse left window")
-		if self.is_cursor == false then
-			defos.enable_mouse_cursor()
+		print("Mouse left view")
+		if not self.cursor_visible then
+			defos.set_cursor_visible(true)
 		end
 	end)
 
-	self.is_cursor = true
+	if system_name == "HTML5" then
+		defos.on_click(function ()
+			-- If we're hovering over the button
+			if gui.get_flipbook(gui.get_node("lock_cursor/larrybutton")) == hash("button_pressed") then
+				toggle_cursor_lock(self)
+			end
+			if gui.get_flipbook(gui.get_node("toggle_fullscreen/larrybutton")) == hash("button_pressed") then
+				defos.toggle_fullscreen()
+			end
+		end)
+	end
+
+	defos.on_cursor_lock_disabled(function ()
+		self.cursor_locked = false
+		gui.set_text(gui.get_node("lock_cursor/larrylabel"), "Lock cursor")
+	end)
+
+	self.cursor_visible = true
+	self.cursor_clipped = false
+	self.cursor_locked = false
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
-	if defos.is_console_visible() then
-		defos.hide_console()
-	else
-		defos.show_console()
-	end	
-	
+	if system_name == "Windows" then
+		defos.set_console_visible(not defos.is_console_visible())
+	end
+
+	window.set_listener(window_callback)
 end
 
 local function change_mouse_label(text)
@@ -37,10 +122,22 @@ end
 
 function update(self, dt)
 	local x,y,w,h = defos.get_window_size()
-	gui.set_text(gui.get_node("position"),"position\n"..x.." "..y.." "..w.." "..h)
+	gui.set_text(gui.get_node("window_pos"),"window position "..x.." "..y.." "..w.." "..h)
+	x,y,w,h = defos.get_view_size()
+	gui.set_text(gui.get_node("view_pos"),"view position "..x.." "..y.." "..w.." "..h)
 	gui.set_text(gui.get_node("is_fullscreen"),"is_fullscreen "..tostring(defos.is_fullscreen()))
 	gui.set_text(gui.get_node("is_maximized"),"is_maximized "..tostring(defos.is_maximized()))
-	gui.set_text(gui.get_node("is_mouse_inside_window"),"is_mouse_inside_window "..tostring(defos.is_mouse_inside_window()))
+	gui.set_text(gui.get_node("is_mouse_in_view"),"is_mouse_in_view "..tostring(defos.is_mouse_in_view()))
+end
+
+function update_clipping_label(self)
+	if self.cursor_clipped then
+		text = "Stop clipping"
+	else
+		text = "Clip cursor"
+	end
+
+	gui.set_text(gui.get_node("clip_cursor/larrylabel"), text)
 end
 
 function on_input(self, action_id, action)
@@ -67,11 +164,13 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("set_window_size", action_id, action, function ()
-		defos.set_window_size(100,100,800,600)
+		defos.set_view_size(nil, nil, 1024, 768)
 	end)
 
 	dirtylarry:button("toggle_fullscreen", action_id, action, function ()
-		defos.toggle_fullscreen()
+		if system_name ~= "HTML5" then
+			defos.toggle_fullscreen()
+		end
 	end)
 
 
@@ -80,16 +179,42 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("disable_mouse_cursor", action_id, action, function ()
-		if self.is_cursor then
-			defos.disable_mouse_cursor()
-			self.is_cursor = false
-			change_mouse_label("Enable mouse cursor")
-			cursor.set_software_cursor_enabled(true)
-		else
-			defos.enable_mouse_cursor()
-			self.is_cursor = true
-			change_mouse_label("Disable mouse cursor")
-			cursor.set_software_cursor_enabled(false)
+		local cursor_visible = not self.cursor_visible
+		self.cursor_visible = cursor_visible
+		defos.set_cursor_visible(cursor_visible)
+		cursor.set_software_cursor_enabled(not cursor_visible)
+		change_mouse_label(cursor_visible and "Hide mouse cursor" or "Show mouse cursor")
+	end)
+
+	dirtylarry:button("random_cursor_pos", action_id, action, function()
+		local x = math.random(1,2000)
+		local y = math.random(1,2000)
+		defos.move_cursor_to(x, y)
+	end)
+
+	dirtylarry:button("clip_cursor", action_id, action, function()
+		self.cursor_clipped = not self.cursor_clipped
+		defos.set_cursor_clipped(self.cursor_clipped)
+		update_clipping_label(self)
+	end)
+
+	dirtylarry:button("lock_cursor", action_id, action, function()
+		if system_name ~= "HTML5" then
+			toggle_cursor_lock(self)
 		end
 	end)
+
+	dirtylarry:button("change_cursor", action_id, action, function()
+		self.current_cursor = self.current_cursor + 1
+
+		if self.current_cursor > #self.cursors then
+			self.current_cursor = 0
+		end
+
+		defos.set_cursor(self.cursors[self.current_cursor])
+	end)
+
+	if self.cursor_locked and not action_id then
+		print("FPS mouse dx, dy: ", action.dx, action.dy)
+	end
 end

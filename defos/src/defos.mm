@@ -162,7 +162,6 @@ void defos_hide_console() {
 }
 
 bool defos_is_console_visible() {
-    dmLogInfo("Method 'defos_is_console_visible' is not supported in macOS");
     return false;
 }
 

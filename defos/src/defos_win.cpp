@@ -20,6 +20,8 @@ static WNDPROC originalProc = NULL;
 // original mouse clip rect
 static RECT originalRect;
 static bool is_cursor_clipped = false;
+static POINT lock_point;
+static bool is_cursor_locked = false;
 
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
@@ -295,12 +297,22 @@ bool defos_is_cursor_clipped()
 
 void defos_set_cursor_locked(bool locked)
 {
-    dmLogInfo("Method 'defos_set_cursor_locked' not available on Windows");
+    if (!is_cursor_locked && locked)
+    {
+        GetCursorPos(&lock_point);
+    }
+    is_cursor_locked = locked;
 }
 
 bool defos_is_cursor_locked()
 {
-    return false;
+    return is_cursor_locked;
+}
+
+void defos_update() {
+    if (is_cursor_locked) {
+        SetCursorPos(lock_point.x, lock_point.y);
+    }
 }
 
 // path of the cursor file,

@@ -63,6 +63,9 @@ void defos_final() {
     );
 }
 
+void defos_update() {
+}
+
 void defos_event_handler_was_set(DefosEvent event) {
 }
 

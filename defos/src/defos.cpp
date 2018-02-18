@@ -395,11 +395,6 @@ static void LuaInit(lua_State *L)
     assert(top == lua_gettop(L));
 }
 
-dmExtension::Result AppInitializeDefos(dmExtension::AppParams *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
 dmExtension::Result InitializeDefos(dmExtension::Params *params)
 {
     // Clear any bound events
@@ -412,32 +407,23 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
     return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result AppFinalizeDefos(dmExtension::AppParams *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
 dmExtension::Result FinalizeDefos(dmExtension::Params *params)
 {
     defos_final();
     return dmExtension::RESULT_OK;
 }
 
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
+dmExtension::Result UpdateDefos(dmExtension::Params *params)
+{
+    defos_update();
+    return dmExtension::RESULT_OK;
+}
+
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, InitializeDefos, UpdateDefos, 0, FinalizeDefos)
 
 #else
 
-dmExtension::Result AppInitializeDefos(dmExtension::AppParams *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
 dmExtension::Result InitializeDefos(dmExtension::Params *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result AppFinalizeDefos(dmExtension::AppParams *params)
 {
     return dmExtension::RESULT_OK;
 }
@@ -447,5 +433,5 @@ dmExtension::Result FinalizeDefos(dmExtension::Params *params)
     return dmExtension::RESULT_OK;
 }
 
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitializeDefos, AppFinalizeDefos, InitializeDefos, 0, 0, FinalizeDefos)
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, InitializeDefos, 0, 0, FinalizeDefos)
 #endif

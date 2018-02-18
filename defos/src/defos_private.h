@@ -37,6 +37,7 @@ inline bool defos_event_is_bound(DefosEvent event) {
 
 extern void defos_init();
 extern void defos_final();
+extern void defos_update();
 
 extern void defos_disable_maximize_button();
 extern void defos_disable_minimize_button();

@@ -107,7 +107,7 @@ void defos_toggle_fullscreen()
 {
     if (defos_is_maximized())
     {
-        defos_toggle_maximize();
+        defos_toggle_maximized();
     }
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
@@ -133,7 +133,7 @@ void defos_toggle_fullscreen()
     }
 }
 
-void defos_toggle_maximize()
+void defos_toggle_maximized()
 {
     if (defos_is_fullscreen())
     {

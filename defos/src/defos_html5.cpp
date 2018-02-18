@@ -115,7 +115,7 @@ void defos_toggle_fullscreen() {
     EM_ASM(Module.toggleFullscreen(););
 }
 
-void defos_toggle_maximize() {
+void defos_toggle_maximized() {
     if (is_maximized) {
         is_maximized = false;
         defos_set_window_size(0,0, previous_state.w, previous_state.h);

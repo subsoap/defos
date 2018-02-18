@@ -108,23 +108,37 @@ static int toggle_fullscreen(lua_State *L)
     return 0;
 }
 
+static int set_fullscreen(lua_State *L)
+{
+    if (checkboolean(L, 1) != defos_is_fullscreen()) {
+        defos_toggle_fullscreen();
+    }
+    return 0;
+}
+
 static int is_fullscreen(lua_State *L)
 {
-    bool isFullScreen = defos_is_fullscreen();
-    lua_pushboolean(L, isFullScreen);
+    lua_pushboolean(L, defos_is_fullscreen());
     return 1;
 }
 
-static int toggle_maximize(lua_State *L)
+static int toggle_maximized(lua_State *L)
 {
-    defos_toggle_maximize();
+    defos_toggle_maximized();
+    return 0;
+}
+
+static int set_maximized(lua_State *L)
+{
+    if (checkboolean(L, 1) != defos_is_maximized()) {
+        defos_toggle_maximized();
+    }
     return 0;
 }
 
 static int is_maximized(lua_State *L)
 {
-    bool isMaximized = defos_is_maximized();
-    lua_pushboolean(L, isMaximized);
+    lua_pushboolean(L, defos_is_maximized());
     return 1;
 }
 
@@ -362,8 +376,11 @@ static const luaL_reg Module_methods[] =
         {"get_window_size", get_window_size},
         {"set_window_size", set_window_size},
         {"toggle_fullscreen", toggle_fullscreen},
+        {"set_fullscreen", set_fullscreen},
         {"is_fullscreen", is_fullscreen},
-        {"toggle_maximize", toggle_maximize},
+        {"toggle_maximize", toggle_maximized}, // For backwards compatibility
+        {"toggle_maximized", toggle_maximized},
+        {"set_maximized", set_maximized},
         {"is_maximized", is_maximized},
         {"set_console_visible", set_console_visible},
         {"is_console_visible", is_console_visible},

@@ -56,13 +56,13 @@ void defos_disable_window_resize() {
 
 void defos_toggle_fullscreen() {
     if (is_maximized){
-        defos_toggle_maximize();
+        defos_toggle_maximized();
     }
     [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     [window toggleFullScreen:window];
 }
 
-void defos_toggle_maximize() {
+void defos_toggle_maximized() {
     if (defos_is_fullscreen()){
         defos_toggle_fullscreen();
     }

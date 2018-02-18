@@ -21,20 +21,28 @@ defos.set_window_title("I set this title using Defos")
 
 ---
 
-Toggle maximize and full screen modes.
-On HTML5, `defos.toggle_fullscreen()` only works from `defos.on_click()`.
+Toggle window maximize status.
 
 ```lua
-defos.toggle_maximize()
+defos.set_maximized(bool_value)
+defos.toggle_maximized()
 bool_value = defos.is_maximized()
+```
+
+---
+
+Toggle full screen. On HTML5, this only works from `defos.on_click()`.
+
+```lua
+defos.set_fullscreen(bool_value)
 defos.toggle_fullscreen()
 bool_value = defos.is_fullscreen()
 ```
 
 ---
 
-Get/set the window's size and position in screen coordinates. The window is
-inclusive of title bar, so the actual contained game view area might be smaller
+Get/set the window's size and position in screen coordinates. The window area
+includes the title bar, so the actual contained game view area might be smaller
 than the given metrics.
 
 Passing `nil` for `x` and `y` will center the window in the middle of the display.

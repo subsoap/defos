@@ -19,6 +19,8 @@ defos.disable_window_resize()
 defos.set_window_title("I set this title using Defos")
 ```
 
+---
+
 Toggle maximize and full screen modes.
 On HTML5, `defos.toggle_fullscreen()` only works from `defos.on_click()`.
 
@@ -28,6 +30,8 @@ bool_value = defos.is_maximized()
 defos.toggle_fullscreen()
 bool_value = defos.is_fullscreen()
 ```
+
+---
 
 Get/set the window's size and position in screen coordinates. The window is
 inclusive of title bar, so the actual contained game view area might be smaller
@@ -43,6 +47,8 @@ x, y, w, h = defos.get_window_size()
 defos.set_window_size(x, y, w, h)
 ```
 
+---
+
 Get/set the game view size and position in screen coordinates. This adjusts
 the window so that its containing game view is at the desired size and position.
 The window will be larger than the given metrics because it includes the title
@@ -55,12 +61,16 @@ x, y, w, h = defos.get_view_size()
 defos.set_view_size(x, y, w, h)
 ```
 
+---
+
 Show/hide the mouse cursor.
 
 ```lua
 defos.set_cursor_visible(bool_value)
 bool_value = defos.is_cursor_visible()
 ```
+
+---
 
 Respond to the mouse entering and leaving the game view area.
 
@@ -74,12 +84,16 @@ defos.on_mouse_leave(function ()
 end)
 ```
 
+---
+
 Move the cursor programatically.
 
 ```lua
 defos.set_cursor_pos(x, y) -- In screen coordinates
 defos.move_cursor_to(x, y) -- In game view coordinates
 ```
+
+---
 
 Clip cursor to current game view area. Windows only.
 
@@ -88,7 +102,9 @@ defos.set_cursor_clipped(bool_value)
 bool_value = defos.is_cursor_clipped()
 ```
 
-Locks cursor movement. On HTML5 this only works from `defos.on_click()`.
+---
+
+Lock cursor movement. On HTML5 this only works from `defos.on_click()`.
 
 ```lua
 defos.set_cursor_locked(bool_value)
@@ -97,6 +113,8 @@ defos.on_cursor_lock_disabled(function ()
   print("Called on HTML5 when the user presses ESC and the browser disables locking");
 end)
 ```
+
+---
 
 Set custom hardware cursors. `cursor` can be one of the following:
   * `nil`: Resets the cursor to default. Equivalent to `defos.reset_cursor()`.
@@ -126,6 +144,8 @@ defos.set_cursor(cursor)
 defos.reset_cursor()
 ```
 
+---
+
 On Windows only, show/hide the console window. Only works when not running
 from the Editor.
 
@@ -133,6 +153,8 @@ from the Editor.
 defos.set_console_visible(bool_value)
 bool_value = defos.is_console_visible()
 ```
+
+---
 
 On HTML5 only, get a synchronous event when the user clicks in the canvas.
 This is necessary because some HTML5 functions only work when called
@@ -147,6 +169,8 @@ defos.on_click(function ()
   print("The user has clicked. I have the chance to respond synchronously")
 end)
 ```
+
+---
 
 If you'd like to see any other feature, open an issue.
 

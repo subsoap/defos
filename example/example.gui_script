@@ -97,6 +97,11 @@ function init(self)
 		end)
 	end
 
+	defos.on_cursor_lock_disabled(function ()
+		self.cursor_locked = false
+		gui.set_text(gui.get_node("lock_cursor/larrylabel"), "Lock cursor")
+	end)
+
 	self.cursor_visible = true
 	self.cursor_clipped = false
 	self.cursor_locked = false

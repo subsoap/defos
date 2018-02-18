@@ -93,6 +93,9 @@ Locks cursor movement. On HTML5 this only works from `defos.on_click()`.
 ```lua
 defos.set_cursor_locked(bool_value)
 bool_value = defos.is_cursor_locked()
+defos.on_cursor_lock_disabled(function ()
+  print("Called on HTML5 when the user presses ESC and the browser disables locking");
+end)
 ```
 
 Set custom hardware cursors. `cursor` can be one of the following:

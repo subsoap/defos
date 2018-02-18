@@ -27,6 +27,10 @@ extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) 
         case DEFOS_EVENT_MOUSE_LEAVE:
             is_mouse_inside = false;
             break;
+        case DEFOS_EVENT_CURSOR_LOCK_DISABLED:
+            if (!is_cursor_locked) { return; }
+            is_cursor_locked = false;
+            break;
         default: {}
     }
     defos_emit_event(event);
@@ -49,6 +53,28 @@ void defos_init() {
         Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.addEventListener('click', Module.__defosjs_click_listener);
     }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
+
+    EM_ASM_({
+        Module.__defosjs_pointerlockchange_listener = function () {
+            if ((
+                document.pointerLockElement ||
+                document.mozPointerLockElement ||
+                document.webkitPointerLockElement ||
+                document.msPointerLockElement
+            ) !== Module.canvas) {
+                _defos_emit_event_from_js($0);
+            }
+        };
+        if ('onpointerlockchange' in document) {
+            document.addEventListener('pointerlockchange', Module.__defosjs_pointerlockchange_listener, false);
+        } else if ('onmozpointerlockchange' in document) {
+            document.addEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener, false);
+        } else if ('onwebkitpointerlockchange' in document) {
+            document.addEventListener('webkitpointerlockchange', Module.__defosjs_pointerlockchange_listener, false);
+        } else if ('onmspointerlockchange' in document) {
+            document.addEventListener('mspointerlockchange', Module.__defosjs_pointerlockchange_listener, false);
+        }
+    }, DEFOS_EVENT_CURSOR_LOCK_DISABLED);
 }
 
 void defos_final() {
@@ -60,6 +86,10 @@ void defos_final() {
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
+        document.removeEventListener('pointerlockchange', Module.__defosjs_pointerlockchange_listener);
+        document.removeEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener);
+        document.removeEventListener('webkitpointerlockchange', Module.__defosjs_pointerlockchange_listener);
+        document.removeEventListener('mspointerlockchange', Module.__defosjs_pointerlockchange_listener);
     );
 }
 

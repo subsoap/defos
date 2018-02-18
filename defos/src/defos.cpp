@@ -317,6 +317,12 @@ static int on_click(lua_State *L)
     return 0;
 }
 
+static int on_cursor_lock_disabled(lua_State *L)
+{
+    set_event_handler(L, 1, DEFOS_EVENT_CURSOR_LOCK_DISABLED);
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event)
 {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
@@ -373,6 +379,7 @@ static const luaL_reg Module_methods[] =
         {"is_cursor_clipped", is_cursor_clipped},
         {"set_cursor_locked", set_cursor_locked},
         {"is_cursor_locked", is_cursor_locked},
+        {"on_cursor_lock_disabled", on_cursor_lock_disabled},
         {"set_view_size", set_view_size},
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},

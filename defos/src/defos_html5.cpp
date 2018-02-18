@@ -107,7 +107,11 @@ void defos_set_view_size(int x, int y, int w, int h) {
     }, w, h);
 }
 
-WinRect defos_get_window_size() {
+extern WinRect defos_get_window_size() {
+    return defos_get_view_size();
+}
+
+WinRect defos_get_view_size() {
     WinRect rect;
     rect.x = 0;
     rect.y = 0;

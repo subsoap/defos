@@ -48,8 +48,9 @@ extern bool defos_is_maximized();
 extern void defos_set_window_title(const char* title_lua);
 
 extern void defos_set_window_size(int x, int y, int w, int h);
-extern void defos_set_view_size(int x, int y, int w, int h);
 extern WinRect defos_get_window_size();
+extern void defos_set_view_size(int x, int y, int w, int h);
+extern WinRect defos_get_view_size();
 
 extern bool defos_is_console_visible();
 extern void defos_show_console();

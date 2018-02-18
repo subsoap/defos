@@ -117,6 +117,20 @@ WinRect defos_get_window_size() {
     return rect;
 }
 
+WinRect defos_get_view_size() {
+    WinRect rect;
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSRect viewFrame = [view convertRect: view.bounds toView: nil];
+    NSRect windowFrame = [window frame];
+    viewFrame.origin.x += windowFrame.origin.x;
+    viewFrame.origin.y += windowFrame.origin.y;
+    rect.x = viewFrame.origin.x;
+    rect.y = NSMaxY(NSScreen.screens[0].frame) - NSMaxY(viewFrame);
+    rect.w = viewFrame.size.width;
+    rect.h = viewFrame.size.height;
+    return rect;
+}
+
 void defos_show_console() {
     dmLogInfo("Method 'defos_show_console' is not supported in macOS");
 }

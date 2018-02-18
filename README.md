@@ -29,7 +29,8 @@ bool_value = defos.is_fullscreen()
 ```
 
 Get/set the window's size and position in screen coordinates. The window is
-inclusive of title bar, so the actual contained game view area might be smaller.
+inclusive of title bar, so the actual contained game view area might be smaller
+than the given metrics.
 
 Screen coordinates start at (0, 0) in the top-left corner of the main display.
 X axis goes right. Y axis goes down.
@@ -39,10 +40,13 @@ x, y, w, h = defos.get_window_size()
 defos.set_window_size(x, y, w, h)
 ```
 
-Set the game view size and position in screen coordinates. This adjusts
+Get/set the game view size and position in screen coordinates. This adjusts
 the window so that its containing game view is at the desired size and position.
+The window will be larger than the given metrics because it includes the title
+bar.
 
 ```lua
+x, y, w, h = defos.get_view_size()
 defos.set_view_size(x, y, w, h)
 ```
 

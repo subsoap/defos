@@ -42,6 +42,17 @@ static int get_window_size(lua_State *L)
     return 4;
 }
 
+static int get_view_size(lua_State *L)
+{
+    WinRect rect;
+    rect = defos_get_view_size();
+    lua_pushnumber(L, rect.x);
+    lua_pushnumber(L, rect.y);
+    lua_pushnumber(L, rect.w);
+    lua_pushnumber(L, rect.h);
+    return 4;
+}
+
 static int set_window_size(lua_State *L)
 {
     int x = luaL_checkint(L, 1);
@@ -320,6 +331,7 @@ static const luaL_reg Module_methods[] =
         {"clip_cursor", clip_cursor},
         {"restore_cursor_clip", restore_cursor_clip},
         {"set_view_size", set_view_size},
+        {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
         {0, 0}};

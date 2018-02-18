@@ -208,6 +208,26 @@ WinRect defos_get_window_size()
     return rect;
 }
 
+WinRect defos_get_view_size()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT wrect;
+    GetClientRect(window, &wrect);
+
+    POINT pos = {wrect.left, wrect.top};
+    ClientToScreen(window, &pos);
+
+    WINDOWPLACEMENT frame = {sizeof(placement)};
+    GetWindowPlacement(window, &frame);
+    WinRect rect;
+    rect.x = (float)pos.x;
+    rect.y = (float)pos.y;
+    rect.w = (float)(wrect.right - wrect.left);
+    rect.h = (float)(wrect.bottom - wrect.top);
+    return rect;
+}
+
 void defos_set_cursor_pos(int x, int y)
 {
     SetCursorPos(x, y);

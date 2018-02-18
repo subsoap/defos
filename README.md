@@ -139,7 +139,7 @@ with two images, one at 72DPI (for low density displays) and another at 144DPI (
 
 The hotspot is an anchor point within the image that will overlap with the functional position of the mouse pointer (eg. the tip of the arrow).
 
-```
+```lua
 defos.set_cursor(cursor)
 defos.reset_cursor()
 ```
@@ -149,7 +149,7 @@ defos.reset_cursor()
 On Windows only, show/hide the console window. Only works when not running
 from the Editor.
 
-```
+```lua
 defos.set_console_visible(bool_value)
 bool_value = defos.is_console_visible()
 ```

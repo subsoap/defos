@@ -80,11 +80,7 @@ function init(self)
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
 	if system_name == "Windows" then
-		if defos.is_console_visible() then
-			defos.hide_console()
-		else
-			defos.show_console()
-		end
+		defos.set_console_visible(not defos.is_console_visible())
 	end
 
 	window.set_listener(window_callback)

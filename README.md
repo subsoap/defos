@@ -119,8 +119,7 @@ On Windows only, show/hide the console window. Only works when not running
 from the Editor.
 
 ```
-defos.show_console()
-defos.hide_console()
+defos.set_console_visible(bool_value)
 bool_value = defos.is_console_visible()
 ```
 

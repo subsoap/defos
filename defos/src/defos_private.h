@@ -54,8 +54,7 @@ extern void defos_set_view_size(float x, float y, float w, float h);
 extern WinRect defos_get_view_size();
 
 extern bool defos_is_console_visible();
-extern void defos_show_console();
-extern void defos_hide_console();
+extern void defos_set_console_visible(bool visible);
 
 extern void defos_disable_mouse_cursor();
 extern void defos_enable_mouse_cursor();

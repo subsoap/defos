@@ -145,14 +145,9 @@ void defos_toggle_maximize()
     }
 }
 
-void defos_show_console()
+void defos_set_console_visible(bool visible)
 {
-    ::ShowWindow(::GetConsoleWindow(), SW_SHOW);
-}
-
-void defos_hide_console()
-{
-    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+    ::ShowWindow(::GetConsoleWindow(), visible ? SW_SHOW : SW_HIDE);
 }
 
 bool defos_is_console_visible()

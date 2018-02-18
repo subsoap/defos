@@ -138,12 +138,8 @@ bool defos_is_console_visible() {
     return false;
 }
 
-void defos_show_console() {
-    dmLogInfo("Method 'defos_show_console' is not supported in html5, it is meant for Windows builds only");
-}
-
-void defos_hide_console() {
-    dmLogInfo("Method 'defos_hide_console' is not supported in html5, it is meant for Windows builds only");
+void defos_set_console_visible(bool visible) {
+    dmLogInfo("Method 'defos_set_console_visible' is not supported in html5, it is meant for Windows builds only");
 }
 
 void defos_disable_mouse_cursor() {

@@ -153,12 +153,8 @@ WinRect defos_get_view_size() {
     return rect;
 }
 
-void defos_show_console() {
-    dmLogInfo("Method 'defos_show_console' is not supported in macOS");
-}
-
-void defos_hide_console() {
-    dmLogInfo("Method 'defos_hide_console' is not supported in macOS");
+void defos_set_console_visible(bool visible) {
+    dmLogInfo("Method 'defos_set_console_visible' is not supported in macOS");
 }
 
 bool defos_is_console_visible() {

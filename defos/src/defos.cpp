@@ -130,22 +130,15 @@ static int is_maximized(lua_State *L)
 
 // Windows console
 
-static int show_console(lua_State *L)
+static int set_console_visible(lua_State *L)
 {
-    defos_show_console();
-    return 0;
-}
-
-static int hide_console(lua_State *L)
-{
-    defos_hide_console();
+    defos_set_console_visible(checkboolean(L, 1));
     return 0;
 }
 
 static int is_console_visible(lua_State *L)
 {
-    bool isConsoleVisible = defos_is_console_visible();
-    lua_pushboolean(L, isConsoleVisible);
+    lua_pushboolean(L, defos_is_console_visible());
     return 1;
 }
 
@@ -359,8 +352,7 @@ static const luaL_reg Module_methods[] =
         {"is_fullscreen", is_fullscreen},
         {"toggle_maximize", toggle_maximize},
         {"is_maximized", is_maximized},
-        {"show_console", show_console},
-        {"hide_console", hide_console},
+        {"set_console_visible", set_console_visible},
         {"is_console_visible", is_console_visible},
         {"is_mouse_in_view", is_mouse_in_view},
         {"on_mouse_leave", on_mouse_leave},

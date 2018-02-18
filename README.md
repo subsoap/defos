@@ -97,11 +97,11 @@ Set custom hardware cursors. `cursor` can be one of the following:
   * On Windows, a path to an `.ani` or `.cur` file on the file system.
   * On macOS, a table of the form:  
   ```lua
-    {
-      image = resource.load("cursor.tiff"),
-      hot_spot_x = 18,
-      hot_spot_x = 2,
-    }
+  {
+    image = resource.load("cursor.tiff"),
+    hot_spot_x = 18,
+    hot_spot_y = 2,
+  }
   ```
 
 On macOS, custom cursors can be any image file supported by `NSImage`, but it's highly recommended to

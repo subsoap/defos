@@ -83,8 +83,8 @@ defos.move_cursor_to(x, y) -- In game view coordinates
 Clip cursor to current game view area. Windows only.
 
 ```lua
-defos.clip_cursor()
-defos.restore_cursor_clip()
+defos.set_cursor_clipped(bool_value)
+bool_value = defos.is_cursor_clipped()
 ```
 
 Set custom hardware cursors. `cursor` can be one of the following:

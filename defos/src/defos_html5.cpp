@@ -135,7 +135,6 @@ WinRect defos_get_view_size() {
 }
 
 bool defos_is_console_visible() {
-    dmLogInfo("Method 'defos_is_console_visible' is not supported in html5, it is meant for Windows builds only");
     return false;
 }
 
@@ -169,12 +168,20 @@ void defos_move_cursor_to(float x, float y) {
     dmLogInfo("Method 'defos_move_cursor_to' is not supported in html5");
 }
 
-void defos_clip_cursor() {
-    dmLogInfo("Method 'defos_clip_cursor' is not supported in html5");
+void defos_set_cursor_clipped(bool clipped) {
+    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in html5");
 }
 
-void defos_restore_cursor_clip() {
-    dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in html5");
+bool defos_is_cursor_clipped() {
+    return false;
+}
+
+extern void defos_set_cursor_locked(bool locked) {
+    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in html5");
+}
+
+bool defos_is_cursor_locked() {
+    return false;
 }
 
 static const char * get_cursor(DefosCursor cursor) {

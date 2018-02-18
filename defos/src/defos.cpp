@@ -9,6 +9,12 @@
 
 #include "defos_private.h"
 
+static bool checkboolean(lua_State *L, int index)
+{
+    luaL_checktype(L, index, LUA_TBOOLEAN);
+    return lua_toboolean(L, index);
+}
+
 LuaCallbackInfo defos_event_handlers[DEFOS_EVENT_COUNT];
 
 // Window management
@@ -179,16 +185,28 @@ static int move_cursor_to(lua_State *L)
     return 0;
 }
 
-static int clip_cursor(lua_State *L)
+static int set_cursor_clipped(lua_State *L)
 {
-    defos_clip_cursor();
+    defos_set_cursor_clipped(checkboolean(L, 1));
     return 0;
 }
 
-static int restore_cursor_clip(lua_State *L)
+static int is_cursor_clipped(lua_State *L)
 {
-    defos_restore_cursor_clip();
+    lua_pushboolean(L, defos_is_cursor_clipped());
+    return 1;
+}
+
+static int set_cursor_locked(lua_State *L)
+{
+    defos_set_cursor_locked(checkboolean(L, 1));
     return 0;
+}
+
+static int is_cursor_locked(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_cursor_locked());
+    return 1;
 }
 
 static int set_cursor(lua_State *L)
@@ -350,8 +368,10 @@ static const luaL_reg Module_methods[] =
         {"get_window_size", get_window_size},
         {"set_cursor_pos", set_cursor_pos},
         {"move_cursor_to", move_cursor_to},
-        {"clip_cursor", clip_cursor},
-        {"restore_cursor_clip", restore_cursor_clip},
+        {"set_cursor_clipped", set_cursor_clipped},
+        {"is_cursor_clipped", is_cursor_clipped},
+        {"set_cursor_locked", set_cursor_clipped},
+        {"is_cursor_locked", is_cursor_locked},
         {"set_view_size", set_view_size},
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},

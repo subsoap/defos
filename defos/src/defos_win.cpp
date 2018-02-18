@@ -19,6 +19,7 @@ static WNDPROC originalProc = NULL;
 
 // original mouse clip rect
 static RECT originalRect;
+static bool is_cursor_clipped = false;
 
 static bool is_custom_cursor_loaded;
 static HCURSOR custom_cursor;
@@ -38,6 +39,7 @@ void subclass_window();
 void defos_init()
 {
     is_mouse_inside = false;
+    is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
     original_cursor = GetCursor(); // keep the original cursor
     subclass_window();
@@ -257,33 +259,48 @@ void defos_move_cursor_to(float x, float y)
     defos_set_cursor_pos(pos.x, pos.y);
 }
 
-void defos_clip_cursor()
+void defos_set_cursor_clipped(bool clipped)
 {
-    HWND window = dmGraphics::GetNativeWindowsHWND();
+    is_cursor_clipped = clipped;
+    if (clipped)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
 
-    RECT wrect;
-    // GetWindowRect(window, &wrect);
+        RECT wrect;
+        GetClientRect(window, &wrect);
 
-    GetClientRect(window, &wrect);
+        POINT left_top = {wrect.left, wrect.top};
+        POINT right_bottom = {wrect.right, wrect.bottom};
 
-    POINT left_top = {wrect.left, wrect.top};
-    POINT right_bottom = {wrect.right, wrect.bottom};
+        ClientToScreen(window, &left_top);
+        ClientToScreen(window, &right_bottom);
 
-    ClientToScreen(window, &left_top);
-    ClientToScreen(window, &right_bottom);
+        wrect.left = left_top.x;
+        wrect.top = left_top.y;
+        wrect.right = right_bottom.x;
+        wrect.bottom = right_bottom.y;
 
-    wrect.left = left_top.x;
-    wrect.top = left_top.y;
-    wrect.right = right_bottom.x;
-    wrect.bottom = right_bottom.y;
-
-    ClipCursor(&wrect);
+        ClipCursor(&wrect);
+    }
+    else
+    {
+        ClipCursor(&originalRect);
+    }
 }
 
-// NOTE: application should call this function again with oldrect to recover the mouse pos
-void defos_restore_cursor_clip()
+bool defos_is_cursor_clipped()
 {
-    ClipCursor(&originalRect);
+    return is_cursor_clipped;
+}
+
+void defos_set_cursor_locked(bool locked)
+{
+    dmLogInfo("Method 'defos_set_cursor_locked' not available on Windows");
+}
+
+bool defos_is_cursor_locked()
+{
+    return false;
 }
 
 // path of the cursor file,
@@ -393,13 +410,18 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
         break;
 
     case WM_SETCURSOR:
-
         if (is_custom_cursor_loaded)
         {
             SetCursor(custom_cursor);
             return TRUE;
         }
+        break;
 
+    case WM_SIZE:
+        if (is_cursor_locked)
+        {
+            defos_set_cursor_locked(true);
+        }
         break;
     }
 

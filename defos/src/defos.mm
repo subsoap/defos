@@ -191,12 +191,20 @@ void defos_move_cursor_to(float x, float y) {
     defos_set_cursor_pos(point.x, point.y);
 }
 
-void defos_clip_cursor() {
-    dmLogInfo("Method 'defos_clip_cursor' is not supported in macOS");
+void defos_set_cursor_clipped(bool clipped) {
+    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in macOS");
 }
 
-void defos_restore_cursor_clip() {
-    dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in macOS");
+bool defos_is_cursor_clipped() {
+    return false;
+}
+
+extern void defos_set_cursor_locked(bool locked) {
+    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in macOS");
+}
+
+bool defos_is_cursor_locked() {
+    return false;
 }
 
 void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {

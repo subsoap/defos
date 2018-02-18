@@ -87,6 +87,13 @@ defos.set_cursor_clipped(bool_value)
 bool_value = defos.is_cursor_clipped()
 ```
 
+Locks cursor movement.
+
+```lua
+defos.set_cursor_locked(bool_value)
+bool_value = defos.is_cursor_locked()
+```
+
 Set custom hardware cursors. `cursor` can be one of the following:
   * `nil`: Resets the cursor to default. Equivalent to `defos.reset_cursor()`.
   * `defos.CURSOR_ARROW`

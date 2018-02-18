@@ -361,7 +361,7 @@ static const luaL_reg Module_methods[] =
         {"move_cursor_to", move_cursor_to},
         {"set_cursor_clipped", set_cursor_clipped},
         {"is_cursor_clipped", is_cursor_clipped},
-        {"set_cursor_locked", set_cursor_clipped},
+        {"set_cursor_locked", set_cursor_locked},
         {"is_cursor_locked", is_cursor_locked},
         {"set_view_size", set_view_size},
         {"get_view_size", get_view_size},

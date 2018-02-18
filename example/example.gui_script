@@ -10,17 +10,21 @@ function window_callback(self, event, data)
 		if self.cursor_clipped then
 			defos.set_cursor_clipped(false)
 		end
+		if self.cursor_locked then
+			defos.set_cursor_locked(false)
+		end
 	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
 		if self.cursor_clipped then
 			defos.set_cursor_clipped(true)
+		end
+		if self.cursor_locked then
+			defos.set_cursor_locked(true)
 		end
 	end
 end
 
 function init(self)
 	local appname = sys.get_config("project.title")
-
-	self.cusor_clipped = false
 
 	-- custom cursors we will change between
 	self.current_cursor = 0 -- start with default cursor (nil)
@@ -75,6 +79,8 @@ function init(self)
 	end)
 
 	self.cursor_visible = true
+	self.cursor_clipped = false
+	self.cursor_locked = false
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
@@ -164,6 +170,13 @@ function on_input(self, action_id, action)
 		self.cursor_clipped = not self.cursor_clipped
 		defos.set_cursor_clipped(self.cursor_clipped)
 		update_clipping_label(self)
+	end)
+
+	dirtylarry:button("lock_cursor", action_id, action, function()
+		self.cursor_locked = not self.cursor_locked
+		defos.set_cursor_locked(self.cursor_locked)
+		local text = self.cursor_locked and "Unlock cursor" or "Lock cursor"
+		gui.set_text(gui.get_node("lock_cursor/larrylabel"), text)
 	end)
 
 	dirtylarry:button("change_cursor", action_id, action, function()

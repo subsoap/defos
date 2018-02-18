@@ -14,6 +14,7 @@ static NSCursor* default_cursor = nil;
 static bool is_maximized = false;
 static bool is_mouse_in_view = false;
 static bool is_cursor_visible = true;
+static bool is_cursor_locked = false;
 static NSRect previous_state;
 
 static void enable_mouse_tracking();
@@ -202,11 +203,12 @@ bool defos_is_cursor_clipped() {
 }
 
 extern void defos_set_cursor_locked(bool locked) {
-    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in macOS");
+    is_cursor_locked = locked;
+    CGAssociateMouseAndMouseCursorPosition(!locked);
 }
 
 bool defos_is_cursor_locked() {
-    return false;
+    return is_cursor_locked;
 }
 
 void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {

@@ -50,7 +50,7 @@ void defos_init()
 
 void defos_final()
 {
-    defos_restore_cursor_clip();
+    defos_set_cursor_clipped(false);
     restore_window_class();
 }
 
@@ -190,7 +190,7 @@ void defos_set_view_size(float x, float y, float w, float h)
 
     RECT rect = {0, 0, (int)w, (int)h};
 
-    DWORD style = get_window_style();
+    DWORD style = (DWORD)get_window_style();
 
     // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
     AdjustWindowRect(&rect, style, false);
@@ -257,8 +257,7 @@ void defos_move_cursor_to(float x, float y)
     POINT pos = {tox, toy};
 
     ClientToScreen(window, &pos);
-
-    defos_set_cursor_pos(pos.x, pos.y);
+    SetCursorPos(pos.x, pos.y);
 }
 
 void defos_set_cursor_clipped(bool clipped)
@@ -325,6 +324,8 @@ void defos_set_custom_cursor_win(const char *filename)
     is_custom_cursor_loaded = true;
 }
 
+static LPCTSTR get_cursor(DefosCursor cursor);
+
 void defos_set_cursor(DefosCursor cursor)
 {
     custom_cursor = LoadCursor(NULL, get_cursor(cursor));
@@ -349,7 +350,7 @@ static LPCTSTR get_cursor(DefosCursor cursor) {
         case DEFOS_CURSOR_HAND:
             return IDC_HAND;
         case DEFOS_CURSOR_CROSSHAIR:
-            return IDC_CROSSHAIR:
+            return IDC_CROSS;
         case DEFOS_CURSOR_IBEAM:
             return IDC_IBEAM;
         default:

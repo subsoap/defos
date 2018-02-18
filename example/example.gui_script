@@ -208,4 +208,8 @@ function on_input(self, action_id, action)
 
 		defos.set_cursor(self.cursors[self.current_cursor])
 	end)
+
+	if self.cursor_locked and not action_id then
+		print("FPS mouse dx, dy: ", action.dx, action.dy)
+	end
 end

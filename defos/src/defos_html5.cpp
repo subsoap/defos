@@ -78,22 +78,22 @@ void defos_toggle_fullscreen() {
 
 void defos_toggle_maximize() {
     if (is_maximized) {
-    is_maximized = false;
-    defos_set_window_size(0,0, previous_state.w, previous_state.h);
+        is_maximized = false;
+        defos_set_window_size(0,0, previous_state.w, previous_state.h);
     }
     else{
-    previous_state = defos_get_window_size();
-    is_maximized = true;
-    EM_ASM({
-    Module.canvas.width = window.innerWidth;
-    Module.canvas.height = window.innerHeight;
-    });
+        previous_state = defos_get_window_size();
+        is_maximized = true;
+        EM_ASM({
+            Module.canvas.width = window.innerWidth;
+            Module.canvas.height = window.innerHeight;
+        });
     }
 }
 
 bool defos_is_fullscreen() {
     int is_fullscreen = EM_ASM_INT({
-    return GLFW.isFullscreen;
+        return GLFW.isFullscreen;
     },0);
     return is_fullscreen != 0;
 }
@@ -112,8 +112,8 @@ void defos_set_window_size(float x, float y, float w, float h) {
 
 void defos_set_view_size(float x, float y, float w, float h) {
     EM_ASM_({
-    Module.canvas.width = $0;
-    Module.canvas.height = $1;
+        Module.canvas.width = $0;
+        Module.canvas.height = $1;
     }, w, h);
 }
 

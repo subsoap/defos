@@ -15,6 +15,7 @@ static bool is_maximized = false;
 static bool is_mouse_in_view = false;
 static bool is_cursor_visible = true;
 static bool is_cursor_locked = false;
+static bool is_cursor_clipped = false;
 static NSRect previous_state;
 
 static void enable_mouse_tracking();
@@ -186,6 +187,9 @@ bool defos_is_mouse_in_view() {
 
 void defos_set_cursor_pos(float x, float y) {
     CGWarpMouseCursorPosition(CGPointMake(x, y));
+    if (!is_cursor_locked) {
+      CGAssociateMouseAndMouseCursorPosition(true); // Prevents a delay after the Wrap call
+    }
 }
 
 void defos_move_cursor_to(float x, float y) {
@@ -198,11 +202,40 @@ void defos_move_cursor_to(float x, float y) {
 }
 
 void defos_set_cursor_clipped(bool clipped) {
-    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in macOS");
+    is_cursor_clipped = clipped;
+    if (clipped) { is_mouse_in_view = true; }
 }
 
 bool defos_is_cursor_clipped() {
-    return false;
+    return is_cursor_clipped;
+}
+
+static void clip_cursor(NSEvent * event) {
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSPoint mousePos = [view convertPoint:[event locationInWindow] fromView: nil];
+    NSRect bounds = view.bounds;
+
+    bool willClip = false;
+    if (mousePos.x < NSMinX(bounds)) {
+        willClip = true;
+        mousePos.x = NSMinX(bounds);
+    }
+    if (mousePos.y <= NSMinY(bounds)) {
+        willClip = true;
+        mousePos.y = NSMinY(bounds) + 1.0;
+    }
+    if (mousePos.x >= NSMaxX(bounds)) {
+        willClip = true;
+        mousePos.x = NSMaxX(bounds) - 1.0;
+    }
+    if (mousePos.y > NSMaxY(bounds)) {
+        willClip = true;
+        mousePos.y = NSMaxY(bounds);
+    }
+
+    if (willClip) {
+        defos_move_cursor_to(mousePos.x, bounds.size.height - mousePos.y);
+    }
 }
 
 extern void defos_set_cursor_locked(bool locked) {
@@ -270,11 +303,17 @@ void defos_reset_cursor() {
 @implementation DefOSMouseTracker
 - (void)mouseEntered:(NSEvent *)event {
     is_mouse_in_view = true;
-    defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+    if (!is_cursor_clipped) {
+        defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+    }
 }
 - (void)mouseExited:(NSEvent *)event {
-    is_mouse_in_view = false;
-    defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+    if (is_cursor_clipped) {
+        clip_cursor(event);
+    } else {
+        is_mouse_in_view = false;
+        defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+    }
 }
 // For some reason this doesn't get called and the homonymous method
 // gets called on the view instead

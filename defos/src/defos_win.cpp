@@ -158,7 +158,7 @@ bool defos_is_console_visible()
     return (::IsWindowVisible(::GetConsoleWindow()) != FALSE);
 }
 
-void defos_set_window_size(int x, int y, int w, int h)
+void defos_set_window_size(float x, float y, float w, float h)
 {
     if (x == -1)
     {
@@ -167,10 +167,10 @@ void defos_set_window_size(int x, int y, int w, int h)
     }
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    SetWindowPos(window, window, x, y, w, h, SWP_NOZORDER);
+    SetWindowPos(window, window, (int)x, (int)y, (int)w, (int)h, SWP_NOZORDER);
 }
 
-void defos_set_view_size(int x, int y, int w, int h)
+void defos_set_view_size(float x, float y, float w, float h)
 {
     if (x == -1)
     {
@@ -178,7 +178,7 @@ void defos_set_view_size(int x, int y, int w, int h)
         y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
     }
 
-    RECT rect = {0, 0, w, h};
+    RECT rect = {0, 0, (int)w, (int)h};
 
     DWORD style = get_window_style();
 
@@ -187,7 +187,7 @@ void defos_set_view_size(int x, int y, int w, int h)
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
-    SetWindowPos(window, window, x, y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
+    SetWindowPos(window, window, (int)x, (int)y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }
 
 void defos_set_window_title(const char *title_lua)
@@ -228,22 +228,22 @@ WinRect defos_get_view_size()
     return rect;
 }
 
-void defos_set_cursor_pos(int x, int y)
+void defos_set_cursor_pos(float x, float y)
 {
-    SetCursorPos(x, y);
+    SetCursorPos((int)x, (int)y);
 }
 
 // move cursor to pos relative to current window
 // top-left is (0, 0)
-void defos_move_cursor_to(int x, int y)
+void defos_move_cursor_to(float x, float y)
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
     RECT wrect;
     GetClientRect(window, &wrect);
 
-    int tox = wrect.left + x;
-    int toy = wrect.top + y;
+    int tox = wrect.left + (int)x;
+    int toy = wrect.top + (int)y;
     POINT pos = {tox, toy};
 
     ClientToScreen(window, &pos);

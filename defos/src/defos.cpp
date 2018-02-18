@@ -55,20 +55,20 @@ static int get_view_size(lua_State *L)
 
 static int set_window_size(lua_State *L)
 {
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
-    int w = luaL_checkint(L, 3);
-    int h = luaL_checkint(L, 4);
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+    float w = luaL_checknumber(L, 3);
+    float h = luaL_checknumber(L, 4);
     defos_set_window_size(x, y, w, h);
     return 0;
 }
 
 static int set_view_size(lua_State *L)
 {
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
-    int w = luaL_checkint(L, 3);
-    int h = luaL_checkint(L, 4);
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+    float w = luaL_checknumber(L, 3);
+    float h = luaL_checknumber(L, 4);
     defos_set_view_size(x, y, w, h);
     return 0;
 }
@@ -150,15 +150,15 @@ static int enable_mouse_cursor(lua_State *L)
 
 static int set_cursor_pos(lua_State *L)
 {
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
     defos_set_cursor_pos(x, y);
     return 0;
 }
 static int move_cursor_to(lua_State *L)
 {
-    int x = luaL_checkint(L, 1);
-    int y = luaL_checkint(L, 2);
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
     defos_move_cursor_to(x, y);
     return 0;
 }

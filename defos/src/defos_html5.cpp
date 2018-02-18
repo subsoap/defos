@@ -96,11 +96,11 @@ void defos_set_window_title(const char* title_lua) {
     EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
 }
 
-void defos_set_window_size(int x, int y, int w, int h) {
+void defos_set_window_size(float x, float y, float w, float h) {
     defos_set_view_size(x, y, w, h);
 }
 
-void defos_set_view_size(int x, int y, int w, int h) {
+void defos_set_view_size(float x, float y, float w, float h) {
     EM_ASM_({
     Module.canvas.width = $0;
     Module.canvas.height = $1;
@@ -148,11 +148,11 @@ bool defos_is_mouse_in_view() {
     return is_mouse_inside;
 }
 
-void defos_set_cursor_pos(int x, int y) {
+void defos_set_cursor_pos(float x, float y) {
     dmLogInfo("Method 'defos_set_cursor_pos' is not supported in html5");
 }
 
-void defos_move_cursor_to(int x, int y) {
+void defos_move_cursor_to(float x, float y) {
     dmLogInfo("Method 'defos_move_cursor_to' is not supported in html5");
 }
 

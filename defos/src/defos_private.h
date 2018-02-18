@@ -47,9 +47,9 @@ extern bool defos_is_maximized();
 
 extern void defos_set_window_title(const char* title_lua);
 
-extern void defos_set_window_size(int x, int y, int w, int h);
+extern void defos_set_window_size(float x, float y, float w, float h);
 extern WinRect defos_get_window_size();
-extern void defos_set_view_size(int x, int y, int w, int h);
+extern void defos_set_view_size(float x, float y, float w, float h);
 extern WinRect defos_get_view_size();
 
 extern bool defos_is_console_visible();
@@ -60,8 +60,8 @@ extern void defos_disable_mouse_cursor();
 extern void defos_enable_mouse_cursor();
 
 extern bool defos_is_mouse_in_view();
-extern void defos_set_cursor_pos(int x, int y);
-extern void defos_move_cursor_to(int x, int y);
+extern void defos_set_cursor_pos(float x, float y);
+extern void defos_move_cursor_to(float x, float y);
 
 extern void defos_clip_cursor();
 extern void defos_restore_cursor_clip();

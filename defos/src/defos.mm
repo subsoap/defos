@@ -87,14 +87,14 @@ void defos_set_window_title(const char* title_lua) {
     [window setTitle:title];
 }
 
-void defos_set_window_size(int x, int y, int w, int h) {
+void defos_set_window_size(float x, float y, float w, float h) {
     // correction for result like on Windows PC
-    int win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+    float win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
-void defos_set_view_size(int x, int y, int w, int h) {
-    int win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
+void defos_set_view_size(float x, float y, float w, float h) {
+    float win_y = NSMaxY(NSScreen.screens[0].frame) - h - y;
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSRect viewFrame = [view convertRect: view.bounds toView: nil];
     NSRect windowFrame = window.frame;
@@ -156,11 +156,11 @@ bool defos_is_mouse_in_view() {
     return is_mouse_in_view;
 }
 
-void defos_set_cursor_pos(int x, int y) {
+void defos_set_cursor_pos(float x, float y) {
     CGWarpMouseCursorPosition(CGPointMake(x, y));
 }
 
-void defos_move_cursor_to(int x, int y) {
+void defos_move_cursor_to(float x, float y) {
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSPoint pointInWindow = [view convertPoint: NSMakePoint(x, view.bounds.size.height - y) toView: nil];
     NSPoint windowOrigin = window.frame.origin;

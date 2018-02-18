@@ -67,6 +67,7 @@ extern void defos_move_cursor_to(float x, float y);
 extern void defos_clip_cursor();
 extern void defos_restore_cursor_clip();
 
+extern void defos_set_custom_cursor_html5(const char *url);
 extern void defos_set_custom_cursor_win(const char *filename);
 extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
 extern void defos_set_cursor(DefosCursor cursor);

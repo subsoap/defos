@@ -237,6 +237,12 @@ static int set_cursor(lua_State *L)
     return 0;
     #endif
 
+    #ifdef DM_PLATFORM_HTML5
+    const char * cursor_url = luaL_checkstring(L, 1);
+    defos_set_custom_cursor_html5(cursor_url);
+    return 0;
+    #endif
+
     lua_pushstring(L, "Invalid argument");
     lua_error(L);
     return 0;

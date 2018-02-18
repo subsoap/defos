@@ -93,6 +93,7 @@ Set custom hardware cursors. `cursor` can be one of the following:
   * `defos.CURSOR_HAND`
   * `defos.CURSOR_CROSSHAIR`
   * `defos.CURSOR_IBEAM`
+  * On HTML5, an URL to an image (data URLs work as well)
   * On Windows, a path to an `.ani` or `.cur` file on the file system.
   * On macOS, a table of the form:  
   ```lua

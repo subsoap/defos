@@ -1,5 +1,7 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local cursor = require("example.cursor.cursor")
+local cursor_url = require("example.html5_cursor")
+
 cursor_clipped = false
 
 local system_name = sys.get_sys_info().system_name
@@ -60,6 +62,10 @@ function init(self)
 			hot_spot_x = 18,
 			hot_spot_y = 2,
 		})
+	end
+
+	if system_name == "HTML5" then
+		table.insert(self.cursors, cursor_url)
 	end
 
 	defos.on_mouse_enter(function ()

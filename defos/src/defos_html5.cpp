@@ -5,8 +5,10 @@
 
 #include "defos_private.h"
 #include <emscripten.h>
+#include <stdlib.h>
 
-const char * current_cursor = "default";
+static const char * current_cursor = "default";
+static bool current_cursor_needs_free = false;
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
 static bool is_mouse_disabled = false;
@@ -31,6 +33,7 @@ extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) 
 
 void defos_init() {
     current_cursor = "default";
+    current_cursor_needs_free = false;
     EM_ASM_({
         Module.__defosjs_mouseenter_listener = function () {
             _defos_emit_event_from_js($0);
@@ -44,6 +47,10 @@ void defos_init() {
 }
 
 void defos_final() {
+    if (current_cursor_needs_free) {
+        current_cursor_needs_free = false;
+        free((void*)current_cursor);
+    }
     EM_ASM(
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
@@ -129,6 +136,7 @@ WinRect defos_get_view_size() {
 
 bool defos_is_console_visible() {
     dmLogInfo("Method 'defos_is_console_visible' is not supported in html5, it is meant for Windows builds only");
+    return false;
 }
 
 void defos_show_console() {
@@ -185,14 +193,40 @@ static const char * get_cursor(DefosCursor cursor) {
 }
 
 void defos_set_cursor(DefosCursor cursor) {
+    if (current_cursor_needs_free) {
+        free((void*)current_cursor);
+    }
     current_cursor = get_cursor(cursor);
+    current_cursor_needs_free = false;
+    if (!is_mouse_disabled) {
+        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+    }
+}
+
+extern void defos_set_custom_cursor_html5(const char *url) {
+    size_t len = strlen(url);
+    char * buffer = (char*)malloc(len + 12);
+    strcpy(buffer, "url(");
+    strcpy(buffer + 4, url);
+    strcpy(buffer + 4 + len, "), auto");
+
+    if (current_cursor_needs_free) {
+        free((void*)current_cursor);
+    }
+    current_cursor = buffer;
+    current_cursor_needs_free = true;
+
     if (!is_mouse_disabled) {
         EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
     }
 }
 
 void defos_reset_cursor() {
+    if (current_cursor_needs_free) {
+        free((void*)current_cursor);
+    }
     current_cursor = "default";
+    current_cursor_needs_free = false;
     if (!is_mouse_disabled) {
         EM_ASM(Module.canvas.style.cursor = 'default';);
     }

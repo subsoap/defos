@@ -175,7 +175,7 @@ function on_input(self, action_id, action)
 
 
 	dirtylarry:button("toggle_maximize", action_id, action, function ()
-		defos.toggle_maximize()
+		defos.toggle_maximized()
 	end)
 
 	dirtylarry:button("disable_mouse_cursor", action_id, action, function ()

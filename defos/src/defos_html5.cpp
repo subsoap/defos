@@ -6,8 +6,10 @@
 #include "defos_private.h"
 #include <emscripten.h>
 
+const char * current_cursor = "default";
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
+static bool is_mouse_disabled = false;
 static WinRect previous_state;
 
 void js_warn(const char* msg) {
@@ -28,6 +30,7 @@ extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) 
 }
 
 void defos_init() {
+    current_cursor = "default";
     EM_ASM_({
         Module.__defosjs_mouseenter_listener = function () {
             _defos_emit_event_from_js($0);
@@ -137,11 +140,13 @@ void defos_hide_console() {
 }
 
 void defos_disable_mouse_cursor() {
-     EM_ASM(Module.canvas.style.cursor = 'none';);
+    is_mouse_disabled = true;
+    EM_ASM(Module.canvas.style.cursor = 'none';);
 }
 
 void defos_enable_mouse_cursor() {
-    EM_ASM(Module.canvas.style.cursor = 'default';);
+    is_mouse_disabled = false;
+    EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
 }
 
 bool defos_is_mouse_in_view() {
@@ -164,12 +169,33 @@ void defos_restore_cursor_clip() {
     dmLogInfo("Method 'defos_restore_cursor_clip' is not supported in html5");
 }
 
+static const char * get_cursor(DefosCursor cursor) {
+    switch (cursor) {
+        case DEFOS_CURSOR_ARROW:
+            return "default";
+        case DEFOS_CURSOR_HAND:
+            return "pointer";
+        case DEFOS_CURSOR_CROSSHAIR:
+            return "crosshair";
+        case DEFOS_CURSOR_IBEAM:
+            return "text";
+        default:
+            return "default";
+    }
+}
+
 void defos_set_cursor(DefosCursor cursor) {
-    dmLogInfo("Method 'defos_set_cursor' is not supported in html5");
+    current_cursor = get_cursor(cursor);
+    if (!is_mouse_disabled) {
+        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+    }
 }
 
 void defos_reset_cursor() {
-    dmLogInfo("Method 'defos_reset_cursor' is not supported in html5");
+    current_cursor = "default";
+    if (!is_mouse_disabled) {
+        EM_ASM(Module.canvas.style.cursor = 'default';);
+    }
 }
 
 #endif

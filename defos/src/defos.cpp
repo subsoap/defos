@@ -146,21 +146,20 @@ static int is_console_visible(lua_State *L)
 
 static int is_mouse_in_view(lua_State *L)
 {
-    bool isWithin = defos_is_mouse_in_view();
-    lua_pushboolean(L, isWithin);
+    lua_pushboolean(L, defos_is_mouse_in_view());
     return 1;
 }
 
-static int disable_mouse_cursor(lua_State *L)
+static int set_cursor_visible(lua_State *L)
 {
-    defos_disable_mouse_cursor();
+    defos_set_cursor_visible(checkboolean(L, 1));
     return 0;
 }
 
-static int enable_mouse_cursor(lua_State *L)
+static int is_cursor_visible(lua_State *L)
 {
-    defos_enable_mouse_cursor();
-    return 0;
+    lua_pushboolean(L, defos_is_cursor_visible());
+    return 1;
 }
 
 static int set_cursor_pos(lua_State *L)
@@ -344,20 +343,20 @@ static const luaL_reg Module_methods[] =
         {"disable_maximize_button", disable_maximize_button},
         {"disable_minimize_button", disable_minimize_button},
         {"disable_window_resize", disable_window_resize},
-        {"disable_mouse_cursor", disable_mouse_cursor},
-        {"enable_mouse_cursor", enable_mouse_cursor},
-        {"set_window_size", set_window_size},
         {"set_window_title", set_window_title},
+        {"get_window_size", get_window_size},
+        {"set_window_size", set_window_size},
         {"toggle_fullscreen", toggle_fullscreen},
         {"is_fullscreen", is_fullscreen},
         {"toggle_maximize", toggle_maximize},
         {"is_maximized", is_maximized},
         {"set_console_visible", set_console_visible},
         {"is_console_visible", is_console_visible},
-        {"is_mouse_in_view", is_mouse_in_view},
-        {"on_mouse_leave", on_mouse_leave},
+        {"set_cursor_visible", set_cursor_visible},
+        {"is_cursor_visible", is_cursor_visible},
         {"on_mouse_enter", on_mouse_enter},
-        {"get_window_size", get_window_size},
+        {"on_mouse_leave", on_mouse_leave},
+        {"is_mouse_in_view", is_mouse_in_view},
         {"set_cursor_pos", set_cursor_pos},
         {"move_cursor_to", move_cursor_to},
         {"set_cursor_clipped", set_cursor_clipped},

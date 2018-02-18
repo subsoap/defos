@@ -585,7 +585,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Disable mouse cursor"
+  text: "Hide mouse cursor"
   font: "larryfont"
   id: "disable_mouse_cursor/larrylabel"
   xanchor: XANCHOR_NONE

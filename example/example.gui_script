@@ -62,20 +62,19 @@ function init(self)
 
 	defos.on_mouse_enter(function ()
 		print("Mouse entered view")
-		if self.is_cursor == false then
-			defos.disable_mouse_cursor()
-
+		if not self.cursor_visible then
+			defos.set_cursor_visible(false)
 		end
 	end)
 
 	defos.on_mouse_leave(function ()
 		print("Mouse left view")
-		if self.is_cursor == false then
-			defos.enable_mouse_cursor()
+		if not self.cursor_visible then
+			defos.set_cursor_visible(true)
 		end
 	end)
 
-	self.is_cursor = true
+	self.cursor_visible = true
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
@@ -148,17 +147,11 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("disable_mouse_cursor", action_id, action, function ()
-		if self.is_cursor then
-			defos.disable_mouse_cursor()
-			self.is_cursor = false
-			change_mouse_label("Enable mouse cursor")
-			cursor.set_software_cursor_enabled(true)
-		else
-			defos.enable_mouse_cursor()
-			self.is_cursor = true
-			change_mouse_label("Disable mouse cursor")
-			cursor.set_software_cursor_enabled(false)
-		end
+		local cursor_visible = not self.cursor_visible
+		self.cursor_visible = cursor_visible
+		defos.set_cursor_visible(cursor_visible)
+		cursor.set_software_cursor_enabled(not cursor_visible)
+		change_mouse_label(cursor_visible and "Hide mouse cursor" or "Show mouse cursor")
 	end)
 
 	dirtylarry:button("random_cursor_pos", action_id, action, function()

@@ -13,6 +13,7 @@ static NSCursor* default_cursor = nil;
 
 static bool is_maximized = false;
 static bool is_mouse_in_view = false;
+static bool is_cursor_visible = true;
 static NSRect previous_state;
 
 static void enable_mouse_tracking();
@@ -161,12 +162,18 @@ bool defos_is_console_visible() {
     return false;
 }
 
-void defos_disable_mouse_cursor() {
-    [NSCursor hide];
+void defos_set_cursor_visible(bool visible) {
+    if (is_cursor_visible == visible) { return; }
+    is_cursor_visible = visible;
+    if (visible) {
+      [NSCursor unhide];
+    } else {
+      [NSCursor hide];
+    }
 }
 
-void defos_enable_mouse_cursor() {
-    [NSCursor unhide];
+bool defos_is_cursor_visible() {
+  return is_cursor_visible;
 }
 
 bool defos_is_mouse_in_view() {

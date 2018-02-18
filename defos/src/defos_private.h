@@ -56,8 +56,8 @@ extern WinRect defos_get_view_size();
 extern bool defos_is_console_visible();
 extern void defos_set_console_visible(bool visible);
 
-extern void defos_disable_mouse_cursor();
-extern void defos_enable_mouse_cursor();
+extern void defos_set_cursor_visible(bool visible);
+extern bool defos_is_cursor_visible();
 
 extern bool defos_is_mouse_in_view();
 extern void defos_set_cursor_pos(float x, float y);

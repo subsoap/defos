@@ -21,6 +21,7 @@ static WNDPROC originalProc = NULL;
 static RECT originalRect;
 static bool is_cursor_clipped = false;
 
+static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
 static HCURSOR custom_cursor;
 static HCURSOR original_cursor; // used to restore
@@ -85,14 +86,18 @@ void defos_disable_window_resize()
     set_window_style(get_window_style() & ~WS_SIZEBOX);
 }
 
-void defos_disable_mouse_cursor()
+void defos_set_cursor_visible(bool visible)
 {
-    ShowCursor(0);
+    if (visible != is_cursor_visible)
+    {
+        is_cursor_visible = visible;
+        ShowCursor(visible ? TRUE : FALSE);
+    }
 }
 
-void defos_enable_mouse_cursor()
+bool defos_is_cursor_visible()
 {
-    ShowCursor(1);
+    return is_cursor_visible;
 }
 
 // https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/

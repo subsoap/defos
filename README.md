@@ -57,8 +57,8 @@ defos.set_view_size(x, y, w, h)
 Show/hide the mouse cursor.
 
 ```lua
-defos.disable_mouse_cursor()
-defos.enable_mouse_cursor()
+defos.set_cursor_visible(bool_value)
+bool_value = defos.is_cursor_visible()
 ```
 
 Respond to the mouse entering and leaving the game view area.

@@ -11,7 +11,7 @@ static const char * current_cursor = "default";
 static bool current_cursor_needs_free = false;
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
-static bool is_mouse_disabled = false;
+static bool is_cursor_visible = true;
 static WinRect previous_state;
 
 void js_warn(const char* msg) {
@@ -80,8 +80,7 @@ void defos_toggle_maximize() {
     if (is_maximized) {
         is_maximized = false;
         defos_set_window_size(0,0, previous_state.w, previous_state.h);
-    }
-    else{
+    } else {
         previous_state = defos_get_window_size();
         is_maximized = true;
         EM_ASM({
@@ -142,14 +141,18 @@ void defos_set_console_visible(bool visible) {
     dmLogInfo("Method 'defos_set_console_visible' is not supported in html5, it is meant for Windows builds only");
 }
 
-void defos_disable_mouse_cursor() {
-    is_mouse_disabled = true;
-    EM_ASM(Module.canvas.style.cursor = 'none';);
+void defos_set_cursor_visible(bool visible) {
+    if (is_cursor_visible == visible) { return; }
+    is_cursor_visible = visible;
+    if (visible) {
+        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+    } else {
+        EM_ASM(Module.canvas.style.cursor = 'none';);
+    }
 }
 
-void defos_enable_mouse_cursor() {
-    is_mouse_disabled = false;
-    EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+bool defos_is_cursor_visible() {
+    return is_cursor_visible;
 }
 
 bool defos_is_mouse_in_view() {
@@ -201,7 +204,8 @@ void defos_set_cursor(DefosCursor cursor) {
     }
     current_cursor = get_cursor(cursor);
     current_cursor_needs_free = false;
-    if (!is_mouse_disabled) {
+
+    if (is_cursor_visible) {
         EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
     }
 }
@@ -219,7 +223,7 @@ extern void defos_set_custom_cursor_html5(const char *url) {
     current_cursor = buffer;
     current_cursor_needs_free = true;
 
-    if (!is_mouse_disabled) {
+    if (is_cursor_visible) {
         EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
     }
 }
@@ -230,7 +234,8 @@ void defos_reset_cursor() {
     }
     current_cursor = "default";
     current_cursor_needs_free = false;
-    if (!is_mouse_disabled) {
+
+    if (is_cursor_visible) {
         EM_ASM(Module.canvas.style.cursor = 'default';);
     }
 }

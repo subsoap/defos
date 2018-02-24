@@ -278,6 +278,41 @@ static int reset_cursor(lua_State *L)
     return 0;
 }
 
+// get a list of available display info
+static int get_display_list(lua_State *L)
+{
+    // final result
+    lua_newtable(L);
+
+    #ifdef DM_PLATFORM_WINDOWS
+    int i=0;
+    DisplayInfo display = {0};
+
+    for(;defos_get_display_info(i, &display);i++)
+    {
+        // each display info as a table
+        lua_newtable(L);
+        lua_pushnumber(L, display.w);
+        lua_setfield(L, -2, "w");
+
+        lua_pushnumber(L, display.h);
+        lua_setfield(L, -2, "h");
+
+        lua_pushnumber(L, display.frequency);
+        lua_setfield(L, -2, "frequency");
+
+        lua_pushnumber(L, display.bitsPerPixel);
+        lua_setfield(L, -2, "bits_per_pixel");  
+
+        lua_rawseti(L, 1, i+1);
+    }
+    #else
+    dmLogError("Not support on this platform.");    
+    #endif
+
+    return 1;
+}
+
 // Events
 
 static void set_event_handler(lua_State *L, int index, DefosEvent event)
@@ -401,6 +436,7 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
+        {"get_display_list", get_display_list},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

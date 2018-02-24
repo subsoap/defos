@@ -339,6 +339,25 @@ void defos_reset_cursor()
     is_custom_cursor_loaded = false;
 }
 
+bool defos_get_display_info(int index, DisplayInfo* display){
+    DEVMODE dm = {0};
+    dm.dmSize = sizeof(dm);
+
+    BOOL result = EnumDisplaySettings(NULL, index, &dm);
+
+    if(result == 0){
+        return false;
+    }
+
+    display->w = dm.dmPelsWidth;
+    display->h = dm.dmPelsHeight;
+    display->frequency = dm.dmDisplayFrequency;
+    display->bitsPerPixel = dm.dmBitsPerPel;
+    
+
+    return true;
+}
+
 /********************
  * internal functions
  ********************/

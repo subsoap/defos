@@ -29,6 +29,13 @@ typedef enum {
     DEFOS_CURSOR_IBEAM,
 } DefosCursor;
 
+struct DisplayInfo {
+    unsigned long w;
+    unsigned long h;
+    unsigned long bitsPerPixel;
+    unsigned long frequency;
+};
+
 extern LuaCallbackInfo defos_event_handlers[];
 extern void defos_emit_event(DefosEvent event);
 extern void defos_event_handler_was_set(DefosEvent event);
@@ -76,3 +83,5 @@ extern void defos_set_custom_cursor_win(const char *filename);
 extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();
+
+extern bool defos_get_display_info(int index, DisplayInfo* display);

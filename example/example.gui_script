@@ -112,6 +112,15 @@ function init(self)
 		defos.set_console_visible(not defos.is_console_visible())
 	end
 
+	local display_list = defos.get_display_list()
+
+	for i, d in ipairs(display_list) do
+		-- filter by frequency
+		if d.frequency == 60 or d.frequency == 75 then
+			print("resolution: "..d.w.."*"..d.h.." frequency: "..d.frequency.." bitsPerPixel: "..d.bits_per_pixel)
+		end
+	end
+
 	window.set_listener(window_callback)
 end
 

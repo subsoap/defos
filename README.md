@@ -184,4 +184,4 @@ If you'd like to see any other feature, open an issue.
 
 ## Example
 An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
-![Defos example screenshot](https://user-images.githubusercontent.com/2209596/34541914-31af02fc-f0eb-11e7-9c16-a3088366c62d.jpg)
+![Defos example screenshot](https://github.com/subsoap/defos/raw/master/docs/example_screenshot.jpg)

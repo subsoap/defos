@@ -1,6 +1,6 @@
 #include <dmsdk/sdk.h>
 #include "defos_private.h"
-#define DM_PLATFORM_WINDOWS
+
 #if defined(DM_PLATFORM_WINDOWS)
 
 #include <atlbase.h>

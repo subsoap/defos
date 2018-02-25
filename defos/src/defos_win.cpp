@@ -1,6 +1,6 @@
 #include <dmsdk/sdk.h>
 #include "defos_private.h"
-
+#define DM_PLATFORM_WINDOWS
 #if defined(DM_PLATFORM_WINDOWS)
 
 #include <atlbase.h>
@@ -45,6 +45,7 @@ void defos_init()
     is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
     original_cursor = GetCursor(); // keep the original cursor
+    GetWindowPlacement(dmGraphics::GetNativeWindowsHWND(), &placement);
     subclass_window();
 }
 

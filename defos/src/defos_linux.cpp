@@ -7,10 +7,18 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 
+Display *dis;
+int screen;
+Window win;
+GC gc;
 
 void defos_init()
 {
-
+    dis = XOpenDisplay((char *)0);
+    screen = DefaultScreen(dis);
+    win = dmGraphics::GetNativeX11Window();
+    XClearWindow(dis, win);
+    XSetStandardProperties(dis, win, "Hehe", "Hi", None, NULL, 0, NULL);
 }
 
 void defos_final()

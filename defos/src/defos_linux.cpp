@@ -4,21 +4,22 @@
 
 #include "defos_private.h"
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 
-Display *dis;
+Display *disp;
 int screen;
 Window win;
 GC gc;
 
+
+
 void defos_init()
 {
-    dis = XOpenDisplay((char *)0);
-    screen = DefaultScreen(dis);
+    disp = XOpenDisplay(NULL);
+    screen = DefaultScreen(disp);
     win = dmGraphics::GetNativeX11Window();
-    XClearWindow(dis, win);
-    XSetStandardProperties(dis, win, "Hehe", "Hi", None, NULL, 0, NULL);
 }
 
 void defos_final()
@@ -89,7 +90,7 @@ return false;
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
- }
+}
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
@@ -97,6 +98,11 @@ void defos_set_view_size(float x, float y, float w, float h)
 
 void defos_set_window_title(const char *title_lua)
 {
+    Atom utf8atom = XInternAtom(disp, "UTF8_STRING", False);
+
+    int ret = XChangeProperty(disp, win, XInternAtom(disp,"_NET_WM_NAME",False), utf8atom, 8, PropModeReplace, (unsigned char*)title_lua, strlen(title_lua));
+    
+    XFlush(disp); // IMPORTANT: we have to flush, or nothing will be changed
 }
 
 WinRect defos_get_window_size()

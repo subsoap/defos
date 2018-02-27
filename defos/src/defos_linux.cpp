@@ -115,7 +115,20 @@ void defos_set_window_title(const char *title_lua)
 
 WinRect defos_get_window_size()
 {
-    WinRect r;
+    XWindowAttributes attributes;
+    XGetWindowAttributes(disp, win, &attributes);
+
+    Window dummy;
+    Window root = XDefaultRootWindow(disp);
+    int x, y;
+    XTranslateCoordinates(disp, win,root, 0, 0, &x, &y, &dummy);
+
+    WinRect r = {
+        x,
+        y,
+        attributes.width,
+        attributes.height
+    };
     return r;
 }
 

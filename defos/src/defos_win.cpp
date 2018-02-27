@@ -45,6 +45,7 @@ void defos_init()
     is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
     original_cursor = GetCursor(); // keep the original cursor
+    GetWindowPlacement(dmGraphics::GetNativeWindowsHWND(), &placement);
     subclass_window();
 }
 

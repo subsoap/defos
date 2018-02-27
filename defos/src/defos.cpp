@@ -4,9 +4,6 @@
 
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
-
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5) || defined(DM_PLATFORM_LINUX)
-
 #include "defos_private.h"
 
 static bool checkboolean(lua_State *L, int index)
@@ -444,18 +441,3 @@ dmExtension::Result UpdateDefos(dmExtension::Params *params)
 }
 
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, InitializeDefos, UpdateDefos, 0, FinalizeDefos)
-
-#else
-
-dmExtension::Result InitializeDefos(dmExtension::Params *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result FinalizeDefos(dmExtension::Params *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, InitializeDefos, 0, 0, FinalizeDefos)
-#endif

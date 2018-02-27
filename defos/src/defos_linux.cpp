@@ -19,9 +19,15 @@
 static Display *disp;
 static int screen;
 static Window win;
-static GC gc;
+//static GC gc;
 
 
+bool is_window_visible(Window window)
+{
+    XWindowAttributes attributes;
+    XGetWindowAttributes(disp, window, &attributes);
+    return attributes.map_state == IsViewable;
+}
 
 void defos_init()
 {
@@ -98,6 +104,25 @@ bool defos_is_console_visible()
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
+    dmLogInfo("Event 'on_click' exists only on HTML5 %s", "hehe");
+    // change size only if it is visible
+    if(is_window_visible(win))
+    {
+        if(isnan(x) || isnan(y)){
+            Window root = XDefaultRootWindow(disp);
+            XWindowAttributes attributes;
+
+            XGetWindowAttributes(disp, root, &attributes);
+
+            x = ((float)attributes.width - w)/2;
+            y = ((float)attributes.height - h)/2;    
+        }
+        
+        XMoveWindow(disp, win, x, y);
+        
+        XResizeWindow(disp, win, (unsigned int)w, (unsigned int)h);
+        XFlush(disp);
+    }
 }
 
 void defos_set_view_size(float x, float y, float w, float h)
@@ -108,7 +133,7 @@ void defos_set_window_title(const char *title_lua)
 {
     Atom utf8atom = XInternAtom(disp, "UTF8_STRING", False);
 
-    int ret = XChangeProperty(disp, win, XInternAtom(disp,"_NET_WM_NAME",False), utf8atom, 8, PropModeReplace, (unsigned char*)title_lua, strlen(title_lua));
+    XChangeProperty(disp, win, XInternAtom(disp,"_NET_WM_NAME",False), utf8atom, 8, PropModeReplace, (unsigned char*)title_lua, strlen(title_lua));
     
     XFlush(disp); // IMPORTANT: we have to flush, or nothing will be changed
 }
@@ -123,12 +148,7 @@ WinRect defos_get_window_size()
     int x, y;
     XTranslateCoordinates(disp, win,root, 0, 0, &x, &y, &dummy);
 
-    WinRect r = {
-        x,
-        y,
-        attributes.width,
-        attributes.height
-    };
+    WinRect r = {(float)x, (float)y, (float)attributes.width, (float)attributes.height};
     return r;
 }
 

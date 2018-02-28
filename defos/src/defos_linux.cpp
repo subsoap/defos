@@ -27,15 +27,18 @@ static Window root;
 #define _NET_WM_STATE_TOGGLE 2
 #define XATOM(name) XInternAtom(disp, name, False)
 
+// TODO: add support checking
 static Atom UTF8_STRING;
 static Atom NET_WM_NAME;
 static Atom NET_WM_STATE;
 static Atom NET_WM_STATE_FULLSCREEN;
 static Atom NET_WM_STATE_MAXIMIZED_VERT;
 static Atom NET_WM_STATE_MAXIMIZED_HORZ;
+static Atom NET_WM_ACTION_MINIMIZE;
 
-
+// TODO: should query state from system
 static bool is_maximized = false;
+static bool is_fullscreen = false;
 
 
 bool is_window_visible(Window window)
@@ -92,7 +95,7 @@ void defos_event_handler_was_set(DefosEvent event)
 
 bool defos_is_fullscreen()
 {
-    return false;
+    return is_fullscreen;
 }
 
 bool defos_is_maximized()
@@ -129,7 +132,30 @@ bool defos_is_cursor_visible()
 
 void defos_toggle_fullscreen()
 {
+    if(!is_fullscreen)
+    {
+        send_message(win,
+                    NET_WM_STATE,
+                    _NET_WM_STATE_ADD,
+                    NET_WM_STATE_FULLSCREEN,
+                    0,
+                    1,
+                    0);
+;
+    }
+    else
+    {
+        send_message(win,
+                    NET_WM_STATE,
+                    _NET_WM_STATE_REMOVE,
+                    NET_WM_STATE_FULLSCREEN,
+                    0,
+                    1,
+                    0);
+    }
 
+    is_fullscreen = !is_fullscreen;
+    XFlush(disp);
 }
 
 void defos_toggle_maximized()
@@ -143,7 +169,6 @@ void defos_toggle_maximized()
                     NET_WM_STATE_MAXIMIZED_HORZ,
                     1,
                     0);
-        is_maximized=true;
     }
     else
     {
@@ -154,9 +179,9 @@ void defos_toggle_maximized()
                     NET_WM_STATE_MAXIMIZED_HORZ,
                     1,
                     0);
-        is_maximized=false;
     }
 
+    is_maximized = !is_maximized;
     XFlush(disp);
 }
 

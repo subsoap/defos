@@ -19,7 +19,23 @@
 static Display *disp;
 static int screen;
 static Window win;
+static Window root;
+    
 //static GC gc;
+#define _NET_WM_STATE_REMOVE        0
+#define _NET_WM_STATE_ADD           1
+#define _NET_WM_STATE_TOGGLE 2
+#define XATOM(name) XInternAtom(disp, name, False)
+
+static Atom UTF8_STRING;
+static Atom NET_WM_NAME;
+static Atom NET_WM_STATE;
+static Atom NET_WM_STATE_FULLSCREEN;
+static Atom NET_WM_STATE_MAXIMIZED_VERT;
+static Atom NET_WM_STATE_MAXIMIZED_HORZ;
+
+
+static bool is_maximized = false;
 
 
 bool is_window_visible(Window window)
@@ -29,11 +45,39 @@ bool is_window_visible(Window window)
     return attributes.map_state == IsViewable;
 }
 
+//from glfw/x11_window.c
+void send_message(Window& window, Atom type, long a, long b, long c, long d,long e)
+{
+    XEvent event;
+    memset(&event, 0, sizeof(event));
+
+    event.type = ClientMessage;
+    event.xclient.window = window;
+    event.xclient.format = 32;
+    event.xclient.message_type = type;
+    event.xclient.data.l[0]=a;
+    event.xclient.data.l[1]=b;
+    event.xclient.data.l[2]=c;
+    event.xclient.data.l[3]=d;
+    event.xclient.data.l[4]=e;
+    
+    XSendEvent(disp, root, False, SubstructureNotifyMask|SubstructureRedirectMask, &event);
+}
+
 void defos_init()
 {
     disp = XOpenDisplay(NULL);
     screen = DefaultScreen(disp);
     win = dmGraphics::GetNativeX11Window();
+    root = XDefaultRootWindow(disp);
+
+    // from https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
+    UTF8_STRING = XATOM("UTF8_STRING");
+    NET_WM_NAME = XATOM("_NET_WM_NAME");
+    NET_WM_STATE = XATOM("_NET_WM_STATE");
+    NET_WM_STATE_FULLSCREEN = XATOM("_NET_WM_STATE_FULLSCREEN");
+    NET_WM_STATE_MAXIMIZED_VERT = XATOM("_NET_WM_STATE_MAXIMIZED_VERT");
+    NET_WM_STATE_MAXIMIZED_HORZ = XATOM("_NET_WM_STATE_MAXIMIZED_HORZ");
 }
 
 void defos_final()
@@ -53,7 +97,7 @@ bool defos_is_fullscreen()
 
 bool defos_is_maximized()
 {
-    return false;
+    return is_maximized;
 }
 
 bool defos_is_mouse_in_view()
@@ -90,7 +134,30 @@ void defos_toggle_fullscreen()
 
 void defos_toggle_maximized()
 {
+    if(!is_maximized)
+    {
+        send_message(win, 
+                    NET_WM_STATE,
+                    _NET_WM_STATE_ADD,
+                    NET_WM_STATE_MAXIMIZED_VERT,
+                    NET_WM_STATE_MAXIMIZED_HORZ,
+                    1,
+                    0);
+        is_maximized=true;
+    }
+    else
+    {
+        send_message(win,
+                    NET_WM_STATE,
+                    _NET_WM_STATE_REMOVE,
+                    NET_WM_STATE_MAXIMIZED_VERT,
+                    NET_WM_STATE_MAXIMIZED_HORZ,
+                    1,
+                    0);
+        is_maximized=false;
+    }
 
+    XFlush(disp);
 }
 
 void defos_set_console_visible(bool visible)
@@ -104,14 +171,11 @@ bool defos_is_console_visible()
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
-    dmLogInfo("Event 'on_click' exists only on HTML5 %s", "hehe");
     // change size only if it is visible
     if(is_window_visible(win))
     {
         if(isnan(x) || isnan(y)){
-            Window root = XDefaultRootWindow(disp);
             XWindowAttributes attributes;
-
             XGetWindowAttributes(disp, root, &attributes);
 
             x = ((float)attributes.width - w)/2;
@@ -119,7 +183,6 @@ void defos_set_window_size(float x, float y, float w, float h)
         }
         
         XMoveWindow(disp, win, x, y);
-        
         XResizeWindow(disp, win, (unsigned int)w, (unsigned int)h);
         XFlush(disp);
     }
@@ -131,10 +194,7 @@ void defos_set_view_size(float x, float y, float w, float h)
 
 void defos_set_window_title(const char *title_lua)
 {
-    Atom utf8atom = XInternAtom(disp, "UTF8_STRING", False);
-
-    XChangeProperty(disp, win, XInternAtom(disp,"_NET_WM_NAME",False), utf8atom, 8, PropModeReplace, (unsigned char*)title_lua, strlen(title_lua));
-    
+    XChangeProperty(disp, win, NET_WM_NAME, UTF8_STRING, 8, PropModeReplace, (unsigned char*)title_lua, strlen(title_lua));
     XFlush(disp); // IMPORTANT: we have to flush, or nothing will be changed
 }
 
@@ -144,7 +204,6 @@ WinRect defos_get_window_size()
     XGetWindowAttributes(disp, win, &attributes);
 
     Window dummy;
-    Window root = XDefaultRootWindow(disp);
     int x, y;
     XTranslateCoordinates(disp, win,root, 0, 0, &x, &y, &dummy);
 

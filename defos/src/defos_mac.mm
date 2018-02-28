@@ -110,6 +110,16 @@ void defos_set_window_size(float x, float y, float w, float h) {
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
+    NSString *secondParentPath = [[bundlePath stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
+    NSString *path = [secondParentPath stringByAppendingPathComponent:[NSString stringWithUTF8String:icon_path]];
+    NSImage* image = [[NSImage alloc] initWithContentsOfFile: path];
+    [window setRepresentedURL:[NSURL URLWithString:path]];
+    [[window standardWindowButton:NSWindowDocumentIconButton] setImage:image];
+}
+
 void defos_set_view_size(float x, float y, float w, float h) {
     if (isnan(x)) {
         NSRect frame = window.screen.frame;

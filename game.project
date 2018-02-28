@@ -3,6 +3,8 @@ title = DefOS
 version = 1.0.1
 dependencies = https://github.com/andsve/dirtylarry/archive/master.zip
 custom_resources = resources/
+bundle_resources = /icons
+write_log = 0
 
 [bootstrap]
 main_collection = /example/example.collectionc

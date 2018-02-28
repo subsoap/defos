@@ -337,6 +337,13 @@ static int on_cursor_lock_disabled(lua_State *L)
     return 0;
 }
 
+static int set_window_icon(lua_State *L)
+{
+    const char *icon_path = luaL_checkstring(L, 1);
+    defos_set_window_icon(icon_path);
+    return 0;
+}
+
 void defos_emit_event(DefosEvent event)
 {
     LuaCallbackInfo *mscb = &defos_event_handlers[event];
@@ -401,6 +408,7 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
+        {"set_window_icon", set_window_icon},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

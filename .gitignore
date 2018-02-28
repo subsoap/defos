@@ -9,3 +9,4 @@ builtins
 .internal
 .clang_complete
 .vscode/
+*.txt

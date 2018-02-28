@@ -50,6 +50,8 @@ extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
 
 extern void defos_set_window_title(const char* title_lua);
+extern void  defos_set_window_icon(const char *icon_path);
+extern void  defos_set_window_icon_mac(dmBuffer::HBuffer buffer);
 
 extern void defos_set_window_size(float x, float y, float w, float h);
 extern WinRect defos_get_window_size();

@@ -144,6 +144,25 @@ void defos_set_window_title(const char* title_lua) {
     EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    EM_ASM_({
+        document.head || (document.head = document.getElementsByTagName('head')[0]);
+        function changeFavicon(src) {
+            var link = document.createElement('link');
+            var oldLink = document.getElementById('dynamic-favicon');
+            link.id = 'dynamic-favicon';
+            link.rel = 'shortcut icon';
+            link.href = src;
+            if (oldLink) {
+                document.head.removeChild(oldLink);
+            }
+            document.head.appendChild(link);
+        }
+        changeFavicon(UTF8ToString($0));
+    }, icon_path);
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     defos_set_view_size(x, y, w, h);
 }

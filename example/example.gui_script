@@ -8,7 +8,7 @@ local system_name = sys.get_sys_info().system_name
 local ICON_NAMES = {
 	["Windows"] = "win.ico",
 	["HTML5"] = "html5.ico",
-	["Darwin"] = "/mac.png"
+	["Darwin"] = "mac.png"
 }
 
 function window_callback(self, event, data)

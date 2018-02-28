@@ -44,7 +44,7 @@ function init(self)
 
 	if system_name == "Windows" then
 		for i, v in ipairs({ "cursor_01.ani", "cursor_02.ani" }) do
-			table.insert(self.cursors, cursor_path)
+			table.insert(self.cursors, v)
 		end
 	end
 

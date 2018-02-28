@@ -44,17 +44,6 @@ function init(self)
 
 	if system_name == "Windows" then
 		for i, v in ipairs({ "cursor_01.ani", "cursor_02.ani" }) do
-			-- load source file and write them to save folder, so that we can access them with fullpath
-			local cursor_resource = resource.load("/resources/"..v)
-			local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))
-
-			local cursor_path = sys.get_save_file(appname, v)
-			local f = io.open(cursor_path, "wb")
-			f:write(raw_bytes)
-			f:flush()
-			f:close()
-
-			print(cursor_path)
 			table.insert(self.cursors, cursor_path)
 		end
 	end

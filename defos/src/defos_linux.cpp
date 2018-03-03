@@ -15,6 +15,7 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
+#include <X11/cursorfont.h>
 
 static Display *disp;
 static int screen;
@@ -40,32 +41,9 @@ static Atom NET_WM_ACTION_MINIMIZE;
 static bool is_maximized = false;
 static bool is_fullscreen = false;
 
+static bool is_window_visible(Window window);
+static void send_message(Window& window, Atom type, long a, long b, long c, long d,long e);
 
-bool is_window_visible(Window window)
-{
-    XWindowAttributes attributes;
-    XGetWindowAttributes(disp, window, &attributes);
-    return attributes.map_state == IsViewable;
-}
-
-//from glfw/x11_window.c
-void send_message(Window& window, Atom type, long a, long b, long c, long d,long e)
-{
-    XEvent event;
-    memset(&event, 0, sizeof(event));
-
-    event.type = ClientMessage;
-    event.xclient.window = window;
-    event.xclient.format = 32;
-    event.xclient.message_type = type;
-    event.xclient.data.l[0]=a;
-    event.xclient.data.l[1]=b;
-    event.xclient.data.l[2]=c;
-    event.xclient.data.l[3]=d;
-    event.xclient.data.l[4]=e;
-    
-    XSendEvent(disp, root, False, SubstructureNotifyMask|SubstructureRedirectMask, &event);
-}
 
 void defos_init()
 {
@@ -293,16 +271,65 @@ void defos_update() {
 void defos_set_custom_cursor(const char *filename)
 {
     // TODO: x11 support .xbm image for cursor
+    // TODO: for animited cursor we need x render extension
 }
+
+
+
+static unsigned int get_cursor(DefosCursor cursor);
 
 void defos_set_cursor(DefosCursor cursor)
 {
-
+    defos_reset_cursor();
+    Cursor xcursor = XCreateFontCursor(disp, get_cursor(cursor));
+    XDefineCursor(disp, win, xcursor);
 }
 
 void defos_reset_cursor()
 {
-
+    XUndefineCursor(disp, win);
 }
 
+static unsigned int get_cursor(DefosCursor cursor)
+{
+    switch(cursor)
+    {
+        case DEFOS_CURSOR_ARROW:
+            return XC_left_ptr;
+        case DEFOS_CURSOR_CROSSHAIR:
+            return XC_tcross;
+        case DEFOS_CURSOR_HAND:
+            return XC_hand2;
+        case DEFOS_CURSOR_IBEAM:
+            return XC_xterm;
+        default:
+            return XC_left_ptr;
+    }
+}
+
+static bool is_window_visible(Window window)
+{
+    XWindowAttributes attributes;
+    XGetWindowAttributes(disp, window, &attributes);
+    return attributes.map_state == IsViewable;
+}
+
+//from glfw/x11_window.c
+static void send_message(Window& window, Atom type, long a, long b, long c, long d,long e)
+{
+    XEvent event;
+    memset(&event, 0, sizeof(event));
+
+    event.type = ClientMessage;
+    event.xclient.window = window;
+    event.xclient.format = 32;
+    event.xclient.message_type = type;
+    event.xclient.data.l[0]=a;
+    event.xclient.data.l[1]=b;
+    event.xclient.data.l[2]=c;
+    event.xclient.data.l[3]=d;
+    event.xclient.data.l[4]=e;
+    
+    XSendEvent(disp, root, False, SubstructureNotifyMask|SubstructureRedirectMask, &event);
+}
 #endif

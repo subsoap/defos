@@ -18,16 +18,16 @@
 #include <X11/cursorfont.h>
 #include <Xcursor.h>
 
-static Display *disp;
-static int screen;
-static Window win;
-static Window root;
-    
 //static GC gc;
 #define _NET_WM_STATE_REMOVE        0
 #define _NET_WM_STATE_ADD           1
 #define _NET_WM_STATE_TOGGLE 2
 #define XATOM(name) XInternAtom(disp, name, False)
+
+static Display *disp;
+static int screen;
+static Window win;
+static Window root;
 
 // TODO: add support checking
 static Atom UTF8_STRING;
@@ -96,18 +96,22 @@ bool defos_is_mouse_in_view()
 
 void defos_disable_maximize_button()
 {
+    dmLogInfo("Method 'defos_disable_maximize_button' is not supported in Linux");
 }
 
 void defos_disable_minimize_button()
 {
+    dmLogInfo("Method 'defos_disable_minimize_button' is not supported in Linux");
 }
 
 void defos_disable_window_resize()
 {
+    dmLogInfo("Method 'defos_disable_window_resize' is not supported in Linux");
 }
 
 void defos_set_cursor_visible(bool visible)
 {
+    dmLogInfo("Method 'defos_set_cursor_visible' is not supported in Linux");
 }
 
 bool defos_is_cursor_visible()
@@ -172,7 +176,7 @@ void defos_toggle_maximized()
 
 void defos_set_console_visible(bool visible)
 {
-        dmLogInfo("Method 'defos_set_console_visible' is not supported in Linux");
+    dmLogInfo("Method 'defos_set_console_visible' is not supported in Linux");
 }
 
 bool defos_is_console_visible()
@@ -193,14 +197,21 @@ void defos_set_window_size(float x, float y, float w, float h)
             y = ((float)attributes.height - h)/2;    
         }
         
-        XMoveWindow(disp, win, x, y);
-        XResizeWindow(disp, win, (unsigned int)w, (unsigned int)h);
+        XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)w, (unsigned int)h);
         XFlush(disp);
     }
 }
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
+    XWindowChanges changes;
+    changes.x = (int)x;
+    changes.y = (int)y;
+    changes.width = (int)w;
+    changes.height = (int)h;
+    
+    XConfigureWindow(disp, win, CWX | CWY | CWWidth | CWHeight, &changes);
+    XFlush(disp);
 }
 
 void defos_set_window_title(const char *title_lua)
@@ -211,20 +222,20 @@ void defos_set_window_title(const char *title_lua)
 
 WinRect defos_get_window_size()
 {
-    XWindowAttributes attributes;
-    XGetWindowAttributes(disp, win, &attributes);
-
-    Window dummy;
-    int x, y;
-    XTranslateCoordinates(disp, win,root, 0, 0, &x, &y, &dummy);
-
-    WinRect r = {(float)x, (float)y, (float)attributes.width, (float)attributes.height};
+    WinRect r = {0.0f, 0.0f, 0.0f, 0.0f};
     return r;
 }
 
 WinRect defos_get_view_size()
 {
-    WinRect r;
+    int x,y;
+    unsigned int w, h, bw, depth;
+
+    Window dummy;
+    XGetGeometry(disp, win, &dummy, &x, &y, &w, &h, &bw, &depth);
+    XTranslateCoordinates(disp, win, root, x, y, &x, &y, &dummy);
+
+    WinRect r = {(float)x, (float)y, (float)w, (float)h};
     return r;
 }
 
@@ -254,7 +265,7 @@ void defos_move_cursor_to(float x, float y)
 
 void defos_set_cursor_clipped(bool clipped)
 {
- 
+    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in Linux");
 }
 
 bool defos_is_cursor_clipped()
@@ -264,13 +275,7 @@ bool defos_is_cursor_clipped()
 
 void defos_set_cursor_locked(bool locked)
 {
-     XEvent event;
-    XPeekEvent(disp, &event);
-
-    if(event.type == LeaveNotify)
-    {
-        dmLogInfo("hehehe");
-    }
+    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in Linux");
 }
 
 bool defos_is_cursor_locked()
@@ -279,19 +284,14 @@ bool defos_is_cursor_locked()
 }
 
 void defos_update() {
-    // We have to query the event from queue to check events
 
 }
 
 void defos_set_custom_cursor_linux(const char *filename)
 {
-    // TODO: x11 support .xbm image for cursor
-    // TODO: for animited cursor we need x render extension
     custom_cursor = XcursorFilenameLoadCursor(disp, filename);
     XDefineCursor(disp, win, custom_cursor);
 }
-
-
 
 static unsigned int get_cursor(DefosCursor cursor);
 
@@ -356,4 +356,5 @@ static void send_message(Window& window, Atom type, long a, long b, long c, long
     
     XSendEvent(disp, root, False, SubstructureNotifyMask|SubstructureRedirectMask, &event);
 }
+
 #endif

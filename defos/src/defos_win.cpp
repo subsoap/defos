@@ -316,7 +316,7 @@ void defos_update() {
 }
 
 // path of the cursor file,
-// for defold it may be a good idea to save the cursor file to the save folder,
+// for defold it we can save the cursor file to the save folder or use bundle resources,
 // then pass the path to this function to load
 void defos_set_custom_cursor_win(const char *filename)
 {

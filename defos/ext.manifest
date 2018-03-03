@@ -9,3 +9,7 @@ platforms:
     context:
         frameworks: ["AppKit"]
 
+  x86_64-linux:
+    context:      
+        frameworks: ["X11", "Xrender"]
+        libs: ["Xrender", "Xfixes"]

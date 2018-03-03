@@ -11,4 +11,5 @@ platforms:
 
   x86_64-linux:
     context:      
-        frameworks: ["X11"]
+        frameworks: ["X11", "Xrender"]
+        libs: ["Xrender", "Xfixes"]

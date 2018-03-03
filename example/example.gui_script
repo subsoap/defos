@@ -30,6 +30,20 @@ function toggle_cursor_lock(self)
 	gui.set_text(gui.get_node("lock_cursor/larrylabel"), text)
 end
 
+function extract_to_savefolder(res)
+	local appname = sys.get_config("project.title")
+
+	local resbuff = resource.load("/resources/"..res)
+	local raw_bytes = buffer.get_bytes(resbuff, hash("data"))
+	local path = sys.get_save_file(appname, "cursor.l")
+	local f = io.open(path, "wb")
+	f:write(raw_bytes)
+	f:flush()
+	f:close()
+	print(path)
+	return path
+end
+
 function init(self)
 	local appname = sys.get_config("project.title")
 
@@ -42,8 +56,14 @@ function init(self)
 		defos.CURSOR_IBEAM,
 	}
 
+	if system_name == "Linux" then
+		-- NOTE: since Defold cannot load resource without extension, we added .l here.
+		-- NOTE: cursur should be normal x11 cursor file that type is: image/x-xcursor
+		table.insert(self.cursors, extract_to_savefolder("cursor.l"))
+	end
+	
 	if system_name == "Windows" then
-		for i, v in ipairs({ "cursor_01.ani", "cursor_02.ani" }) do
+		for i, v in ipairs({"cursor_01.ani", "cursor_02.ani" }) do
 			-- load source file and write them to save folder, so that we can access them with fullpath
 			local cursor_resource = resource.load("/resources/"..v)
 			local raw_bytes = buffer.get_bytes(cursor_resource, hash("data"))

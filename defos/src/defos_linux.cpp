@@ -16,6 +16,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include <X11/cursorfont.h>
+#include <Xcursor.h>
 
 static Display *disp;
 static int screen;
@@ -41,6 +42,9 @@ static Atom NET_WM_ACTION_MINIMIZE;
 static bool is_maximized = false;
 static bool is_fullscreen = false;
 
+static Cursor custom_cursor;// image cursor
+
+
 static bool is_window_visible(Window window);
 static void send_message(Window& window, Atom type, long a, long b, long c, long d,long e);
 
@@ -63,6 +67,10 @@ void defos_init()
 
 void defos_final()
 {
+    if(custom_cursor==NULL)
+    {
+        XFreeCursor(disp, custom_cursor);
+    }
 
 }
 
@@ -268,10 +276,12 @@ void defos_update() {
 
 }
 
-void defos_set_custom_cursor(const char *filename)
+void defos_set_custom_cursor_linux(const char *filename)
 {
     // TODO: x11 support .xbm image for cursor
     // TODO: for animited cursor we need x render extension
+    custom_cursor = XcursorFilenameLoadCursor(disp, filename);
+    XDefineCursor(disp, win, custom_cursor);
 }
 
 
@@ -280,14 +290,21 @@ static unsigned int get_cursor(DefosCursor cursor);
 
 void defos_set_cursor(DefosCursor cursor)
 {
+    // TODO: X11 support change the cursor color, add it later
     defos_reset_cursor();
-    Cursor xcursor = XCreateFontCursor(disp, get_cursor(cursor));
-    XDefineCursor(disp, win, xcursor);
+    custom_cursor = XCreateFontCursor(disp, get_cursor(cursor));
+    XDefineCursor(disp, win, custom_cursor);
 }
 
 void defos_reset_cursor()
 {
     XUndefineCursor(disp, win);
+
+    if(custom_cursor!=NULL)
+    {
+        XFreeCursor(disp, custom_cursor);
+        custom_cursor = NULL;
+    }
 }
 
 static unsigned int get_cursor(DefosCursor cursor)

@@ -74,5 +74,6 @@ extern bool defos_is_cursor_locked();
 extern void defos_set_custom_cursor_html5(const char *url);
 extern void defos_set_custom_cursor_win(const char *filename);
 extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
+extern void defos_set_custom_cursor_linux(const char *filename);
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();

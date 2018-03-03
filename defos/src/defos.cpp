@@ -234,6 +234,14 @@ static int set_cursor(lua_State *L)
     return 0;
     #endif
 
+    #ifdef DM_PLATFORM_LINUX
+    const char *cursor_path_lua = luaL_checkstring(L,1);
+    defos_set_custom_cursor_linux(cursor_path_lua);
+    return 0;
+
+    // TODO: X11 support animated cursor by XRender
+    #endif
+
     #ifdef DM_PLATFORM_OSX
     luaL_checktype(L, 1, LUA_TTABLE);
 

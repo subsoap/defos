@@ -250,7 +250,20 @@ void defos_set_cursor_pos(float x, float y)
 
 void defos_move_cursor_to(float x, float y)
 {
-  
+   WinRect rect = defos_get_window_size();
+
+   int ix = (int)x;
+   int iy = (int)y;
+
+   // TODO: need this?
+   if(ix > rect.w) ix = rect.w;
+   if(ix < 0) ix = 0;
+   if(iy > rect.h) iy=rect.h;
+   if(iy < 0) iy = 0;
+
+
+   XWarpPointer(disp, None, win, 0, 0, 0, 0, ix, iy);
+   XFlush(disp);
 }
 
 void defos_set_cursor_clipped(bool clipped)

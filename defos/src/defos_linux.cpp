@@ -108,7 +108,6 @@ void defos_disable_window_resize()
 
 void defos_set_cursor_visible(bool visible)
 {
-
 }
 
 bool defos_is_cursor_visible()
@@ -173,6 +172,7 @@ void defos_toggle_maximized()
 
 void defos_set_console_visible(bool visible)
 {
+        dmLogInfo("Method 'defos_set_console_visible' is not supported in Linux");
 }
 
 bool defos_is_console_visible()
@@ -264,7 +264,13 @@ bool defos_is_cursor_clipped()
 
 void defos_set_cursor_locked(bool locked)
 {
- 
+     XEvent event;
+    XPeekEvent(disp, &event);
+
+    if(event.type == LeaveNotify)
+    {
+        dmLogInfo("hehehe");
+    }
 }
 
 bool defos_is_cursor_locked()
@@ -273,6 +279,7 @@ bool defos_is_cursor_locked()
 }
 
 void defos_update() {
+    // We have to query the event from queue to check events
 
 }
 

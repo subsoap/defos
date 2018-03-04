@@ -39,7 +39,7 @@ end
 
 function init(self)
 	local appname = sys.get_config("project.title")
-
+	gui.set_text(gui.get_node("bundle_path"), defos.get_bundle_root()..defos.PATH_SEP)
 	-- custom cursors we will change between
 	self.current_cursor = 0 -- start with default cursor (nil)
 	self.cursors = {
@@ -212,7 +212,7 @@ function on_input(self, action_id, action)
 	end)
 
 	dirtylarry:button("set_icon", action_id, action, function()
-		defos.set_window_icon(ICON_NAMES[system_name])
+		defos.set_window_icon(defos.get_bundle_root()..defos.PATH_SEP..ICON_NAMES[system_name])
 	end)
 
 	dirtylarry:button("change_cursor", action_id, action, function()

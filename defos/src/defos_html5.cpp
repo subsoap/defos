@@ -163,6 +163,17 @@ void defos_set_window_icon(const char *icon_path)
     }, icon_path);
 }
 
+char const* defos_get_bundle_root() {
+    char*bundlePath = (char*)EM_ASM_INT({
+        var jsString = location.href.substring(0, location.href.lastIndexOf("/"));
+        var lengthBytes = lengthBytesUTF8(jsString)+1; // 'jsString.length' would return the length of the string as UTF-16 units, but Emscripten C strings operate as UTF-8.
+        var stringOnWasmHeap = _malloc(lengthBytes);
+        stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
+        return stringOnWasmHeap;
+    },0);
+    return bundlePath;
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     defos_set_view_size(x, y, w, h);
 }

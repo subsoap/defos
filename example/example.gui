@@ -139,8 +139,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 700.0
+    x: 170.0
+    y: 650.0
     z: 0.0
     w: 1.0
   }
@@ -300,8 +300,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 480.0
+    x: 170.0
+    y: 450.0
     z: 0.0
     w: 1.0
   }
@@ -460,8 +460,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 370.0
+    x: 170.0
+    y: 350.0
     z: 0.0
     w: 1.0
   }
@@ -620,8 +620,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 262.004
+    x: 170.0
+    y: 250.0
     z: 0.0
     w: 1.0
   }
@@ -779,8 +779,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 159.275
+    x: 170.0
+    y: 150.0
     z: 0.0
     w: 1.0
   }
@@ -938,8 +938,8 @@ nodes {
 }
 nodes {
   position {
-    x: 166.0
-    y: 54.0
+    x: 860.0
+    y: 550.0
     z: 0.0
     w: 1.0
   }
@@ -1097,8 +1097,8 @@ nodes {
 }
 nodes {
   position {
-    x: 380.021
-    y: 706.924
+    x: 723.021
+    y: 650.0
     z: 0.0
     w: 1.0
   }
@@ -1154,7 +1154,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 300.0
     y: 72.0
     z: 0.0
     w: 1.0
@@ -1186,6 +1186,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
 }
@@ -1364,8 +1365,8 @@ nodes {
 }
 nodes {
   position {
-    x: 165.0
-    y: 590.0
+    x: 170.0
+    y: 550.0
     z: 0.0
     w: 1.0
   }
@@ -1524,8 +1525,8 @@ nodes {
 }
 nodes {
   position {
-    x: 518.0
-    y: 600.0
+    x: 520.0
+    y: 650.0
     z: 0.0
     w: 1.0
   }
@@ -1684,8 +1685,8 @@ nodes {
 }
 nodes {
   position {
-    x: 518.0
-    y: 495.0
+    x: 520.0
+    y: 550.0
     z: 0.0
     w: 1.0
   }
@@ -1968,8 +1969,8 @@ nodes {
 }
 nodes {
   position {
-    x: 518.0
-    y: 389.0
+    x: 520.0
+    y: 450.0
     z: 0.0
     w: 1.0
   }
@@ -2128,8 +2129,8 @@ nodes {
 }
 nodes {
   position {
-    x: 518.0
-    y: 283.0
+    x: 520.0
+    y: 350.0
     z: 0.0
     w: 1.0
   }
@@ -2288,8 +2289,8 @@ nodes {
 }
 nodes {
   position {
-    x: 861.0
-    y: 600.0
+    x: 860.0
+    y: 450.0
     z: 0.0
     w: 1.0
   }
@@ -2510,8 +2511,8 @@ nodes {
 }
 nodes {
   position {
-    x: 861.0
-    y: 497.0
+    x: 860.0
+    y: 350.0
     z: 0.0
     w: 1.0
   }
@@ -2670,8 +2671,8 @@ nodes {
 }
 nodes {
   position {
-    x: 861.0
-    y: 389.0
+    x: 170.0
+    y: 50.0
     z: 0.0
     w: 1.0
   }
@@ -2825,6 +2826,69 @@ nodes {
   overridden_fields: 8
   overridden_fields: 18
   template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+}
+nodes {
+  position {
+    x: 21.0
+    y: 752.066
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.8
+    y: 0.8
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 700.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "bundle path\n"
+  ""
+  font: "larryfont"
+  id: "bundle_path"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_NW
+  outline {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  layer: ""
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
 }

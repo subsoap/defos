@@ -216,6 +216,12 @@ void defos_set_window_icon(const char *icon_path)
     }
 }
 
+char const* defos_get_bundle_root() {
+    char bundlePath[MAX_PATH];
+    GetCurrentDirectory(MAX_PATH, bundlePath);
+    return bundlePath;
+}
+
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();

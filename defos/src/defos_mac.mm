@@ -93,6 +93,20 @@ void defos_set_window_title(const char* title_lua) {
     [window setTitle:title];
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    NSString *path = [NSString stringWithUTF8String:icon_path];
+    NSImage* image = [[NSImage alloc] initWithContentsOfFile: path];
+    [window setRepresentedURL:[NSURL URLWithString:path]];
+    [[window standardWindowButton:NSWindowDocumentIconButton] setImage:image];
+}
+
+char const* defos_get_bundle_root() {
+    NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+    const char *bundlePath_lua = [bundlePath UTF8String];
+    return bundlePath_lua;
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     if (isnan(x)) {
         NSRect frame = window.screen.frame;
@@ -108,16 +122,6 @@ void defos_set_window_size(float x, float y, float w, float h) {
     }
 
     [window setFrame:NSMakeRect(x, win_y, w , h) display:YES];
-}
-
-void defos_set_window_icon(const char *icon_path)
-{
-    NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-    NSString *secondParentPath = [[bundlePath stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
-    NSString *path = [secondParentPath stringByAppendingPathComponent:[NSString stringWithUTF8String:icon_path]];
-    NSImage* image = [[NSImage alloc] initWithContentsOfFile: path];
-    [window setRepresentedURL:[NSURL URLWithString:path]];
-    [[window standardWindowButton:NSWindowDocumentIconButton] setImage:image];
 }
 
 void defos_set_view_size(float x, float y, float w, float h) {

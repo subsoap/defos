@@ -200,4 +200,4 @@ If you'd like to see any other feature, open an issue.
 
 ## Example
 An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
-![Defos example screenshot](https://github.com/subsoap/defos/raw/master/docs/example_screenshot.jpg)
+![Defos example screenshot](https://user-images.githubusercontent.com/2209596/37050119-158e6b34-2184-11e8-95fd-b2e293fba456.jpg)

@@ -8,6 +8,7 @@
 
 #if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 #include "defos_private.h"
+#include <stdlib.h>
 
 static bool checkboolean(lua_State *L, int index)
 {
@@ -151,8 +152,9 @@ static int set_window_icon(lua_State *L)
 
 static int get_bundle_root(lua_State *L)
 {
-    const char* bundle_path = defos_get_bundle_root();
+    char* bundle_path = defos_get_bundle_root();
     lua_pushstring(L, bundle_path);
+    free(bundle_path);
     return 1;
 }
 

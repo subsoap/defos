@@ -216,8 +216,8 @@ void defos_set_window_icon(const char *icon_path)
     }
 }
 
-char const* defos_get_bundle_root() {
-    char bundlePath[MAX_PATH];
+char* defos_get_bundle_root() {
+    char *bundlePath = (char*)malloc(MAX_PATH);
     GetCurrentDirectory(MAX_PATH, bundlePath);
     return bundlePath;
 }

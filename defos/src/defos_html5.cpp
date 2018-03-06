@@ -149,7 +149,7 @@ void defos_set_window_icon(const char *icon_path)
     EM_ASM_({
         document.head || (document.head = document.getElementsByTagName('head')[0]);
         function changeFavicon(src) {
-            var link = document.createElement('link');
+            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
             var oldLink = document.getElementById('dynamic-favicon');
             link.id = 'dynamic-favicon';
             link.rel = 'shortcut icon';
@@ -163,7 +163,7 @@ void defos_set_window_icon(const char *icon_path)
     }, icon_path);
 }
 
-char const* defos_get_bundle_root() {
+char* defos_get_bundle_root() {
     char*bundlePath = (char*)EM_ASM_INT({
         var jsString = location.href.substring(0, location.href.lastIndexOf("/"));
         var lengthBytes = lengthBytesUTF8(jsString)+1; // 'jsString.length' would return the length of the string as UTF-16 units, but Emscripten C strings operate as UTF-8.

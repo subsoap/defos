@@ -4,6 +4,7 @@
 
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
+#include <stdlib.h>
 
 #if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
 
@@ -285,13 +286,13 @@ static int get_display_list(lua_State *L)
     lua_newtable(L);
 
     #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX)     
-    dmArray<DisplayInfo> displaylist;
-    defos_get_display_info(&displaylist);
+    dmArray<DisplayInfo>* displaylist = new dmArray<DisplayInfo>();
+    defos_get_display_info(displaylist);
     
     DisplayInfo disp;
-    for(int i=0;i<displaylist.Size();i++)
+    for(int i=0;i<displaylist->Size();i++)
     {
-        disp = displaylist[i];
+        disp = (*displaylist)[i];
         // each display info as a table
         lua_newtable(L);
         lua_pushnumber(L, disp.w);
@@ -308,6 +309,9 @@ static int get_display_list(lua_State *L)
 
         lua_rawseti(L, 1, i+1);
     }
+
+    delete displaylist;
+
     #else
     dmLogError("Not support on this platform.");    
     #endif

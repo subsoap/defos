@@ -13,10 +13,6 @@ static NSCursor* current_cursor = nil;
 static NSCursor* default_cursor = nil;
 
 #define MAX_DISPLAYS 32
-static CFArrayRef modeList;
-uint32_t numDisplays;
-CGDirectDisplayID displays[MAX_DISPLAYS];
-CVDisplayLinkRef dispLink;
 
 static bool is_maximized = false;
 static bool is_mouse_in_view = false;
@@ -328,31 +324,34 @@ void defos_reset_cursor() {
     current_cursor = default_cursor;
 }
 
-bool defos_get_display_info(int index, DisplayInfo* display){
-    if (!modeList) {
-        CGGetActiveDisplayList (MAX_DISPLAYS, displays, &numDisplays); 
-        modeList = CGDisplayCopyAllDisplayModes(displays[0], (__bridge CFDictionaryRef)@{ (__bridge NSString*)kCGDisplayShowDuplicateLowResolutionModes: @YES });
-        CVDisplayLinkCreateWithCGDisplay(displays[0], &dispLink);
-    }
+void defos_get_display_info(dmArray<DisplayInfo>* displist){
+    uint32_t numDisplays;
+    CGDirectDisplayID displays[MAX_DISPLAYS];
+    CVDisplayLinkRef dispLink;
+    CGGetActiveDisplayList(MAX_DISPLAYS, displays, &numDisplays); 
+    CFArrayRef modeList = CGDisplayCopyAllDisplayModes(displays[0], (__bridge CFDictionaryRef)@{ (__bridge NSString*)kCGDisplayShowDuplicateLowResolutionModes: @YES });
+    CVDisplayLinkCreateWithCGDisplay(displays[0], &dispLink);
     
-    if(index == [modeList count]){
-        return false;
-    }
-    
-    CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modeList, index);
-
-    display->w = CGDisplayModeGetWidth(mode);
-    display->h = CGDisplayModeGetHeight(mode);
-    display->frequency = CGDisplayModeGetRefreshRate(mode);
-    if (display->frequency== 0){
-        const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dispLink);
-        if (!(time.flags & kCVTimeIsIndefinite)){
-            display->frequency = (long) ((time.timeScale / (double) time.timeValue) + 0.5);
+    for(int i = 0; i < [modeList count]; i++)
+    {          
+        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modeList, i);
+        DisplayInfo display = {
+            CGDisplayModeGetWidth(mode),
+            CGDisplayModeGetHeight(mode),
+            CGDisplayModeGetRefreshRate(mode),
+            getBPPFromModeString(CGDisplayModeCopyPixelEncoding(mode))
+        };
+        
+        if (display.frequency == 0){
+            const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dispLink);
+            if (!(time.flags & kCVTimeIsIndefinite)){
+                display.frequency = (long) ((time.timeScale / (double) time.timeValue) + 0.5);
+            }
         }
-     }
-    display->bitsPerPixel = getBPPFromModeString(CGDisplayModeCopyPixelEncoding(mode));
-    
-    return true;
+        
+        displist->OffsetCapacity(1);
+        displist->Push(display);
+    }
 }
 
 @interface DefOSMouseTracker : NSResponder

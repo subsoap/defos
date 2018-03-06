@@ -188,6 +188,14 @@ path = defos.get_bundle_root()
 
 ---
 
+The system path separator. `"\\"` on Windows, `"/"` everywhere else.
+
+```lua
+defos.PATH_SEP
+``` 
+
+---
+
 Change the game's icon at runtime.
 
 ```lua

@@ -180,6 +180,22 @@ end)
 
 ---
 
+Get the absolute path to the game's containing directory. On macOS this will be the path to the .app bundle
+
+```lua
+path = defos.get_bundle_root()
+```
+
+---
+
+Change the game's icon at runtime.
+
+```lua
+defos.set_window_icon(path_to_icon)
+```
+
+---
+
 If you'd like to see any other feature, open an issue.
 
 ## Example

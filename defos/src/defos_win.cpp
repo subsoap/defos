@@ -206,6 +206,22 @@ void defos_set_window_title(const char *title_lua)
     SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    HANDLE icon = LoadImage(NULL, icon_path, IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+    if (icon)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
+        SendMessage(window, (UINT)WM_SETICON, ICON_BIG, (LPARAM)icon);
+    }
+}
+
+char* defos_get_bundle_root() {
+    char *bundlePath = (char*)malloc(MAX_PATH);
+    GetCurrentDirectory(MAX_PATH, bundlePath);
+    return bundlePath;
+}
+
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();

@@ -93,6 +93,23 @@ void defos_set_window_title(const char* title_lua) {
     [window setTitle:title];
 }
 
+void defos_set_window_icon(const char *icon_path){
+    @autoreleasepool {
+        NSString *path = [NSString stringWithUTF8String:icon_path];
+        NSImage* image = [[NSImage alloc] initWithContentsOfFile: path];
+        [window setRepresentedURL:[NSURL URLWithString:path]];
+        [[window standardWindowButton:NSWindowDocumentIconButton] setImage:image];
+        [image release];
+    }
+}
+
+char* defos_get_bundle_root() {
+    const char *bundlePath = [[[NSBundle mainBundle] bundlePath] UTF8String];
+    char *bundlePath_lua = (char*)malloc(strlen(bundlePath) + 1);
+    strcpy(bundlePath_lua, bundlePath);
+    return bundlePath_lua;
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     if (isnan(x)) {
         NSRect frame = window.screen.frame;

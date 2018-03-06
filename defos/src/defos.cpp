@@ -284,7 +284,7 @@ static int get_display_list(lua_State *L)
     // final result
     lua_newtable(L);
 
-    #ifdef DM_PLATFORM_WINDOWS
+    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX) 
     int i=0;
     DisplayInfo display = {0};
 

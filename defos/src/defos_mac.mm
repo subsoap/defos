@@ -6,10 +6,17 @@
 #include "defos_private.h"
 #include <AppKit/AppKit.h>
 #include <CoreGraphics/CoreGraphics.h>
+#include <CoreVideo/CVDisplayLink.h>
 
 static NSWindow* window = nil;
 static NSCursor* current_cursor = nil;
 static NSCursor* default_cursor = nil;
+
+#define MAX_DISPLAYS 32
+static CFArrayRef modeList;
+uint32_t numDisplays;
+CGDirectDisplayID displays[MAX_DISPLAYS];
+CVDisplayLinkRef dispLink;
 
 static bool is_maximized = false;
 static bool is_mouse_in_view = false;
@@ -20,6 +27,29 @@ static NSRect previous_state;
 
 static void enable_mouse_tracking();
 static void disable_mouse_tracking();
+
+/*
+* Convert the mode string to the more convinient bits per pixel value
+*/
+static int getBPPFromModeString(CFStringRef mode)
+{
+    if ((CFStringCompare(mode, CFSTR(kIO30BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)) {
+        // This is a strange mode, where we using 10 bits per RGB component and pack it into 32 bits
+        // Java is not ready to work with this mode but we have to specify it as supported
+        return 30;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 32;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 16;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 8;
+    }
+
+    return 0;
+}
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
@@ -296,6 +326,33 @@ void defos_reset_cursor() {
     [default_cursor retain];
     [current_cursor release];
     current_cursor = default_cursor;
+}
+
+bool defos_get_display_info(int index, DisplayInfo* display){
+    if (!modeList) {
+        CGGetActiveDisplayList (MAX_DISPLAYS, displays, &numDisplays); 
+        modeList = CGDisplayCopyAllDisplayModes(displays[0], (__bridge CFDictionaryRef)@{ (__bridge NSString*)kCGDisplayShowDuplicateLowResolutionModes: @YES });
+        CVDisplayLinkCreateWithCGDisplay(displays[0], &dispLink);
+    }
+    
+    if(index == [modeList count]){
+        return false;
+    }
+    
+    CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modeList, index);
+
+    display->w = CGDisplayModeGetWidth(mode);
+    display->h = CGDisplayModeGetHeight(mode);
+    display->frequency = CGDisplayModeGetRefreshRate(mode);
+    if (display->frequency== 0){
+        const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dispLink);
+        if (!(time.flags & kCVTimeIsIndefinite)){
+            display->frequency = (long) ((time.timeScale / (double) time.timeValue) + 0.5);
+        }
+     }
+    display->bitsPerPixel = getBPPFromModeString(CGDisplayModeCopyPixelEncoding(mode));
+    
+    return true;
 }
 
 @interface DefOSMouseTracker : NSResponder

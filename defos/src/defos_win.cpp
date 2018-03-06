@@ -218,7 +218,20 @@ void defos_set_window_icon(const char *icon_path)
 
 char* defos_get_bundle_root() {
     char *bundlePath = (char*)malloc(MAX_PATH);
-    GetCurrentDirectory(MAX_PATH, bundlePath);
+    size_t ret = GetModuleFileNameA(GetModuleHandle(NULL), bundlePath, MAX_PATH);
+    if (ret > 0 && ret < MAX_PATH) {
+        // Remove the last path component
+        size_t i = strlen(bundlePath);
+        do {
+            i -= 1;
+            if (bundlePath[i] == '\\') {
+                bundlePath[i] = 0;
+                break;
+            }
+        } while (i);
+    } else {
+        bundlePath[0] = 0;
+    }
     return bundlePath;
 }
 

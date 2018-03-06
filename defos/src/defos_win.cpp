@@ -339,23 +339,22 @@ void defos_reset_cursor()
     is_custom_cursor_loaded = false;
 }
 
-bool defos_get_display_info(int index, DisplayInfo* display){
+void defos_get_display_info(dmArray<DisplayInfo>* displist){
     DEVMODE dm = {0};
     dm.dmSize = sizeof(dm);
 
-    BOOL result = EnumDisplaySettings(NULL, index, &dm);
+    for(int i=0;EnumDisplaySettings(NULL, i, &dm)!=0;i++)
+    {          
+        DisplayInfo display = {
+            dm.dmPelsWidth,
+            dm.dmPelsHeight,
+            dm.dmBitsPerPel,
+            dm.dmDisplayFrequency
+        };
 
-    if(result == 0){
-        return false;
+        displist->OffsetCapacity(1);
+        displist->Push(display);
     }
-
-    display->w = dm.dmPelsWidth;
-    display->h = dm.dmPelsHeight;
-    display->frequency = dm.dmDisplayFrequency;
-    display->bitsPerPixel = dm.dmBitsPerPel;
-    
-
-    return true;
 }
 
 /********************

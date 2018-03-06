@@ -84,4 +84,4 @@ extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();
 
-extern bool defos_get_display_info(int index, DisplayInfo* display);
+extern void defos_get_display_info(dmArray<DisplayInfo>* displist);

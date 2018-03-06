@@ -284,25 +284,27 @@ static int get_display_list(lua_State *L)
     // final result
     lua_newtable(L);
 
-    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX) 
-    int i=0;
-    DisplayInfo display = {0};
-
-    for(;defos_get_display_info(i, &display);i++)
+    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX)     
+    dmArray<DisplayInfo> displaylist;
+    defos_get_display_info(&displaylist);
+    
+    DisplayInfo disp;
+    for(int i=0;i<displaylist.Size();i++)
     {
+        disp = displaylist[i];
         // each display info as a table
         lua_newtable(L);
-        lua_pushnumber(L, display.w);
+        lua_pushnumber(L, disp.w);
         lua_setfield(L, -2, "w");
 
-        lua_pushnumber(L, display.h);
+        lua_pushnumber(L, disp.h);
         lua_setfield(L, -2, "h");
 
-        lua_pushnumber(L, display.frequency);
+        lua_pushnumber(L, disp.frequency);
         lua_setfield(L, -2, "frequency");
 
-        lua_pushnumber(L, display.bitsPerPixel);
-        lua_setfield(L, -2, "bits_per_pixel");  
+        lua_pushnumber(L, disp.bitsPerPixel);
+        lua_setfield(L, -2, "bits_per_pixel");
 
         lua_rawseti(L, 1, i+1);
     }

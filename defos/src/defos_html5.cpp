@@ -147,16 +147,12 @@ void defos_set_window_title(const char* title_lua) {
 void defos_set_window_icon(const char *icon_path)
 {
     EM_ASM_({
-        document.head || (document.head = document.getElementsByTagName('head')[0]);
         function changeFavicon(src) {
-            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-            var oldLink = document.getElementById('dynamic-favicon');
-            link.id = 'dynamic-favicon';
+            var oldLink = document.querySelector("link[rel*='icon']");
+            if (oldLink) { document.head.removeChild(oldLink); }
+            var link = document.createElement('link');
             link.rel = 'shortcut icon';
-            link.href = src;
-            if (oldLink) {
-                document.head.removeChild(oldLink);
-            }
+            link.href = src;        
             document.head.appendChild(link);
         }
         changeFavicon(UTF8ToString($0));

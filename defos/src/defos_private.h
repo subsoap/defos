@@ -52,6 +52,7 @@ extern bool defos_is_maximized();
 extern void defos_set_window_title(const char* title_lua);
 extern void  defos_set_window_icon(const char *icon_path);
 extern char* defos_get_bundle_root();
+extern void defos_get_parameters(dmArray<char*>* parameters);
 
 extern void defos_set_window_size(float x, float y, float w, float h);
 extern WinRect defos_get_window_size();

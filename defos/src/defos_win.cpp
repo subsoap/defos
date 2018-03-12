@@ -235,6 +235,24 @@ char* defos_get_bundle_root() {
     return bundlePath;
 }
 
+void defos_get_parameters(dmArray<char*>* parameters) {
+    LPWSTR *szArglist;
+    int nArgs;
+    int i;
+    szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    if( NULL != szArglist ){
+        for( i=0; i<nArgs; i++) {
+            const wchar_t *param = szArglist[i];
+            int len = wcslen(param) + 1;
+            char* lua_param = (char*)malloc(len);
+            wcstombs(lua_param, param, len);
+            parameters->OffsetCapacity(1);
+            parameters->Push(lua_param);
+        }
+    }
+    LocalFree(szArglist);
+}
+
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();

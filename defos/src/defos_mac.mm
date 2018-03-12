@@ -110,6 +110,17 @@ char* defos_get_bundle_root() {
     return bundlePath_lua;
 }
 
+void defos_get_parameters(dmArray<char*>* parameters) {
+    NSArray *args = [[NSProcessInfo processInfo] arguments];
+    for (int i = 0; i < [args count]; i++){
+        const char *param = [args[i] UTF8String];
+        char* lua_param = (char*)malloc(strlen(param) + 1);
+        strcpy(lua_param, param);
+        parameters->OffsetCapacity(1);
+        parameters->Push(lua_param);
+    }
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     if (isnan(x)) {
         NSRect frame = window.screen.frame;

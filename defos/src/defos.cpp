@@ -158,6 +158,22 @@ static int get_bundle_root(lua_State *L)
     return 1;
 }
 
+static int get_parameters(lua_State *L)
+{
+    dmArray<char*>* parameters = new dmArray<char*>();
+    defos_get_parameters(parameters);
+    lua_newtable(L);
+    for(int i = 0; i < parameters->Size(); i++)
+    {
+        char* param = (*parameters)[i];
+        lua_pushstring(L, param);
+        lua_rawseti(L, 1, i+1);
+        free(param);
+    }
+    delete parameters;
+    return 1;
+}
+
 // Windows console
 
 static int set_console_visible(lua_State *L)
@@ -419,6 +435,7 @@ static const luaL_reg Module_methods[] =
         {"reset_cursor", reset_cursor},
         {"set_window_icon", set_window_icon},
         {"get_bundle_root", get_bundle_root},
+        {"get_parameters", get_parameters},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

@@ -120,6 +120,7 @@ function init(self)
 	end
 
 	window.set_listener(window_callback)
+	pprint(defos.get_parameters())
 end
 
 local function change_mouse_label(text)

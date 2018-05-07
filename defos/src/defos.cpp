@@ -291,7 +291,7 @@ static int get_display_list(lua_State *L)
     // final result
     lua_newtable(L);
 
-    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX)     
+    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)     
     dmArray<DisplayInfo>* displaylist = new dmArray<DisplayInfo>();
     defos_get_display_info(displaylist);
     

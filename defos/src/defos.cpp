@@ -3,9 +3,13 @@
 #define MODULE_NAME "defos"
 
 #define DLIB_LOG_DOMAIN LIB_NAME
+
 #include <dmsdk/sdk.h>
+
 #if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5) || defined(DM_PLATFORM_LINUX)
+
 #include "defos_private.h"
+#include <stdlib.h>
 
 static bool checkboolean(lua_State *L, int index)
 {
@@ -137,6 +141,37 @@ static int set_maximized(lua_State *L)
 static int is_maximized(lua_State *L)
 {
     lua_pushboolean(L, defos_is_maximized());
+    return 1;
+}
+
+static int set_window_icon(lua_State *L)
+{
+    const char *icon_path = luaL_checkstring(L, 1);
+    defos_set_window_icon(icon_path);
+    return 0;
+}
+
+static int get_bundle_root(lua_State *L)
+{
+    char* bundle_path = defos_get_bundle_root();
+    lua_pushstring(L, bundle_path);
+    free(bundle_path);
+    return 1;
+}
+
+static int get_parameters(lua_State *L)
+{
+    dmArray<char*>* parameters = new dmArray<char*>();
+    defos_get_parameters(parameters);
+    lua_newtable(L);
+    for(int i = 0; i < parameters->Size(); i++)
+    {
+        char* param = (*parameters)[i];
+        lua_pushstring(L, param);
+        lua_rawseti(L, 1, i+1);
+        free(param);
+    }
+    delete parameters;
     return 1;
 }
 
@@ -407,12 +442,16 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
+        {"set_window_icon", set_window_icon},
+        {"get_bundle_root", get_bundle_root},
+        {"get_parameters", get_parameters},
         {0, 0}};
 
 static void LuaInit(lua_State *L)
 {
     int top = lua_gettop(L);
     luaL_register(L, MODULE_NAME, Module_methods);
+    
     lua_pushnumber(L, DEFOS_CURSOR_ARROW);
     lua_setfield(L, -2, "CURSOR_ARROW");
     lua_pushnumber(L, DEFOS_CURSOR_CROSSHAIR);
@@ -421,6 +460,15 @@ static void LuaInit(lua_State *L)
     lua_setfield(L, -2, "CURSOR_HAND");
     lua_pushnumber(L, DEFOS_CURSOR_IBEAM);
     lua_setfield(L, -2, "CURSOR_IBEAM");
+    
+    #if defined(DM_PLATFORM_WINDOWS)
+    lua_pushstring(L, "\\");
+    lua_setfield(L, -2, "PATH_SEP");
+    #else
+    lua_pushstring(L, "/");
+    lua_setfield(L, -2, "PATH_SEP");
+    #endif 
+    
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
 }

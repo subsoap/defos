@@ -4,6 +4,13 @@ local cursor_url = require("example.html5_cursor")
 
 local system_name = sys.get_sys_info().system_name
 
+--pls add the files using bundle_resources parameter in game.project https://www.defold.com/manuals/project-settings/
+local ICON_NAMES = {
+	["Windows"] = "win.ico",
+	["HTML5"] = "html5.ico",
+	["Darwin"] = "mac.png"
+}
+
 function window_callback(self, event, data)
 	if event == window.WINDOW_EVENT_FOCUS_LOST then
 		-- though after lost focus cursor clipping will restore, we should restore it
@@ -46,7 +53,7 @@ end
 
 function init(self)
 	local appname = sys.get_config("project.title")
-
+	gui.set_text(gui.get_node("bundle_path"), defos.get_bundle_root()..defos.PATH_SEP)
 	-- custom cursors we will change between
 	self.current_cursor = 0 -- start with default cursor (nil)
 	self.cursors = {
@@ -123,6 +130,7 @@ function init(self)
 	end
 
 	window.set_listener(window_callback)
+	pprint(defos.get_parameters())
 end
 
 local function change_mouse_label(text)
@@ -213,6 +221,10 @@ function on_input(self, action_id, action)
 		if system_name ~= "HTML5" then
 			toggle_cursor_lock(self)
 		end
+	end)
+
+	dirtylarry:button("set_icon", action_id, action, function()
+		defos.set_window_icon(defos.get_bundle_root()..defos.PATH_SEP..ICON_NAMES[system_name])
 	end)
 
 	dirtylarry:button("change_cursor", action_id, action, function()

@@ -206,6 +206,53 @@ void defos_set_window_title(const char *title_lua)
     SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    HANDLE icon = LoadImage(NULL, icon_path, IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+    if (icon)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
+        SendMessage(window, (UINT)WM_SETICON, ICON_BIG, (LPARAM)icon);
+    }
+}
+
+char* defos_get_bundle_root() {
+    char *bundlePath = (char*)malloc(MAX_PATH);
+    size_t ret = GetModuleFileNameA(GetModuleHandle(NULL), bundlePath, MAX_PATH);
+    if (ret > 0 && ret < MAX_PATH) {
+        // Remove the last path component
+        size_t i = strlen(bundlePath);
+        do {
+            i -= 1;
+            if (bundlePath[i] == '\\') {
+                bundlePath[i] = 0;
+                break;
+            }
+        } while (i);
+    } else {
+        bundlePath[0] = 0;
+    }
+    return bundlePath;
+}
+
+void defos_get_parameters(dmArray<char*>* parameters) {
+    LPWSTR *szArglist;
+    int nArgs;
+    int i;
+    szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    if( NULL != szArglist ){
+        for( i=0; i<nArgs; i++) {
+            const wchar_t *param = szArglist[i];
+            int len = wcslen(param) + 1;
+            char* lua_param = (char*)malloc(len);
+            wcstombs(lua_param, param, len);
+            parameters->OffsetCapacity(1);
+            parameters->Push(lua_param);
+        }
+    }
+    LocalFree(szArglist);
+}
+
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();

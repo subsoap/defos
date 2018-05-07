@@ -180,8 +180,40 @@ end)
 
 ---
 
+Get the absolute path to the game's containing directory. On macOS this will be the path to the .app bundle
+
+```lua
+path = defos.get_bundle_root()
+```
+
+---
+
+The system path separator. `"\\"` on Windows, `"/"` everywhere else.
+
+```lua
+defos.PATH_SEP
+``` 
+
+---
+
+Change the game's icon at runtime.
+
+```lua
+defos.set_window_icon(path_to_icon)
+```
+
+---
+
+Returns a table of command line arguments used to run the app. On HTML5, returns a table with a single string: the query string part of the URL (eg. `{ "?param1=foo&param2=bar" }`).
+
+```lua
+arguments = defos.get_parameters()
+```
+
+---
+
 If you'd like to see any other feature, open an issue.
 
 ## Example
 An example is made using [DirtyLarry](https://github.com/andsve/dirtylarry)
-![Defos example screenshot](https://github.com/subsoap/defos/raw/master/docs/example_screenshot.jpg)
+![Defos example screenshot](https://user-images.githubusercontent.com/2209596/37050119-158e6b34-2184-11e8-95fd-b2e293fba456.jpg)

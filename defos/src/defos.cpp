@@ -4,10 +4,8 @@
 
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
-#include <stdlib.h>
 
-#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5)
-
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_HTML5) || defined(DM_PLATFORM_LINUX)
 #include "defos_private.h"
 
 static bool checkboolean(lua_State *L, int index)
@@ -235,6 +233,14 @@ static int set_cursor(lua_State *L)
     const char *cursor_path_lua = luaL_checkstring(L, 1);
     defos_set_custom_cursor_win(cursor_path_lua);
     return 0;
+    #endif
+
+    #ifdef DM_PLATFORM_LINUX
+    const char *cursor_path_lua = luaL_checkstring(L,1);
+    defos_set_custom_cursor_linux(cursor_path_lua);
+    return 0;
+
+    // TODO: X11 support animated cursor by XRender
     #endif
 
     #ifdef DM_PLATFORM_OSX
@@ -486,12 +492,10 @@ dmExtension::Result UpdateDefos(dmExtension::Params *params)
 }
 
 DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, InitializeDefos, UpdateDefos, 0, FinalizeDefos)
-
 #else
-
 dmExtension::Result InitializeDefos(dmExtension::Params *params)
 {
-    return dmExtension::RESULT_OK;
+   return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result FinalizeDefos(dmExtension::Params *params)

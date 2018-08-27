@@ -13,11 +13,3 @@ platforms:
     context:      
         frameworks: ["X11", "Xrender"]
         libs: ["Xrender", "Xfixes"]
-
-  x86_64-win32:
-    context:
-        use-clang: true
-
-  x86-win32:
-    context:
-        use-clang: true

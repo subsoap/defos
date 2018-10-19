@@ -225,14 +225,14 @@ void defos_set_cursor_visible(bool visible) {
     if (is_cursor_visible == visible) { return; }
     is_cursor_visible = visible;
     if (visible) {
-      [NSCursor unhide];
+        [NSCursor unhide];
     } else {
-      [NSCursor hide];
+        [NSCursor hide];
     }
 }
 
 bool defos_is_cursor_visible() {
-  return is_cursor_visible;
+    return is_cursor_visible;
 }
 
 bool defos_is_mouse_in_view() {
@@ -242,7 +242,7 @@ bool defos_is_mouse_in_view() {
 void defos_set_cursor_pos(float x, float y) {
     CGWarpMouseCursorPosition(CGPointMake(x, y));
     if (!is_cursor_locked) {
-      CGAssociateMouseAndMouseCursorPosition(true); // Prevents a delay after the Wrap call
+        CGAssociateMouseAndMouseCursorPosition(true); // Prevents a delay after the Wrap call
     }
 }
 

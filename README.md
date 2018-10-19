@@ -10,7 +10,7 @@ https://github.com/subsoap/defos/archive/master.zip
 
 ## Methods
 
-Customize title bar accessories and title.
+**Customize title bar** accessories and title.
 
 ```lua
 defos.disable_maximize_button()
@@ -21,7 +21,7 @@ defos.set_window_title("I set this title using Defos")
 
 ---
 
-Toggle window maximize status.
+**Toggle window maximize** status.
 
 ```lua
 defos.set_maximized(bool_value)
@@ -31,7 +31,7 @@ bool_value = defos.is_maximized()
 
 ---
 
-Toggle full screen. On HTML5, this only works from `defos.on_click()`.
+**Toggle full screen**. On HTML5, this only works from `defos.on_click()`.
 
 ```lua
 defos.set_fullscreen(bool_value)
@@ -41,7 +41,7 @@ bool_value = defos.is_fullscreen()
 
 ---
 
-Get/set the window's size and position in screen coordinates. The window area
+**Get/set the window's size and position** in screen coordinates. The window area
 includes the title bar, so the actual contained game view area might be smaller
 than the given metrics.
 
@@ -57,7 +57,7 @@ defos.set_window_size(x, y, w, h)
 
 ---
 
-Get/set the game view size and position in screen coordinates. This adjusts
+**Get/set the game view size and position** in screen coordinates. This adjusts
 the window so that its containing game view is at the desired size and position.
 The window will be larger than the given metrics because it includes the title
 bar.
@@ -71,7 +71,7 @@ defos.set_view_size(x, y, w, h)
 
 ---
 
-Show/hide the mouse cursor.
+**Show/hide the mouse cursor.**
 
 ```lua
 defos.set_cursor_visible(bool_value)
@@ -80,7 +80,7 @@ bool_value = defos.is_cursor_visible()
 
 ---
 
-Respond to the mouse entering and leaving the game view area.
+**Respond to the mouse entering and leaving** the game view area.
 
 ```lua
 bool_value = defos.is_mouse_in_view()
@@ -94,7 +94,7 @@ end)
 
 ---
 
-Move the cursor programatically.
+**Move the cursor** programatically.
 
 ```lua
 defos.set_cursor_pos(x, y) -- In screen coordinates
@@ -103,7 +103,7 @@ defos.move_cursor_to(x, y) -- In game view coordinates
 
 ---
 
-Clip cursor to current game view area. Windows only.
+**Clip cursor** to current game view area.
 
 ```lua
 defos.set_cursor_clipped(bool_value)
@@ -112,7 +112,7 @@ bool_value = defos.is_cursor_clipped()
 
 ---
 
-Lock cursor movement. On HTML5 this only works from `defos.on_click()`.
+**Lock cursor movement**. On HTML5 this only works from `defos.on_click()`.
 
 ```lua
 defos.set_cursor_locked(bool_value)
@@ -124,7 +124,7 @@ end)
 
 ---
 
-Set custom hardware cursors. `cursor` can be one of the following:
+**Set custom hardware cursors**. `cursor` can be one of the following:
   * `nil`: Resets the cursor to default. Equivalent to `defos.reset_cursor()`.
   * `defos.CURSOR_ARROW`
   * `defos.CURSOR_HAND`
@@ -154,7 +154,7 @@ defos.reset_cursor()
 
 ---
 
-On Windows only, show/hide the console window. Only works when not running
+**Show/hide the console window** on Windows. Only works when not running
 from the Editor.
 
 ```lua
@@ -164,7 +164,7 @@ bool_value = defos.is_console_visible()
 
 ---
 
-On HTML5 only, get a synchronous event when the user clicks in the canvas.
+On HTML5 only, **get a synchronous event when the user clicks** in the canvas.
 This is necessary because some HTML5 functions only work when called
 synchronously from an event handler.
 
@@ -180,7 +180,7 @@ end)
 
 ---
 
-Get the absolute path to the game's containing directory. On macOS this will be the path to the .app bundle
+**Get the absolute path to the game's containing directory.** On macOS this will be the path to the .app bundle
 
 ```lua
 path = defos.get_bundle_root()
@@ -188,15 +188,15 @@ path = defos.get_bundle_root()
 
 ---
 
-The system path separator. `"\\"` on Windows, `"/"` everywhere else.
+**The system path separator.** `"\\"` on Windows, `"/"` everywhere else.
 
 ```lua
 defos.PATH_SEP
-``` 
+```
 
 ---
 
-Change the game's icon at runtime.
+**Change the game's icon** at runtime.
 
 ```lua
 defos.set_window_icon(path_to_icon)
@@ -204,7 +204,7 @@ defos.set_window_icon(path_to_icon)
 
 ---
 
-Returns a table of command line arguments used to run the app. On HTML5, returns a table with a single string: the query string part of the URL (eg. `{ "?param1=foo&param2=bar" }`).
+**Returns a table of command line arguments** used to run the app. On HTML5, returns a table with a single string: the query string part of the URL (eg. `{ "?param1=foo&param2=bar" }`).
 
 ```lua
 arguments = defos.get_parameters()

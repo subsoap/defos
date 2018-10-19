@@ -71,6 +71,64 @@ defos.set_view_size(x, y, w, h)
 
 ---
 
+**Query displays**.
+
+`defos.get_displays()` returns a table which can be indexed with either number
+indices (like an array), either with display `id`s.
+
+```lua
+displays = defos.get_displays()
+pprint(displays[1]) -- Print info about the main display
+current_display_id = defos.get_current_display_id() -- Get the ID of the game's current display
+pprint(displays[current_display_id]) -- Print info about the game's current display
+```
+
+A display info table has the following format:
+```lua
+{
+  id = <userdata>,
+  bounds = { -- This is the position and size in screen coordinates of the
+    x = 0,   -- display (relative to the top-left corner of the main display)
+    y = 0,
+    width = 1440,
+    height = 900,
+  }
+  mode = {   -- The current resolution mode of the display
+    width = 2880,
+    height = 1800,
+    scaling_factor = 2,
+    refresh_rate = 60,
+    bits_per_pixel = 32,
+  },
+  name = "Built-in Retina Display",
+}
+```
+
+---
+
+**Query display modes** for a display.
+
+Returns a table with all the resolution modes a display supports.
+
+```lua
+display_id = defos.get_current_display_id()
+modes = defos.get_display_modes(display_id)
+pprint(modes[1]) -- Print information about the first available resolution mode
+```
+
+A resolution mode has the following format:
+```lua
+{
+  width = 2880, -- Full width/height in pixels (not points)
+  height = 1800,
+  scaling_factor = 2, -- Hi-DPI scaling factor
+  refresh_rate = 60,
+  bits_per_pixel = 32,
+}
+```
+
+---
+
 **Show/hide the mouse cursor.**
 
 ```lua

@@ -68,7 +68,7 @@ function init(self)
 		-- NOTE: cursor should be normal x11 cursor file that type is: image/x-xcursor
 		table.insert(self.cursors, extract_to_savefolder("cursor.xcur"))
 	end
-	
+
 	if system_name == "Windows" then
 		for i, v in ipairs({"cursor_01.ani", "cursor_02.ani" }) do
 			-- load source file and write them to save folder, so that we can access them with fullpath, or you can use bundle_resource
@@ -129,13 +129,23 @@ function init(self)
 		defos.set_console_visible(not defos.is_console_visible())
 	end
 
-	local display_list = defos.get_display_list()
+	local displays = defos.get_displays()
+	print("Found " .. #displays .. " displays:")
+	for i, display in ipairs(displays) do
+		pprint(display)
+	end
 
-	for i, d in ipairs(display_list) do
-		-- filter by frequency
-		if d.frequency == 60 or d.frequency == 75 then
-			print("resolution: "..d.w.."*"..d.h.." frequency: "..d.frequency.." bitsPerPixel: "..d.bits_per_pixel)
-		end
+	local current_display_id = defos.get_current_display_id()
+	print("Current display id: ", current_display_id)
+
+	local modes = defos.get_display_modes(current_display_id)
+	print("Found " .. #modes .. " modes for current display:")
+	for i, mode in ipairs(modes) do
+		print(
+			mode.width .. "x" .. mode.height .. " " ..
+			mode.bits_per_pixel .. "bit @" .. mode.refresh_rate .. "Hz x" ..
+			mode.scaling_factor
+		)
 	end
 
 	window.set_listener(window_callback)

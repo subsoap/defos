@@ -387,7 +387,7 @@ void defos_reset_cursor()
     is_custom_cursor_loaded = false;
 }
 
-void defos_get_display_info(dmArray<DisplayInfo>* displist){
+void defos_get_displays(dmArray<DisplayInfo>* displist){
     DEVMODE dm = {0};
     dm.dmSize = sizeof(dm);
 

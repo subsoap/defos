@@ -29,11 +29,21 @@ typedef enum {
     DEFOS_CURSOR_IBEAM,
 } DefosCursor;
 
+typedef void* DisplayID;
+
+struct DisplayModeInfo {
+    unsigned long width;
+    unsigned long height;
+    unsigned long bits_per_pixel;
+    double refresh_rate;
+    double scaling_factor;
+};
+
 struct DisplayInfo {
-    unsigned long w;
-    unsigned long h;
-    unsigned long bitsPerPixel;
-    unsigned long frequency;
+    DisplayID id;
+    struct WinRect bounds;
+    struct DisplayModeInfo mode;
+    char * name;
 };
 
 extern LuaCallbackInfo defos_event_handlers[];
@@ -88,4 +98,6 @@ extern void defos_set_custom_cursor_linux(const char *filename);
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();
 
-extern void defos_get_display_info(dmArray<DisplayInfo>* displist);
+extern void defos_get_displays(dmArray<DisplayInfo> &displayList);
+extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList);
+extern DisplayID defos_get_current_display();

@@ -152,7 +152,7 @@ void defos_set_window_icon(const char *icon_path)
             if (oldLink) { document.head.removeChild(oldLink); }
             var link = document.createElement('link');
             link.rel = 'shortcut icon';
-            link.href = src;        
+            link.href = src;
             document.head.appendChild(link);
         }
         changeFavicon(UTF8ToString($0));
@@ -332,6 +332,16 @@ void defos_reset_cursor() {
     if (is_cursor_visible) {
         EM_ASM(Module.canvas.style.cursor = 'default';);
     }
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList) {
+}
+
+void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList) {
+}
+
+DisplayID defos_get_current_display() {
+    return NULL;
 }
 
 #endif

@@ -334,7 +334,7 @@ static long calculateRefreshRate(const XRRModeInfo* mi)
 }
 
 // NOTE: seems like this function only can query those that with 60 fraquency
-void defos_get_display_info(dmArray<DisplayInfo> *displist)
+void defos_get_displays(dmArray<DisplayInfo> *displist)
 {
     RROutput output = XRRGetOutputPrimary(disp, win);
 

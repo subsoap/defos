@@ -352,34 +352,138 @@ void defos_reset_cursor() {
     current_cursor = default_cursor;
 }
 
-void defos_get_display_info(dmArray<DisplayInfo>* displist){
+static DisplayModeInfo parse_mode(CGDisplayModeRef mode, CVDisplayLinkRef displayLink) {
+    DisplayModeInfo mode_info;
+    mode_info.width = CGDisplayModeGetPixelWidth(mode);
+    mode_info.height = CGDisplayModeGetPixelHeight(mode);
+    mode_info.scaling_factor = (double)mode_info.width / (double)CGDisplayModeGetWidth(mode);
+    mode_info.refresh_rate = CGDisplayModeGetRefreshRate(mode);
+
+    CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
+    mode_info.bits_per_pixel = getBPPFromModeString(pixelEncoding);
+    CFRelease(pixelEncoding);
+
+    if (mode_info.refresh_rate == 0) {
+        const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(displayLink);
+        if (!(time.flags & kCVTimeIsIndefinite)) {
+            mode_info.refresh_rate = (double)time.timeScale / (double)time.timeValue;
+        }
+    }
+
+    return mode_info;
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList){
     uint32_t numDisplays;
     CGDirectDisplayID displays[MAX_DISPLAYS];
-    CVDisplayLinkRef dispLink;
-    CGGetActiveDisplayList(MAX_DISPLAYS, displays, &numDisplays); 
-    CFArrayRef modeList = CGDisplayCopyAllDisplayModes(displays[0], (__bridge CFDictionaryRef)@{ (__bridge NSString*)kCGDisplayShowDuplicateLowResolutionModes: @YES });
-    CVDisplayLinkCreateWithCGDisplay(displays[0], &dispLink);
-    
-    for(int i = 0; i < [modeList count]; i++)
-    {          
-        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modeList, i);
-        DisplayInfo display = {
-            CGDisplayModeGetWidth(mode),
-            CGDisplayModeGetHeight(mode),
-            CGDisplayModeGetRefreshRate(mode),
-            getBPPFromModeString(CGDisplayModeCopyPixelEncoding(mode))
-        };
-        
-        if (display.frequency == 0){
-            const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dispLink);
-            if (!(time.flags & kCVTimeIsIndefinite)){
-                display.frequency = (long) ((time.timeScale / (double) time.timeValue) + 0.5);
+    CGGetActiveDisplayList(MAX_DISPLAYS, displays, &numDisplays);
+
+    displayList.OffsetCapacity(numDisplays);
+    for (int i = 0; i < numDisplays; i++) {
+        CGDirectDisplayID displayID = displays[i];
+
+        // We don't report mirrored displays
+        if (CGDisplayIsInMirrorSet(displayID) && CGDisplayPrimaryDisplay(displayID) != displayID) {
+            continue;
+        }
+
+        DisplayInfo display;
+        display.id = (void*)(size_t)displayID;
+
+        CGRect bounds = CGDisplayBounds(displayID);
+        display.bounds.x = bounds.origin.x;
+        display.bounds.y = bounds.origin.y;
+        display.bounds.w = bounds.size.width;
+        display.bounds.h = bounds.size.height;
+
+        CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displayID);
+        CVDisplayLinkRef displayLink;
+        CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
+        display.mode = parse_mode(mode, displayLink);
+        CVDisplayLinkRelease(displayLink);
+        CGDisplayModeRelease(mode);
+
+        display.name = NULL; // TODO? Seems pretty complicated
+
+        displayList.Push(display);
+    }
+}
+
+void defos_get_display_modes(DisplayID displayID_, dmArray<DisplayModeInfo> &modeList) {
+    CGDirectDisplayID displayID = (CGDirectDisplayID)(size_t)displayID_;
+
+    NSDictionary *optDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+        [NSNumber numberWithBool: YES], kCGDisplayShowDuplicateLowResolutionModes, nil
+    ];
+    CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, (__bridge CFDictionaryRef)optDict);
+    [optDict release];
+
+    // Prepend the current display mode
+    int modeCount = CFArrayGetCount(modes) + 1;
+    CGDisplayModeRef* allModes = new CGDisplayModeRef[modeCount];
+    allModes[0] = CGDisplayCopyDisplayMode(displayID);
+    for (int i = 1; i < modeCount; i++) {
+        allModes[i] = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i - 1);
+    }
+
+    // Make a display link for refresh rate detection fallback
+    CVDisplayLinkRef displayLink;
+    CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
+
+    modeList.OffsetCapacity(modeCount);
+    for (int i = 0; i < modeCount; i++) {
+        CGDisplayModeRef mode = allModes[i];
+        DisplayModeInfo modeInfo = parse_mode(mode, displayLink);
+
+        // Remove duplicates
+        size_t width = CGDisplayModeGetWidth(mode);
+        size_t height = CGDisplayModeGetHeight(mode);
+        size_t pixelWidth = modeInfo.width;
+        size_t pixelHeight = modeInfo.height;
+        double refreshRate = CGDisplayModeGetRefreshRate(mode);
+        CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
+
+        bool shouldAdd = true;
+        for (int j = 0; j < i; j++) {
+            CGDisplayModeRef otherMode = allModes[j];
+            if (CFEqual(mode, otherMode)) {
+                shouldAdd = false;
+                break;
+            }
+
+            size_t otherWidth = CGDisplayModeGetWidth(otherMode);
+            size_t otherHeight = CGDisplayModeGetHeight(otherMode);
+            size_t otherPixelWidth = CGDisplayModeGetPixelWidth(otherMode);
+            size_t otherPixelHeight = CGDisplayModeGetPixelHeight(otherMode);
+            double otherRefreshRate = CGDisplayModeGetRefreshRate(otherMode);
+            CFStringRef otherPixelEncoding = CGDisplayModeCopyPixelEncoding(otherMode);
+
+            bool samePixelEncoding = (CFStringCompare(pixelEncoding, otherPixelEncoding, 0) == kCFCompareEqualTo);
+            CFRelease(pixelEncoding);
+            CFRelease(otherPixelEncoding);
+
+            if (samePixelEncoding
+                && pixelWidth == otherPixelWidth
+                && pixelHeight == otherPixelHeight
+                && width == otherWidth
+                && height == otherHeight
+                && refreshRate == otherRefreshRate
+            ) {
+                shouldAdd = false;
+                break;
             }
         }
-        
-        displist->OffsetCapacity(1);
-        displist->Push(display);
+
+        if (shouldAdd) { modeList.Push(modeInfo); }
     }
+
+    CVDisplayLinkRelease(displayLink);
+    CGDisplayModeRelease(allModes[0]);
+    CFRelease(modes);
+}
+
+DisplayID defos_get_current_display() {
+    return (void*)(size_t)[[[[window screen] deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue];
 }
 
 @interface DefOSMouseTracker : NSResponder

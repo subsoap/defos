@@ -319,43 +319,92 @@ static int reset_cursor(lua_State *L)
     return 0;
 }
 
-// get a list of available display info
-static int get_display_list(lua_State *L)
+// Displays
+
+static void push_display_mode(lua_State *L, const DisplayModeInfo &mode)
 {
-    // final result
     lua_newtable(L);
+    lua_pushnumber(L, mode.width);
+    lua_setfield(L, -2, "width");
+    lua_pushnumber(L, mode.height);
+    lua_setfield(L, -2, "height");
+    lua_pushnumber(L, mode.refresh_rate);
+    lua_setfield(L, -2, "refresh_rate");
+    lua_pushnumber(L, mode.scaling_factor);
+    lua_setfield(L, -2, "scaling_factor");
+    lua_pushnumber(L, mode.bits_per_pixel);
+    lua_setfield(L, -2, "bits_per_pixel");
+}
 
-    #if  defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_LINUX)
-    dmArray<DisplayInfo>* displaylist = new dmArray<DisplayInfo>();
-    defos_get_display_info(displaylist);
+static int get_displays(lua_State *L)
+{
+    dmArray<DisplayInfo> displayList;
+    defos_get_displays(displayList);
 
-    DisplayInfo disp;
-    for(int i=0;i<displaylist->Size();i++)
+    lua_newtable(L); // Final result
+    for (int i = 0; i < displayList.Size(); i++)
     {
-        disp = (*displaylist)[i];
-        // each display info as a table
+        DisplayInfo &display = displayList[i];
+        lua_newtable(L); // The display info table
+
+        lua_pushlightuserdata(L, display.id);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -3, "id");
+
+        // screen positioning bounds
         lua_newtable(L);
-        lua_pushnumber(L, disp.w);
-        lua_setfield(L, -2, "w");
+        lua_pushnumber(L, display.bounds.x);
+        lua_setfield(L, -2, "x");
+        lua_pushnumber(L, display.bounds.y);
+        lua_setfield(L, -2, "y");
+        lua_pushnumber(L, display.bounds.w);
+        lua_setfield(L, -2, "width");
+        lua_pushnumber(L, display.bounds.h);
+        lua_setfield(L, -2, "height");
+        lua_setfield(L, -3, "bounds");
 
-        lua_pushnumber(L, disp.h);
-        lua_setfield(L, -2, "h");
+        push_display_mode(L, display.mode);
+        lua_setfield(L, -3, "mode");
 
-        lua_pushnumber(L, disp.frequency);
-        lua_setfield(L, -2, "frequency");
+        if (display.name)
+        {
+            lua_pushstring(L, display.name);
+            lua_setfield(L, -3, "name");
+            free(display.name);
+        }
 
-        lua_pushnumber(L, disp.bitsPerPixel);
-        lua_setfield(L, -2, "bits_per_pixel");
+        // result[id] = display
+        lua_pushvalue(L, -2);
+        lua_settable(L, -4);
 
-        lua_rawseti(L, 1, i+1);
+        // result[i + 1] = display
+        lua_rawseti(L, -2, i + 1);
     }
 
-    delete displaylist;
+    return 1;
+}
 
-    #else
-    dmLogError("Not support on this platform.");
-    #endif
+static int get_display_modes(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+    DisplayID displayID = lua_touserdata(L, 1);
 
+    dmArray<DisplayModeInfo> modeList;
+    defos_get_display_modes(displayID, modeList);
+
+    lua_newtable(L);
+    for (int i = 0; i < modeList.Size(); i++)
+    {
+        push_display_mode(L, modeList[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
+static int get_current_display_id(lua_State *L)
+{
+    lua_pushlightuserdata(L, defos_get_current_display());
     return 1;
 }
 
@@ -482,7 +531,9 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
-        {"get_display_list", get_display_list},
+        {"get_displays", get_displays},
+        {"get_display_modes", get_display_modes},
+        {"get_current_display_id", get_current_display_id},
         {"set_window_icon", set_window_icon},
         {"get_bundle_root", get_bundle_root},
         {"get_parameters", get_parameters},

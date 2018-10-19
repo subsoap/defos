@@ -144,6 +144,44 @@ void defos_set_window_title(const char* title_lua) {
     EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
 }
 
+void defos_set_window_icon(const char *icon_path)
+{
+    EM_ASM_({
+        function changeFavicon(src) {
+            var oldLink = document.querySelector("link[rel*='icon']");
+            if (oldLink) { document.head.removeChild(oldLink); }
+            var link = document.createElement('link');
+            link.rel = 'shortcut icon';
+            link.href = src;        
+            document.head.appendChild(link);
+        }
+        changeFavicon(UTF8ToString($0));
+    }, icon_path);
+}
+
+char* defos_get_bundle_root() {
+    char*bundlePath = (char*)EM_ASM_INT({
+        var jsString = location.href.substring(0, location.href.lastIndexOf("/"));
+        var lengthBytes = lengthBytesUTF8(jsString)+1; // 'jsString.length' would return the length of the string as UTF-16 units, but Emscripten C strings operate as UTF-8.
+        var stringOnWasmHeap = _malloc(lengthBytes);
+        stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
+        return stringOnWasmHeap;
+    },0);
+    return bundlePath;
+}
+
+void defos_get_parameters(dmArray<char*>* parameters) {
+    char*param = (char*)EM_ASM_INT({
+        var jsString = window.location.search;
+        var lengthBytes = lengthBytesUTF8(jsString) + 1;
+        var stringOnWasmHeap = _malloc(lengthBytes);
+        stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
+        return stringOnWasmHeap;
+    },0);
+    parameters->OffsetCapacity(1);
+    parameters->Push(param);
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     defos_set_view_size(x, y, w, h);
 }

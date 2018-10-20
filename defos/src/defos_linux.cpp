@@ -194,6 +194,7 @@ void defos_disable_maximize_button()
     XFree(data);
 
     XChangeProperty(disp, win, NET_WM_ALLOWED_ACTIONS, XA_ATOM, 32, PropModeReplace, (unsigned char*)newList, newNItems);
+    XFlush(disp);
     free(newList);
 }
 
@@ -214,6 +215,7 @@ void defos_disable_minimize_button()
     XFree(data);
 
     XChangeProperty(disp, win, NET_WM_ALLOWED_ACTIONS, XA_ATOM, 32, PropModeReplace, (unsigned char*)newList, newNItems);
+    XFlush(disp);
     free(newList);
 }
 
@@ -227,6 +229,7 @@ static void lock_resize(int width, int height)
     sizeHints->max_height = height;
 
     XSetWMNormalHints(disp, win, sizeHints);
+    XFlush(disp);
     XFree(sizeHints);
 
     resize_locked = true;

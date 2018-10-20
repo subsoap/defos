@@ -47,6 +47,7 @@ static Atom NET_FRAME_EXTENTS;
 
 static Cursor custom_cursor; // image cursor
 static bool has_custom_cursor = false;
+static bool resize_locked = false;
 
 static bool is_window_visible(Window window);
 static void send_message(Window &window, Atom type, long a, long b, long c, long d, long e);
@@ -66,6 +67,8 @@ void defos_init()
     NET_WM_STATE_MAXIMIZED_VERT = XATOM("_NET_WM_STATE_MAXIMIZED_VERT");
     NET_WM_STATE_MAXIMIZED_HORZ = XATOM("_NET_WM_STATE_MAXIMIZED_HORZ");
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
+
+    resize_locked = false;
 }
 
 void defos_final()
@@ -145,9 +148,30 @@ void defos_disable_minimize_button()
     dmLogInfo("Method 'defos_disable_minimize_button' is not supported in Linux");
 }
 
+static void lock_resize(int width, int height)
+{
+    XSizeHints *sizeHints = XAllocSizeHints();
+    sizeHints->flags = PMinSize | PMaxSize;
+    sizeHints->min_width = width;
+    sizeHints->min_height = height;
+    sizeHints->max_width = width;
+    sizeHints->max_height = height;
+
+    XSetWMNormalHints(disp, win, sizeHints);
+    XFree(sizeHints);
+
+    resize_locked = true;
+}
+
 void defos_disable_window_resize()
 {
-    dmLogInfo("Method 'defos_disable_window_resize' is not supported in Linux");
+    int x, y;
+    unsigned int w, h, bw, depth;
+
+    Window dummy;
+    XGetGeometry(disp, win, &dummy, &x, &y, &w, &h, &bw, &depth);
+
+    lock_resize(w, h);
 }
 
 void defos_set_cursor_visible(bool visible)
@@ -247,6 +271,7 @@ void defos_set_window_size(float x, float y, float w, float h)
         x += extents.left;
         y += extents.top;
 
+        if (resize_locked) { lock_resize(w, h); }
         XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)w, (unsigned int)h);
         XFlush(disp);
     }
@@ -265,6 +290,7 @@ void defos_set_view_size(float x, float y, float w, float h)
             y = screenBounds.y + ((float)screenBounds.h - h) / 2;
         }
 
+        if (resize_locked) { lock_resize(w, h); }
         XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)w, (unsigned int)h);
         XFlush(disp);
     }

@@ -345,10 +345,6 @@ static bool is_window_visible(Window window)
     return attributes.map_state == IsViewable;
 }
 
-extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
-{
-}
-
 static const XRRModeInfo* get_mode_info(const XRRScreenResources* screenResources, RRMode id){
     for (int i = 0; i < screenResources->nmode; i++){
         if (screenResources->modes[i].id == id){
@@ -364,6 +360,57 @@ static double compute_refresh_rate(const XRRModeInfo* modeInfo)
         return 0;
     }
     return ((double)modeInfo->dotClock / ((double)modeInfo->hTotal * (double)modeInfo->vTotal));
+}
+
+extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
+{
+    XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
+    unsigned long bpp = (long)DefaultDepth(disp, screen);
+
+    displayList.OffsetCapacity(screenResources->ncrtc);
+    for (int i = 0; i < screenResources->ncrtc; i++)
+    {
+        RRCrtc crtc = screenResources->crtcs[i];
+        DisplayInfo display;
+
+        XRRCrtcInfo *crtcInfo = XRRGetCrtcInfo(disp, screenResources, crtc);
+        const XRRModeInfo * modeInfo = get_mode_info(screenResources, crtcInfo->mode);
+
+        if (!modeInfo)
+        {
+            XRRFreeCrtcInfo(crtcInfo);
+            continue;
+        }
+
+        display.id = (DisplayID)crtc;
+        display.bounds.x = crtcInfo->x;
+        display.bounds.y = crtcInfo->y;
+        display.bounds.w = crtcInfo->width;
+        display.bounds.h = crtcInfo->height;
+        display.mode.width = modeInfo->width;
+        display.mode.height = modeInfo->height;
+        display.mode.refresh_rate = compute_refresh_rate(modeInfo);
+        display.mode.bits_per_pixel = bpp;
+        display.mode.scaling_factor = (double)display.mode.width / (double)display.bounds.w;
+        display.name = NULL;
+
+        if (crtcInfo->noutput > 0)
+        {
+            XRROutputInfo *outputInfo = XRRGetOutputInfo(disp, screenResources, crtcInfo->outputs[0]);
+            if (outputInfo->name)
+            {
+                display.name = (char*)malloc(outputInfo->nameLen + 1);
+                strcpy(display.name, outputInfo->name);
+            }
+            XRRFreeOutputInfo(outputInfo);
+        }
+
+        displayList.Push(display);
+
+        XRRFreeCrtcInfo(crtcInfo);
+    }
+
+    XRRFreeScreenResources(screenResources);
 }
 
 extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)

@@ -38,12 +38,7 @@ static Atom NET_WM_STATE;
 static Atom NET_WM_STATE_FULLSCREEN;
 static Atom NET_WM_STATE_MAXIMIZED_VERT;
 static Atom NET_WM_STATE_MAXIMIZED_HORZ;
-static Atom NET_WM_ACTION_MINIMIZE;
 static Atom NET_FRAME_EXTENTS;
-
-// TODO: should query state from system
-static bool is_maximized = false;
-static bool is_fullscreen = false;
 
 static Cursor custom_cursor; // image cursor
 static bool has_custom_cursor = false;
@@ -81,14 +76,42 @@ void defos_event_handler_was_set(DefosEvent event)
 {
 }
 
+static bool hint_state_contains_atom(Atom atom)
+{
+    Atom actualType;
+    int actualFormat;
+    unsigned long nItems, bytesAfter;
+    long* data = NULL;
+    XEvent event;
+    while (XGetWindowProperty(disp, win, NET_WM_STATE,
+        0, (~0L), False, AnyPropertyType,
+        &actualType, &actualFormat,
+        &nItems, &bytesAfter, (unsigned char**)&data) == Success && bytesAfter != 0
+    ) {
+        XNextEvent(disp, &event);
+    }
+
+    if (data) {
+        for (unsigned int i = 0; i < nItems; i++) {
+            if (data[i] == atom) {
+                XFree(data);
+                return true;
+            }
+        }
+        XFree(data);
+    }
+
+    return false;
+}
+
 bool defos_is_fullscreen()
 {
-    return is_fullscreen;
+    return hint_state_contains_atom(NET_WM_STATE_FULLSCREEN);
 }
 
 bool defos_is_maximized()
 {
-    return is_maximized;
+    return hint_state_contains_atom(NET_WM_STATE_MAXIMIZED_VERT);
 }
 
 bool defos_is_mouse_in_view()
@@ -123,56 +146,27 @@ bool defos_is_cursor_visible()
 
 void defos_toggle_fullscreen()
 {
-    if (!is_fullscreen)
-    {
-        send_message(win,
-                     NET_WM_STATE,
-                     _NET_WM_STATE_ADD,
-                     NET_WM_STATE_FULLSCREEN,
-                     0,
-                     1,
-                     0);
-        ;
-    }
-    else
-    {
-        send_message(win,
-                     NET_WM_STATE,
-                     _NET_WM_STATE_REMOVE,
-                     NET_WM_STATE_FULLSCREEN,
-                     0,
-                     1,
-                     0);
-    }
-
-    is_fullscreen = !is_fullscreen;
+    send_message(win,
+        NET_WM_STATE,
+        _NET_WM_STATE_TOGGLE,
+        NET_WM_STATE_FULLSCREEN,
+        0,
+        1,
+        0
+    );
     XFlush(disp);
 }
 
 void defos_toggle_maximized()
 {
-    if (!is_maximized)
-    {
-        send_message(win,
-                     NET_WM_STATE,
-                     _NET_WM_STATE_ADD,
-                     NET_WM_STATE_MAXIMIZED_VERT,
-                     NET_WM_STATE_MAXIMIZED_HORZ,
-                     1,
-                     0);
-    }
-    else
-    {
-        send_message(win,
-                     NET_WM_STATE,
-                     _NET_WM_STATE_REMOVE,
-                     NET_WM_STATE_MAXIMIZED_VERT,
-                     NET_WM_STATE_MAXIMIZED_HORZ,
-                     1,
-                     0);
-    }
-
-    is_maximized = !is_maximized;
+    send_message(win,
+        NET_WM_STATE,
+        _NET_WM_STATE_TOGGLE,
+        NET_WM_STATE_MAXIMIZED_VERT,
+        NET_WM_STATE_MAXIMIZED_HORZ,
+        1,
+        0
+    );
     XFlush(disp);
 }
 
@@ -200,7 +194,7 @@ static WindowExtents get_window_extents()
     while (XGetWindowProperty(disp, win, NET_FRAME_EXTENTS,
         0, 4, False, AnyPropertyType,
         &actualType, &actualFormat,
-        &nitems, &bytesAfter, (unsigned char**)&extents) != Success || bytesAfter != 0
+        &nitems, &bytesAfter, (unsigned char**)&extents) == Success && bytesAfter != 0
     ) {
         XNextEvent(disp, &event);
     }

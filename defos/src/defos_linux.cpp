@@ -365,6 +365,11 @@ static double compute_refresh_rate(const XRRModeInfo* modeInfo)
     return ((double)modeInfo->dotClock / ((double)modeInfo->hTotal * (double)modeInfo->vTotal));
 }
 
+static bool axis_flipped(Rotation rotation)
+{
+    return !!(rotation & (RR_Rotate_90 | RR_Rotate_270));
+}
+
 extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
 {
     XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
@@ -414,7 +419,9 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
         display.mode.height = modeInfo->height;
         display.mode.refresh_rate = compute_refresh_rate(modeInfo);
         display.mode.bits_per_pixel = bpp;
-        display.mode.scaling_factor = (double)display.mode.width / (double)display.bounds.w;
+        display.mode.scaling_factor = (double)display.mode.width / (double)(
+            axis_flipped(crtcInfo->rotation) ? crtcInfo->height : crtcInfo->width
+        );
         display.name = NULL;
 
         if (crtcInfo->noutput > 0)
@@ -456,7 +463,9 @@ extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo
     unsigned long bpp = (long)DefaultDepth(disp, screen);
 
     const XRRModeInfo *currentModeInfo = get_mode_info(screenResources, crtcInfo->mode);
-    double scaling_factor = (double)currentModeInfo->width / (double)crtcInfo->width;
+    double scaling_factor = (double)currentModeInfo->width / (double)(
+        axis_flipped(crtcInfo->rotation) ? crtcInfo->height : crtcInfo->width
+    );
 
     modeList.OffsetCapacity(outputInfo->nmode);
     for (int i = 0; i < outputInfo->nmode; i++)

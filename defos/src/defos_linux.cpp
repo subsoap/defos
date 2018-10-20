@@ -415,7 +415,7 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
         }
 
         bool isMirror = false;
-        for (int j = 0; j < displayList.Size(); j++)
+        for (unsigned int j = 0; j < displayList.Size(); j++)
         {
             DisplayInfo &otherDisplay = displayList[j];
             if (otherDisplay.bounds.x == crtcInfo->x
@@ -510,19 +510,61 @@ extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo
     XRRFreeScreenResources(screenResources);
 }
 
-extern DisplayID defos_get_current_display()
+static RRCrtc get_current_crtc(WinRect &bounds)
 {
-    RROutput output = XRRGetOutputPrimary(disp, win);
+    WinRect viewBounds = defos_get_view_size();
+    WinRect bestBounds = { 0, 0, 0, 0 };
+    RRCrtc bestCrtc = 0;
+    float bestArea = -1.0f;
 
     XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
-    XRROutputInfo *outputInfo = XRRGetOutputInfo(disp, screenResources, output);
+    for (int i = 0; i < screenResources->ncrtc; i++)
+    {
+        RRCrtc crtc = screenResources->crtcs[i];
+        XRRCrtcInfo *crtcInfo = XRRGetCrtcInfo(disp, screenResources, crtc);
+        WinRect crtcBounds = { (float)crtcInfo->x, (float)crtcInfo->y, (float)crtcInfo->width, (float)crtcInfo->height };
+        XRRFreeCrtcInfo(crtcInfo);
 
-    RRCrtc crtc = outputInfo->crtc;
+        if (!crtcBounds.w || !crtcBounds.h) { continue; }
 
-    XRRFreeOutputInfo(outputInfo);
+        WinRect clip = viewBounds;
+        if (crtcBounds.x > clip.x)
+        {
+            clip.w -= crtcBounds.x - clip.x;
+            clip.x = crtcBounds.x;
+        }
+        if (crtcBounds.y > clip.y)
+        {
+            clip.h -= crtcBounds.y - clip.y;
+            clip.y = crtcBounds.y;
+        }
+        if (crtcBounds.x + crtcBounds.w < clip.x + clip.w)
+        {
+            clip.w = crtcBounds.x + crtcBounds.w - clip.x;
+        }
+        if (crtcBounds.y + crtcBounds.h < clip.y + clip.h)
+        {
+            clip.h = crtcBounds.y + crtcBounds.h - clip.y;
+        }
+
+        float area = (clip.w > 0 && clip.h > 0) ? clip.w * clip.h : 0.0f;
+        if (area > bestArea)
+        {
+            bestCrtc = crtc;
+            bestBounds = crtcBounds;
+            bestArea = area;
+        }
+    }
     XRRFreeScreenResources(screenResources);
 
-    return (DisplayID)crtc;
+    bounds = bestBounds;
+    return bestCrtc;
+}
+
+extern DisplayID defos_get_current_display()
+{
+    WinRect bounds;
+    return (DisplayID)get_current_crtc(bounds);
 }
 
 extern void  defos_set_window_icon(const char *icon_path)

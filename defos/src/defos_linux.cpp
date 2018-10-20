@@ -39,6 +39,7 @@ static Atom NET_WM_STATE_FULLSCREEN;
 static Atom NET_WM_STATE_MAXIMIZED_VERT;
 static Atom NET_WM_STATE_MAXIMIZED_HORZ;
 static Atom NET_WM_ACTION_MINIMIZE;
+static Atom NET_FRAME_EXTENTS;
 
 // TODO: should query state from system
 static bool is_maximized = false;
@@ -64,6 +65,7 @@ void defos_init()
     NET_WM_STATE_FULLSCREEN = XATOM("_NET_WM_STATE_FULLSCREEN");
     NET_WM_STATE_MAXIMIZED_VERT = XATOM("_NET_WM_STATE_MAXIMIZED_VERT");
     NET_WM_STATE_MAXIMIZED_HORZ = XATOM("_NET_WM_STATE_MAXIMIZED_HORZ");
+    NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
 }
 
 void defos_final()
@@ -184,6 +186,36 @@ bool defos_is_console_visible()
     return false;
 }
 
+typedef struct {
+    long left, right, top, bottom;
+} WindowExtents;
+
+static WindowExtents get_window_extents()
+{
+    Atom actualType;
+    int actualFormat;
+    unsigned long nitems, bytesAfter;
+    long* extents = NULL;
+    XEvent event;
+    while (XGetWindowProperty(disp, win, NET_FRAME_EXTENTS,
+        0, 4, False, AnyPropertyType,
+        &actualType, &actualFormat,
+        &nitems, &bytesAfter, (unsigned char**)&extents) != Success || bytesAfter != 0
+    ) {
+        XNextEvent(disp, &event);
+    }
+
+    if (!extents || nitems != 4) {
+        WindowExtents result = { 0, 0, 0, 0 };
+        if (extents) { XFree(extents); }
+        return result;
+    }
+
+    WindowExtents result = { extents[0], extents[1], extents[2], extents[3] };
+    if (extents) { XFree(extents); }
+    return result;
+}
+
 void defos_set_window_size(float x, float y, float w, float h)
 {
     // change size only if it is visible
@@ -223,8 +255,15 @@ void defos_set_window_title(const char *title_lua)
 
 WinRect defos_get_window_size()
 {
-    WinRect r = {0.0f, 0.0f, 0.0f, 0.0f};
-    return r;
+    WindowExtents extents = get_window_extents();
+    WinRect size = defos_get_view_size();
+
+    size.w += extents.left + extents.right;
+    size.h += extents.top + extents.bottom;
+    size.x -= extents.left;
+    size.y -= extents.top;
+
+    return size;
 }
 
 WinRect defos_get_view_size()
@@ -234,7 +273,7 @@ WinRect defos_get_view_size()
 
     Window dummy;
     XGetGeometry(disp, win, &dummy, &x, &y, &w, &h, &bw, &depth);
-    XTranslateCoordinates(disp, win, root, x, y, &x, &y, &dummy);
+    XTranslateCoordinates(disp, win, root, 0, 0, &x, &y, &dummy);
 
     WinRect r = {(float)x, (float)y, (float)w, (float)h};
     return r;
@@ -248,22 +287,7 @@ void defos_set_cursor_pos(float x, float y)
 
 void defos_move_cursor_to(float x, float y)
 {
-    WinRect rect = defos_get_window_size();
-
-    int ix = (int)x;
-    int iy = (int)y;
-
-    // TODO: need this?
-    if (ix > rect.w)
-        ix = rect.w;
-    if (ix < 0)
-        ix = 0;
-    if (iy > rect.h)
-        iy = rect.h;
-    if (iy < 0)
-        iy = 0;
-
-    XWarpPointer(disp, None, win, 0, 0, 0, 0, ix, iy);
+    XWarpPointer(disp, None, win, 0, 0, 0, 0, (int)x, (int)y);
     XFlush(disp);
 }
 

@@ -415,13 +415,25 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
 
 extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
 {
-    RROutput output = (RROutput)displayID;
+    RRCrtc crtc = (RRCrtc)displayID;
 
     XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
+    XRRCrtcInfo *crtcInfo = XRRGetCrtcInfo(disp, screenResources, crtc);
+
+    if (crtcInfo->noutput <= 0)
+    {
+        XRRFreeCrtcInfo(crtcInfo);
+        XRRFreeScreenResources(screenResources);
+        return;
+    }
+
+    RROutput output = crtcInfo->outputs[0];
     XRROutputInfo *outputInfo = XRRGetOutputInfo(disp, screenResources, output);
 
     unsigned long bpp = (long)DefaultDepth(disp, screen);
-    double scaling_factor = 1.0; // TODO: Get scaling factor
+
+    const XRRModeInfo *currentModeInfo = get_mode_info(screenResources, crtcInfo->mode);
+    double scaling_factor = (double)currentModeInfo->width / (double)crtcInfo->width;
 
     modeList.OffsetCapacity(outputInfo->nmode);
     for (int i = 0; i < outputInfo->nmode; i++){
@@ -443,7 +455,17 @@ extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo
 
 extern DisplayID defos_get_current_display()
 {
-    return (DisplayID)XRRGetOutputPrimary(disp, win);
+    RROutput output = XRRGetOutputPrimary(disp, win);
+
+    XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
+    XRROutputInfo *outputInfo = XRRGetOutputInfo(disp, screenResources, output);
+
+    RRCrtc crtc = outputInfo->crtc;
+
+    XRRFreeOutputInfo(outputInfo);
+    XRRFreeScreenResources(screenResources);
+
+    return (DisplayID)crtc;
 }
 
 extern void  defos_set_window_icon(const char *icon_path)

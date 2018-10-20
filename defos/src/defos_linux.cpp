@@ -216,6 +216,8 @@ static WindowExtents get_window_extents()
     return result;
 }
 
+static RRCrtc get_current_crtc(WinRect &bounds);
+
 void defos_set_window_size(float x, float y, float w, float h)
 {
     // change size only if it is visible
@@ -223,12 +225,17 @@ void defos_set_window_size(float x, float y, float w, float h)
     {
         if (isnan(x) || isnan(y))
         {
-            XWindowAttributes attributes;
-            XGetWindowAttributes(disp, root, &attributes);
-
-            x = ((float)attributes.width - w) / 2;
-            y = ((float)attributes.height - h) / 2;
+            WinRect screenBounds;
+            get_current_crtc(screenBounds);
+            x = screenBounds.x + ((float)screenBounds.w - w) / 2;
+            y = screenBounds.y + ((float)screenBounds.h - h) / 2;
         }
+
+        WindowExtents extents = get_window_extents();
+        w -= extents.left + extents.right;
+        h -= extents.top + extents.bottom;
+        x += extents.left;
+        y += extents.top;
 
         XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)w, (unsigned int)h);
         XFlush(disp);
@@ -237,14 +244,20 @@ void defos_set_window_size(float x, float y, float w, float h)
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
-    XWindowChanges changes;
-    changes.x = (int)x;
-    changes.y = (int)y;
-    changes.width = (int)w;
-    changes.height = (int)h;
+    // change size only if it is visible
+    if (is_window_visible(win))
+    {
+        if (isnan(x) || isnan(y))
+        {
+            WinRect screenBounds;
+            get_current_crtc(screenBounds);
+            x = screenBounds.x + ((float)screenBounds.w - w) / 2;
+            y = screenBounds.y + ((float)screenBounds.h - h) / 2;
+        }
 
-    XConfigureWindow(disp, win, CWX | CWY | CWWidth | CWHeight, &changes);
-    XFlush(disp);
+        XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)w, (unsigned int)h);
+        XFlush(disp);
+    }
 }
 
 void defos_set_window_title(const char *title_lua)

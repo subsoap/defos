@@ -346,8 +346,10 @@ static bool is_window_visible(Window window)
 }
 
 static const XRRModeInfo* get_mode_info(const XRRScreenResources* screenResources, RRMode id){
-    for (int i = 0; i < screenResources->nmode; i++){
-        if (screenResources->modes[i].id == id){
+    for (int i = 0; i < screenResources->nmode; i++)
+    {
+        if (screenResources->modes[i].id == id)
+        {
             return screenResources->modes + i;
         }
     }
@@ -356,7 +358,8 @@ static const XRRModeInfo* get_mode_info(const XRRScreenResources* screenResource
 
 static double compute_refresh_rate(const XRRModeInfo* modeInfo)
 {
-    if (!modeInfo->hTotal || !modeInfo->vTotal) {
+    if (!modeInfo->hTotal || !modeInfo->vTotal)
+    {
         return 0;
     }
     return ((double)modeInfo->dotClock / ((double)modeInfo->hTotal * (double)modeInfo->vTotal));
@@ -456,7 +459,8 @@ extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo
     double scaling_factor = (double)currentModeInfo->width / (double)crtcInfo->width;
 
     modeList.OffsetCapacity(outputInfo->nmode);
-    for (int i = 0; i < outputInfo->nmode; i++){
+    for (int i = 0; i < outputInfo->nmode; i++)
+    {
         const XRRModeInfo *modeInfo = get_mode_info(screenResources, outputInfo->modes[i]);
 
         DisplayModeInfo mode;

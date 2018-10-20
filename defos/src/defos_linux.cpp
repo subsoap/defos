@@ -86,7 +86,7 @@ static bool hint_state_contains_atom(Atom atom)
     Atom actualType;
     int actualFormat;
     unsigned long nItems, bytesAfter;
-    long* data = NULL;
+    Atom* data = NULL;
     XEvent event;
     while (XGetWindowProperty(disp, win, NET_WM_STATE,
         0, (~0L), False, AnyPropertyType,
@@ -121,7 +121,18 @@ bool defos_is_maximized()
 
 bool defos_is_mouse_in_view()
 {
-    return false;
+    Window d1, d2;
+    int x, y, d3, d4;
+    unsigned int d5;
+    if (!XQueryPointer(disp, win, &d1, &d2, &d3, &d4, &x, &y, &d5)) { return false; }
+
+    if (x < 0 || y < 0) { return false; }
+
+    unsigned int w, h, d6;
+    XGetGeometry(disp, win, &d1, &d3, &d4, &w, &h, &d5, &d6);
+
+    if (x >= w || y >= h) { return false; }
+    return true;
 }
 
 void defos_disable_maximize_button()

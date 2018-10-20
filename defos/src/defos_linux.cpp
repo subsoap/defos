@@ -18,6 +18,7 @@
 #include <X11/cursorfont.h>
 #include <Xcursor.h>
 #include <Xrandr.h>
+#include <stdlib.h>
 
 //static GC gc;
 #define _NET_WM_STATE_REMOVE 0
@@ -320,51 +321,6 @@ void defos_reset_cursor()
     }
 }
 
-static const XRRModeInfo* getModeInfo(const XRRScreenResources* sr, RRMode id){
-    for(int i=0;i<sr->nmode;i++){
-        if(sr->modes[i].id == id){
-            return sr->modes+i;
-        }
-    }
-
-    return NULL;
-}
-
-static long calculateRefreshRate(const XRRModeInfo* mi)
-{
-    if (!mi->hTotal || !mi->vTotal)
-        return 0;
-
-    return (long) ((double) mi->dotClock / ((double) mi->hTotal * (double) mi->vTotal));
-}
-
-// NOTE: seems like this function only can query those that with 60 fraquency
-void defos_get_displays(dmArray<DisplayInfo> *displist)
-{
-    RROutput output = XRRGetOutputPrimary(disp, win);
-
-    XRRScreenResources *res = XRRGetScreenResourcesCurrent(disp, win);
-    XRROutputInfo *oi= XRRGetOutputInfo(disp, res, output);
-    long bpp = (long)DefaultDepth(disp, screen);
-
-    for(int i=0;i<oi->nmode;i++){
-        const XRRModeInfo *mi = getModeInfo(res, oi->modes[i]);
-
-        DisplayInfo info;
-        // TODO: add rotation detect
-        info.w = (long)mi->width;
-        info.h= (long)mi->height;
-        info.frequency = calculateRefreshRate(mi);
-        info.bitsPerPixel = bpp;
-
-        displist->OffsetCapacity(1);
-        displist->Push(info);
-    }
-
-    XRRFreeOutputInfo(oi);
-    XRRFreeScreenResources(res);
-}
-
 static unsigned int get_cursor(DefosCursor cursor)
 {
     switch (cursor)
@@ -387,6 +343,80 @@ static bool is_window_visible(Window window)
     XWindowAttributes attributes;
     XGetWindowAttributes(disp, window, &attributes);
     return attributes.map_state == IsViewable;
+}
+
+extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
+{
+}
+
+extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
+{
+}
+
+extern DisplayID defos_get_current_display()
+{
+    return (DisplayID)XRRGetOutputPrimary(disp, win);
+}
+
+// static const XRRModeInfo* getModeInfo(const XRRScreenResources* sr, RRMode id){
+//     for(int i=0;i<sr->nmode;i++){
+//         if(sr->modes[i].id == id){
+//             return sr->modes+i;
+//         }
+//     }
+//
+//     return NULL;
+// }
+//
+// static long calculateRefreshRate(const XRRModeInfo* mi)
+// {
+//     if (!mi->hTotal || !mi->vTotal)
+//         return 0;
+//
+//     return (long) ((double) mi->dotClock / ((double) mi->hTotal * (double) mi->vTotal));
+// }
+//
+// // NOTE: seems like this function only can query those that with 60 fraquency
+// void defos_get_displays(dmArray<DisplayInfo> *displist)
+// {
+//     RROutput output = XRRGetOutputPrimary(disp, win);
+//
+//     XRRScreenResources *res = XRRGetScreenResourcesCurrent(disp, win);
+//     XRROutputInfo *oi= XRRGetOutputInfo(disp, res, output);
+//     long bpp = (long)DefaultDepth(disp, screen);
+//
+//     for(int i=0;i<oi->nmode;i++){
+//         const XRRModeInfo *mi = getModeInfo(res, oi->modes[i]);
+//
+//         DisplayInfo info;
+//         // TODO: add rotation detect
+//         info.w = (long)mi->width;
+//         info.h= (long)mi->height;
+//         info.frequency = calculateRefreshRate(mi);
+//         info.bitsPerPixel = bpp;
+//
+//         displist->OffsetCapacity(1);
+//         displist->Push(info);
+//     }
+//
+//     XRRFreeOutputInfo(oi);
+//     XRRFreeScreenResources(res);
+// }
+
+extern void  defos_set_window_icon(const char *icon_path)
+{
+}
+
+extern char* defos_get_bundle_root()
+{
+    const char *path = ".";
+    char *result = (char*)malloc(strlen(path) + 1);
+    strcpy(result, path);
+    return result;
+}
+
+extern void defos_get_parameters(dmArray<char*> &parameters)
+{
 }
 
 //from glfw/x11_window.c

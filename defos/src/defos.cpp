@@ -161,17 +161,16 @@ static int get_bundle_root(lua_State *L)
 
 static int get_parameters(lua_State *L)
 {
-    dmArray<char*>* parameters = new dmArray<char*>();
+    dmArray<char*> parameters;
     defos_get_parameters(parameters);
     lua_newtable(L);
-    for(int i = 0; i < parameters->Size(); i++)
+    for (unsigned int i = 0; i < parameters.Size(); i++)
     {
-        char* param = (*parameters)[i];
+        char* param = parameters[i];
         lua_pushstring(L, param);
         lua_rawseti(L, 1, i+1);
         free(param);
     }
-    delete parameters;
     return 1;
 }
 

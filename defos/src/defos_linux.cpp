@@ -51,6 +51,8 @@ static Atom NET_FRAME_EXTENTS;
 
 static Cursor custom_cursor; // image cursor
 static bool has_custom_cursor = false;
+static Cursor invisible_cursor;
+static bool is_cursor_visible = true;
 static bool resize_locked = false;
 
 static bool is_window_visible(Window window);
@@ -77,6 +79,18 @@ void defos_init()
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
 
     resize_locked = false;
+
+    // Create invisible cursor
+    Pixmap bitmapNoData;
+    XColor black;
+    static char noData[] = { 0,0,0,0,0,0,0,0 };
+    black.red = black.green = black.blue = 0;
+
+    bitmapNoData = XCreateBitmapFromData(disp, win, noData, 8, 8);
+    invisible_cursor = XCreatePixmapCursor(disp, bitmapNoData, bitmapNoData, &black, &black, 0, 0);
+    XFreePixmap(disp, bitmapNoData);
+
+    is_cursor_visible = true;
 }
 
 void defos_final()
@@ -86,6 +100,7 @@ void defos_final()
         XFreeCursor(disp, custom_cursor);
         has_custom_cursor = false;
     }
+    XFreeCursor(disp, invisible_cursor);
 }
 
 void defos_event_handler_was_set(DefosEvent event)
@@ -222,12 +237,19 @@ void defos_disable_window_resize()
 
 void defos_set_cursor_visible(bool visible)
 {
-    dmLogInfo("Method 'defos_set_cursor_visible' is not supported in Linux");
+    if (visible == is_cursor_visible) { return; }
+    is_cursor_visible = visible;
+    if (visible)
+    {
+        XDefineCursor(disp, win, has_custom_cursor ? custom_cursor : None);
+    } else {
+        XDefineCursor(disp, win, invisible_cursor);
+    }
 }
 
 bool defos_is_cursor_visible()
 {
-    return false;
+    return is_cursor_visible;
 }
 
 void defos_toggle_fullscreen()
@@ -413,7 +435,7 @@ void defos_update()
 void defos_set_custom_cursor_linux(const char *filename)
 {
     Cursor cursor = XcursorFilenameLoadCursor(disp, filename);
-    XDefineCursor(disp, win, cursor);
+    if (is_cursor_visible) { XDefineCursor(disp, win, cursor); }
     if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
     custom_cursor = cursor;
     has_custom_cursor = true;
@@ -424,7 +446,7 @@ static unsigned int get_cursor(DefosCursor cursor);
 void defos_set_cursor(DefosCursor cursor_type)
 {
     Cursor cursor = XCreateFontCursor(disp, get_cursor(cursor_type));
-    XDefineCursor(disp, win, cursor);
+    if (is_cursor_visible) { XDefineCursor(disp, win, cursor); }
     if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
     custom_cursor = cursor;
     has_custom_cursor = true;
@@ -434,7 +456,7 @@ void defos_reset_cursor()
 {
     if (has_custom_cursor)
     {
-        XUndefineCursor(disp, win);
+        if (is_cursor_visible) { XUndefineCursor(disp, win); }
         XFreeCursor(disp, custom_cursor);
         has_custom_cursor = false;
     }

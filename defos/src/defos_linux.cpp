@@ -43,6 +43,10 @@ static Atom NET_WM_STATE;
 static Atom NET_WM_STATE_FULLSCREEN;
 static Atom NET_WM_STATE_MAXIMIZED_VERT;
 static Atom NET_WM_STATE_MAXIMIZED_HORZ;
+static Atom NET_WM_ALLOWED_ACTIONS;
+static Atom NET_WM_ACTION_MAXIMIZE_HORZ;
+static Atom NET_WM_ACTION_MAXIMIZE_VERT;
+static Atom NET_WM_ACTION_MINIMIZE;
 static Atom NET_FRAME_EXTENTS;
 
 static Cursor custom_cursor; // image cursor
@@ -66,6 +70,10 @@ void defos_init()
     NET_WM_STATE_FULLSCREEN = XATOM("_NET_WM_STATE_FULLSCREEN");
     NET_WM_STATE_MAXIMIZED_VERT = XATOM("_NET_WM_STATE_MAXIMIZED_VERT");
     NET_WM_STATE_MAXIMIZED_HORZ = XATOM("_NET_WM_STATE_MAXIMIZED_HORZ");
+    NET_WM_ALLOWED_ACTIONS = XATOM("_NET_WM_ALLOWED_ACTIONS");
+    NET_WM_ACTION_MINIMIZE = XATOM("_NET_WM_ACTION_MINIMIZE");
+    NET_WM_ACTION_MAXIMIZE_HORZ = XATOM("_NET_WM_ACTION_MAXIMIZE_HORZ");
+    NET_WM_ACTION_MAXIMIZE_VERT = XATOM("_NET_WM_ACTION_MAXIMIZE_VERT");
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
 
     resize_locked = false;
@@ -84,20 +92,28 @@ void defos_event_handler_was_set(DefosEvent event)
 {
 }
 
-static bool hint_state_contains_atom(Atom atom)
+static Atom* get_atom_list(Atom property, unsigned long &nItems)
 {
     Atom actualType;
     int actualFormat;
-    unsigned long nItems, bytesAfter;
+    unsigned long bytesAfter;
     Atom* data = NULL;
     XEvent event;
-    while (XGetWindowProperty(disp, win, NET_WM_STATE,
+    while (XGetWindowProperty(disp, win, property,
         0, (~0L), False, AnyPropertyType,
         &actualType, &actualFormat,
         &nItems, &bytesAfter, (unsigned char**)&data) == Success && bytesAfter != 0
     ) {
         XNextEvent(disp, &event);
     }
+
+    return data;
+}
+
+static bool hint_state_contains_atom(Atom atom)
+{
+    unsigned long nItems;
+    Atom* data = get_atom_list(NET_WM_STATE, nItems);
 
     if (data) {
         for (unsigned int i = 0; i < nItems; i++) {
@@ -134,18 +150,48 @@ bool defos_is_mouse_in_view()
     unsigned int w, h, d6;
     XGetGeometry(disp, win, &d1, &d3, &d4, &w, &h, &d5, &d6);
 
-    if (x >= w || y >= h) { return false; }
+    if ((unsigned)x >= w || (unsigned)y >= h) { return false; }
     return true;
 }
 
 void defos_disable_maximize_button()
 {
-    dmLogInfo("Method 'defos_disable_maximize_button' is not supported in Linux");
+    unsigned long nItems;
+    Atom* data = get_atom_list(NET_WM_ALLOWED_ACTIONS, nItems);
+
+    if (!data) { return; }
+
+    // Filter the allowed actions list
+    Atom* newList = (Atom*)malloc(sizeof(Atom) * nItems);
+    unsigned long newNItems = 0;
+    for (unsigned long i = 0; i < nItems; i++) {
+        if (data[i] == NET_WM_ACTION_MAXIMIZE_HORZ || data[i] == NET_WM_ACTION_MAXIMIZE_VERT) { continue; }
+        newList[newNItems++] = data[i];
+    }
+    XFree(data);
+
+    XChangeProperty(disp, win, NET_WM_ALLOWED_ACTIONS, XA_ATOM, 32, PropModeReplace, (unsigned char*)newList, newNItems);
+    free(newList);
 }
 
 void defos_disable_minimize_button()
 {
-    dmLogInfo("Method 'defos_disable_minimize_button' is not supported in Linux");
+    unsigned long nItems;
+    Atom* data = get_atom_list(NET_WM_ALLOWED_ACTIONS, nItems);
+
+    if (!data) { return; }
+
+    // Filter the allowed actions list
+    Atom* newList = (Atom*)malloc(sizeof(Atom) * nItems);
+    unsigned long newNItems = 0;
+    for (unsigned long i = 0; i < nItems; i++) {
+        if (data[i] == NET_WM_ACTION_MINIMIZE) { return; }
+        newList[newNItems++] = data[i];
+    }
+    XFree(data);
+
+    XChangeProperty(disp, win, NET_WM_ALLOWED_ACTIONS, XA_ATOM, 32, PropModeReplace, (unsigned char*)newList, newNItems);
+    free(newList);
 }
 
 static void lock_resize(int width, int height)

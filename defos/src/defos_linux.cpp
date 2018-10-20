@@ -44,6 +44,7 @@ static bool is_maximized = false;
 static bool is_fullscreen = false;
 
 static Cursor custom_cursor; // image cursor
+static bool has_custom_cursor = false;
 
 static bool is_window_visible(Window window);
 static void send_message(Window &window, Atom type, long a, long b, long c, long d, long e);
@@ -66,9 +67,10 @@ void defos_init()
 
 void defos_final()
 {
-    if (custom_cursor == NULL)
+    if (has_custom_cursor)
     {
         XFreeCursor(disp, custom_cursor);
+        has_custom_cursor = false;
     }
 }
 
@@ -290,28 +292,31 @@ void defos_update()
 
 void defos_set_custom_cursor_linux(const char *filename)
 {
-    custom_cursor = XcursorFilenameLoadCursor(disp, filename);
-    XDefineCursor(disp, win, custom_cursor);
+    Cursor cursor = XcursorFilenameLoadCursor(disp, filename);
+    XDefineCursor(disp, win, cursor);
+    if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
+    custom_cursor = cursor;
+    has_custom_cursor = true;
 }
 
 static unsigned int get_cursor(DefosCursor cursor);
 
-void defos_set_cursor(DefosCursor cursor)
+void defos_set_cursor(DefosCursor cursor_type)
 {
-    // TODO: X11 support change the cursor color, add it later
-    defos_reset_cursor();
-    custom_cursor = XCreateFontCursor(disp, get_cursor(cursor));
-    XDefineCursor(disp, win, custom_cursor);
+    Cursor cursor = XCreateFontCursor(disp, get_cursor(cursor_type));
+    XDefineCursor(disp, win, cursor);
+    if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
+    custom_cursor = cursor;
+    has_custom_cursor = true;
 }
 
 void defos_reset_cursor()
 {
-    XUndefineCursor(disp, win);
-
-    if (custom_cursor != NULL)
+    if (has_custom_cursor)
     {
+        XUndefineCursor(disp, win);
         XFreeCursor(disp, custom_cursor);
-        custom_cursor = NULL;
+        has_custom_cursor = false;
     }
 }
 

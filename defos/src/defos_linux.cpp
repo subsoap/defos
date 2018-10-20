@@ -18,7 +18,12 @@
 #include <X11/cursorfont.h>
 #include <Xcursor.h>
 #include <Xrandr.h>
+
 #include <stdlib.h>
+#include <unistd.h>
+#include <libgen.h>
+#include <sys/auxv.h>
+#include <limits.h>
 
 //static GC gc;
 #define _NET_WM_STATE_REMOVE 0
@@ -401,7 +406,7 @@ static bool axis_flipped(Rotation rotation)
     return !!(rotation & (RR_Rotate_90 | RR_Rotate_270));
 }
 
-extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
+void defos_get_displays(dmArray<DisplayInfo> &displayList)
 {
     XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
     unsigned long bpp = (long)DefaultDepth(disp, screen);
@@ -474,7 +479,7 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
     XRRFreeScreenResources(screenResources);
 }
 
-extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
+void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
 {
     RRCrtc crtc = (RRCrtc)displayID;
 
@@ -568,25 +573,46 @@ static RRCrtc get_current_crtc(WinRect &bounds)
     return bestCrtc;
 }
 
-extern DisplayID defos_get_current_display()
+DisplayID defos_get_current_display()
 {
     WinRect bounds;
     return (DisplayID)get_current_crtc(bounds);
 }
 
-extern void  defos_set_window_icon(const char *icon_path)
+void defos_set_window_icon(const char *icon_path)
 {
+    dmLogInfo("Method 'defos_set_window_icon' is not supported on Linux");
 }
 
-extern char* defos_get_bundle_root()
+static char* copy_string(const char * s)
 {
-    const char *path = ".";
-    char *result = (char*)malloc(strlen(path) + 1);
-    strcpy(result, path);
+    char *newString = (char*)malloc(strlen(s) + 1);
+    strcpy(newString, s);
+    return newString;
+}
+
+char* defos_get_bundle_root()
+{
+    char* result;
+    char* path = (char*)malloc(PATH_MAX + 2);
+    ssize_t ret = readlink("/proc/self/exe", path, PATH_MAX + 2);
+    if (ret >= 0 && ret <= PATH_MAX + 1) {
+        result = copy_string(dirname(path));
+    } else {
+        const char* path2 = (const char*)getauxval(AT_EXECFN);
+        if (!path2) {
+            result = copy_string(".");
+        } else if (!realpath(path2, path)) {
+            result = copy_string(".");
+        } else {
+            result = copy_string(dirname(path));
+        }
+    }
+    free(path);
     return result;
 }
 
-extern void defos_get_parameters(dmArray<char*> &parameters)
+void defos_get_parameters(dmArray<char*> &parameters)
 {
 }
 

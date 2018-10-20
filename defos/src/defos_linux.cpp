@@ -349,59 +349,55 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
 {
 }
 
+static const XRRModeInfo* get_mode_info(const XRRScreenResources* screenResources, RRMode id){
+    for (int i = 0; i < screenResources->nmode; i++){
+        if (screenResources->modes[i].id == id){
+            return screenResources->modes + i;
+        }
+    }
+    return NULL;
+}
+
+static double compute_refresh_rate(const XRRModeInfo* modeInfo)
+{
+    if (!modeInfo->hTotal || !modeInfo->vTotal) {
+        return 0;
+    }
+    return ((double)modeInfo->dotClock / ((double)modeInfo->hTotal * (double)modeInfo->vTotal));
+}
+
 extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
 {
+    RROutput output = (RROutput)displayID;
+
+    XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
+    XRROutputInfo *outputInfo = XRRGetOutputInfo(disp, screenResources, output);
+
+    unsigned long bpp = (long)DefaultDepth(disp, screen);
+    double scaling_factor = 1.0; // TODO: Get scaling factor
+
+    modeList.OffsetCapacity(outputInfo->nmode);
+    for (int i = 0; i < outputInfo->nmode; i++){
+        const XRRModeInfo *modeInfo = get_mode_info(screenResources, outputInfo->modes[i]);
+
+        DisplayModeInfo mode;
+        mode.width = modeInfo->width;
+        mode.height = modeInfo->height;
+        mode.refresh_rate = compute_refresh_rate(modeInfo);
+        mode.bits_per_pixel = bpp;
+        mode.scaling_factor = scaling_factor;
+
+        modeList.Push(mode);
+    }
+
+    XRRFreeOutputInfo(outputInfo);
+    XRRFreeScreenResources(screenResources);
 }
 
 extern DisplayID defos_get_current_display()
 {
     return (DisplayID)XRRGetOutputPrimary(disp, win);
 }
-
-// static const XRRModeInfo* getModeInfo(const XRRScreenResources* sr, RRMode id){
-//     for(int i=0;i<sr->nmode;i++){
-//         if(sr->modes[i].id == id){
-//             return sr->modes+i;
-//         }
-//     }
-//
-//     return NULL;
-// }
-//
-// static long calculateRefreshRate(const XRRModeInfo* mi)
-// {
-//     if (!mi->hTotal || !mi->vTotal)
-//         return 0;
-//
-//     return (long) ((double) mi->dotClock / ((double) mi->hTotal * (double) mi->vTotal));
-// }
-//
-// // NOTE: seems like this function only can query those that with 60 fraquency
-// void defos_get_displays(dmArray<DisplayInfo> *displist)
-// {
-//     RROutput output = XRRGetOutputPrimary(disp, win);
-//
-//     XRRScreenResources *res = XRRGetScreenResourcesCurrent(disp, win);
-//     XRROutputInfo *oi= XRRGetOutputInfo(disp, res, output);
-//     long bpp = (long)DefaultDepth(disp, screen);
-//
-//     for(int i=0;i<oi->nmode;i++){
-//         const XRRModeInfo *mi = getModeInfo(res, oi->modes[i]);
-//
-//         DisplayInfo info;
-//         // TODO: add rotation detect
-//         info.w = (long)mi->width;
-//         info.h= (long)mi->height;
-//         info.frequency = calculateRefreshRate(mi);
-//         info.bitsPerPixel = bpp;
-//
-//         displist->OffsetCapacity(1);
-//         displist->Push(info);
-//     }
-//
-//     XRRFreeOutputInfo(oi);
-//     XRRFreeScreenResources(res);
-// }
 
 extern void  defos_set_window_icon(const char *icon_path)
 {

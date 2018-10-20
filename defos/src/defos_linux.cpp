@@ -382,6 +382,26 @@ extern void defos_get_displays(dmArray<DisplayInfo> &displayList)
             continue;
         }
 
+        bool isMirror = false;
+        for (int j = 0; j < displayList.Size(); j++)
+        {
+            DisplayInfo &otherDisplay = displayList[j];
+            if (otherDisplay.bounds.x == crtcInfo->x
+                && otherDisplay.bounds.y == crtcInfo->y
+                && otherDisplay.bounds.w == crtcInfo->width
+                && otherDisplay.bounds.h == crtcInfo->height)
+            {
+                isMirror = true;
+                break;
+            }
+        }
+
+        if (isMirror)
+        {
+            XRRFreeCrtcInfo(crtcInfo);
+            continue;
+        }
+
         display.id = (DisplayID)crtc;
         display.bounds.x = crtcInfo->x;
         display.bounds.y = crtcInfo->y;

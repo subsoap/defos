@@ -779,8 +779,25 @@ char* defos_get_bundle_root()
     return result;
 }
 
+static int shared_argc = 0;
+static char** shared_argv = NULL;
+static void arguments_main_hook(int argc, char* argv[], char* envp[])
+{
+    shared_argc = argc;
+    shared_argv = argv;
+}
+
+__attribute__((section(".init_array"), used))
+void (* defos_arguments_main_hook)(int,char*[],char*[]) = &arguments_main_hook;
+
+
 void defos_get_parameters(dmArray<char*> &parameters)
 {
+    parameters.OffsetCapacity(shared_argc);
+    for (int i = 0; i < shared_argc; i++)
+    {
+        parameters.Push(copy_string(shared_argv[i]));
+    }
 }
 
 //from glfw/x11_window.c

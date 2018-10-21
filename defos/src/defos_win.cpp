@@ -310,6 +310,27 @@ WinRect defos_get_view_size()
     return rect;
 }
 
+WinPoint defos_get_cursor_pos()
+{
+    POINT point;
+    GetCursorPos(&point);
+
+    WinPoint result = { .x = point.x, .y = point.y };
+    return result;
+}
+
+WinPoint defos_get_cursor_pos_view()
+{
+    POINT point;
+    GetCursorPos(&point);
+
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    ScreenToClient(window, &point);
+
+    WinPoint result = { .x = point.x, .y = point.y };
+    return result;
+}
+
 void defos_set_cursor_pos(float x, float y)
 {
     SetCursorPos((int)x, (int)y);

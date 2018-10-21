@@ -432,6 +432,32 @@ WinRect defos_get_view_size()
     return r;
 }
 
+WinPoint defos_get_cursor_pos()
+{
+    WinPoint point = { .x = -INFINITY, .y = -INFINITY };
+    Window d1, d2;
+    int x, y, d3, d4;
+    unsigned int d5;
+    if (XQueryPointer(disp, root, &d1, &d2, &d3, &d4, &x, &y, &d5)) {
+        point.x = x;
+        point.y = y;
+    }
+    return point;
+}
+
+WinPoint defos_get_cursor_pos_view()
+{
+    WinPoint point = { .x = -INFINITY, .y = -INFINITY };
+    Window d1, d2;
+    int x, y, d3, d4;
+    unsigned int d5;
+    if (XQueryPointer(disp, win, &d1, &d2, &d3, &d4, &x, &y, &d5)) {
+        point.x = x;
+        point.y = y;
+    }
+    return point;
+}
+
 void defos_set_cursor_pos(float x, float y)
 {
     XWarpPointer(disp, None, root, 0, 0, 0, 0, (int)x, (int)y);

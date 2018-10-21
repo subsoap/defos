@@ -170,13 +170,21 @@ end)
 
 ---
 
+**Get the cursor position**.
+
+```lua
+x, y = defos.get_cursor_pos() -- In screen coordinates
+x, y = defos.get_cursor_pos_view() -- In game view coordinates
+```
+
+---
+
 **Move the cursor** programatically.
 
 ```lua
 defos.set_cursor_pos(x, y) -- In screen coordinates
 defos.set_cursor_pos_view(x, y) -- In game view coordinates
 ```
-
 ---
 
 **Clip cursor** to current game view area.

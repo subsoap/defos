@@ -234,6 +234,24 @@ static int is_cursor_visible(lua_State *L)
     return 1;
 }
 
+static int get_cursor_pos(lua_State *L)
+{
+    WinPoint point;
+    point = defos_get_cursor_pos();
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+    return 2;
+}
+
+static int get_cursor_pos_view(lua_State *L)
+{
+    WinPoint point;
+    point = defos_get_cursor_pos_view();
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+    return 2;
+}
+
 static int set_cursor_pos(lua_State *L)
 {
     float x = luaL_checknumber(L, 1);
@@ -566,6 +584,8 @@ static const luaL_reg Module_methods[] =
         {"on_mouse_leave", on_mouse_leave},
         {"on_click", on_click},
         {"is_mouse_in_view", is_mouse_in_view},
+        {"get_cursor_pos", get_cursor_pos},
+        {"get_cursor_pos_view", get_cursor_pos_view},
         {"set_cursor_pos", set_cursor_pos},
         {"set_cursor_pos_view", set_cursor_pos_view},
         {"move_cursor_to", set_cursor_pos_view}, // For backwards compatibility

@@ -4,7 +4,11 @@
 #include <math.h>
 
 struct WinRect {
-    float x,y,w,h;
+    float x, y, w, h;
+};
+
+struct WinPoint {
+    float x, y;
 };
 
 struct LuaCallbackInfo {
@@ -92,6 +96,8 @@ extern bool defos_is_cursor_visible();
 extern bool defos_is_mouse_in_view();
 extern void defos_set_cursor_pos(float x, float y);
 extern void defos_set_cursor_pos_view(float x, float y);
+extern WinPoint defos_get_cursor_pos();
+extern WinPoint defos_get_cursor_pos_view();
 
 extern void defos_set_cursor_clipped(bool clipped);
 extern bool defos_is_cursor_clipped();

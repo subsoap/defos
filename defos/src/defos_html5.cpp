@@ -49,9 +49,17 @@ void defos_init() {
         Module.__defosjs_click_listener = function () {
             _defos_emit_event_from_js($2);
         };
+        Module.__defosjs_mousemove_listener = function (evt) {
+            var rect = Module.canvas.getBoundingClientRect();
+            Module.__defosjs_mouse_x = evt.clientX - rect.left;
+            Module.__defosjs_mouse_y = evt.clientY - rect.top;
+        };
+        Module.__defosjs_mouse_x = -1;
+        Module.__defosjs_mouse_y = -1;
         Module.canvas.addEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.addEventListener('click', Module.__defosjs_click_listener);
+        document.addEventListener('mousemove', Module.__defosjs_mousemove_listener);
     }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
 
     EM_ASM_({
@@ -86,6 +94,7 @@ void defos_final() {
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
+        document.removeEventListener('mousemove', Module.__defosjs_mousemove_listener);
         document.removeEventListener('pointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('webkitpointerlockchange', Module.__defosjs_pointerlockchange_listener);
@@ -246,6 +255,17 @@ bool defos_is_cursor_visible() {
 
 bool defos_is_mouse_in_view() {
     return is_mouse_inside;
+}
+
+WinPoint defos_get_cursor_pos() {
+    return defos_get_cursor_pos_view();
+}
+
+WinPoint defos_get_cursor_pos_view() {
+    WinPoint point;
+    point.x = (float)EM_ASM_DOUBLE({ return Module.__defosjs_mouse_x }, 0.0);
+    point.y = (float)EM_ASM_DOUBLE({ return Module.__defosjs_mouse_y }, 0.0);
+    return point;
 }
 
 void defos_set_cursor_pos(float x, float y) {

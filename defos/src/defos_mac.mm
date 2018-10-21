@@ -253,6 +253,23 @@ bool defos_is_mouse_in_view() {
     return is_mouse_in_view;
 }
 
+WinPoint defos_get_cursor_pos() {
+    NSPoint point = NSEvent.mouseLocation;
+    WinPoint result;
+    result.x = (float)point.x;
+    result.y = (float)NSMaxY(NSScreen.screens[0].frame) - point.y;
+    return result;
+}
+
+WinPoint defos_get_cursor_pos_view() {
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSPoint point = [view convertPoint: NSEvent.mouseLocation fromView: nil];
+    WinPoint result;
+    result.x = (float)point.x;
+    result.y = (float)NSMaxY(NSScreen.screens[0].frame) - point.y;
+    return result;
+}
+
 void defos_set_cursor_pos(float x, float y) {
     CGWarpMouseCursorPosition(CGPointMake(x, y));
     if (!is_cursor_locked) {

@@ -300,7 +300,7 @@ void defos_toggle_always_on_top()
 {
     send_message(win,
         NET_WM_STATE,
-        _NET_WM_STATE_TOGGLE,
+        defos_is_always_on_top() ? _NET_WM_STATE_REMOVE : _NET_WM_STATE_ADD,
         NET_WM_STATE_ABOVE,
         0,
         1,

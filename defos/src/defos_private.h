@@ -29,7 +29,11 @@ typedef enum {
     DEFOS_CURSOR_IBEAM,
 } DefosCursor;
 
+#ifdef DM_PLATFORM_WINDOWS
+typedef const char* DisplayID;
+#else
 typedef void* DisplayID;
+#endif
 
 struct DisplayModeInfo {
     unsigned long width;

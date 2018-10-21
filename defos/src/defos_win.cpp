@@ -387,22 +387,96 @@ void defos_reset_cursor()
     is_custom_cursor_loaded = false;
 }
 
-void defos_get_displays(dmArray<DisplayInfo>* displist){
-    DEVMODE dm = {0};
-    dm.dmSize = sizeof(dm);
+static char* copy_string(const char *s)
+{
+    char *buffer = (char*)malloc(strlen(s) + 1);
+    strcpy(buffer, s);
+    return buffer;
+}
 
-    for(int i=0;EnumDisplaySettings(NULL, i, &dm)!=0;i++)
-    {          
-        DisplayInfo display = {
-            dm.dmPelsWidth,
-            dm.dmPelsHeight,
-            dm.dmBitsPerPel,
-            dm.dmDisplayFrequency
-        };
+static void parse_display_mode(const DEVMODE &devMode, DisplayModeInfo &mode)
+{
+    mode.width = devMode.dmPelsWidth;
+    mode.height = devMode.dmPelsHeight;
+    mode.bits_per_pixel = devMode.dmBitsPerPel;
+    mode.refresh_rate = devMode.dmDisplayFrequency;
+    mode.scaling_factor = 1.0;
+}
 
-        displist->OffsetCapacity(1);
-        displist->Push(display);
+BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
+{
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (!GetMonitorInfo(hMonitor, &monitorInfo)) { return TRUE; }
+
+    DisplayInfo display;
+    display.id = copy_string(monitorInfo.szDevice);
+    display.bounds.x = monitorInfo.rcMonitor.left;
+    display.bounds.y = monitorInfo.rcMonitor.top;
+    display.bounds.w = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+    display.bounds.h = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+
+    DEVMODE devMode;
+    devMode.dmSize = sizeof(devMode);
+    EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    parse_display_mode(devMode, display.mode);
+    display.mode.scaling_factor = (double)devMode.dmPelsWidth / (double)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
+
+    DISPLAY_DEVICE displayDevice;
+    displayDevice.cb = sizeof(displayDevice);
+    EnumDisplayDevices(monitorInfo.szDevice, 0, &displayDevice, 0);
+    display.name = copy_string(displayDevice.DeviceString);
+
+    dmArray<DisplayInfo> *displayList = reinterpret_cast<dmArray<DisplayInfo>*>(dwData);
+    displayList->OffsetCapacity(1);
+    displayList->Push(display);
+
+    return TRUE;
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList)
+{
+    EnumDisplayMonitors(NULL, NULL, monitor_enum_callback, reinterpret_cast<LPARAM>(&displayList));
+}
+
+void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
+{
+    DEVMODE devMode = {};
+    devMode.dmSize = sizeof(devMode);
+
+    for (int i = 0; EnumDisplaySettings(displayID, i, &devMode) != 0; i++)
+    {
+        DisplayModeInfo mode;
+        parse_display_mode(devMode, mode);
+
+        bool isDuplicate = false;
+        for (int j = (int)modeList.Size() - 1; j >= 0; j--)
+        {
+            DisplayModeInfo &otherMode = modeList[j];
+            if (mode.width == otherMode.width
+                && mode.height == otherMode.height
+                && mode.bits_per_pixel == otherMode.bits_per_pixel
+                && mode.refresh_rate == otherMode.refresh_rate
+            ) {
+                isDuplicate = true;
+                break;
+            }
+        }
+
+        if (isDuplicate) { continue; }
+        modeList.OffsetCapacity(1);
+        modeList.Push(mode);
     }
+}
+
+DisplayID defos_get_current_display()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    GetMonitorInfo(hMonitor, &monitorInfo);
+    return copy_string(monitorInfo.szDevice);
 }
 
 /********************

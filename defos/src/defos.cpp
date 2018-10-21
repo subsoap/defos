@@ -346,7 +346,12 @@ static int get_displays(lua_State *L)
         DisplayInfo &display = displayList[i];
         lua_newtable(L); // The display info table
 
+        #ifdef DM_PLATFORM_WINDOWS
+        lua_pushstring(L, display.id);
+        free(const_cast<char*>(display.id));
+        #else
         lua_pushlightuserdata(L, display.id);
+        #endif
         lua_pushvalue(L, -1);
         lua_setfield(L, -3, "id");
 
@@ -385,8 +390,12 @@ static int get_displays(lua_State *L)
 
 static int get_display_modes(lua_State *L)
 {
+    #ifdef DM_PLATFORM_WINDOWS
+    DisplayID displayID = luaL_checkstring(L, 1);
+    #else
     luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
     DisplayID displayID = lua_touserdata(L, 1);
+    #endif
 
     dmArray<DisplayModeInfo> modeList;
     defos_get_display_modes(displayID, modeList);
@@ -403,7 +412,15 @@ static int get_display_modes(lua_State *L)
 
 static int get_current_display_id(lua_State *L)
 {
-    lua_pushlightuserdata(L, defos_get_current_display());
+    DisplayID displayID = defos_get_current_display();
+
+    #ifdef DM_PLATFORM_WINDOWS
+    lua_pushstring(L, displayID);
+    free(const_cast<char*>(displayID));
+    #else
+    lua_pushlightuserdata(L, displayID);
+    #endif
+
     return 1;
 }
 

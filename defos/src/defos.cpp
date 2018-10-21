@@ -241,11 +241,11 @@ static int set_cursor_pos(lua_State *L)
     defos_set_cursor_pos(x, y);
     return 0;
 }
-static int move_cursor_to(lua_State *L)
+static int set_cursor_pos_view(lua_State *L)
 {
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
-    defos_move_cursor_to(x, y);
+    defos_set_cursor_pos_view(x, y);
     return 0;
 }
 
@@ -567,7 +567,8 @@ static const luaL_reg Module_methods[] =
         {"on_click", on_click},
         {"is_mouse_in_view", is_mouse_in_view},
         {"set_cursor_pos", set_cursor_pos},
-        {"move_cursor_to", move_cursor_to},
+        {"set_cursor_pos_view", set_cursor_pos_view},
+        {"move_cursor_to", set_cursor_pos_view}, // For backwards compatibility
         {"set_cursor_clipped", set_cursor_clipped},
         {"is_cursor_clipped", is_cursor_clipped},
         {"set_cursor_locked", set_cursor_locked},

@@ -260,7 +260,7 @@ void defos_set_cursor_pos(float x, float y) {
     }
 }
 
-void defos_move_cursor_to(float x, float y) {
+void defos_set_cursor_pos_view(float x, float y) {
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSPoint pointInWindow = [view convertPoint: NSMakePoint(x, view.bounds.size.height - y) toView: nil];
     NSPoint windowOrigin = window.frame.origin;
@@ -302,7 +302,7 @@ static void clip_cursor(NSEvent * event) {
     }
 
     if (willClip) {
-        defos_move_cursor_to(mousePos.x, bounds.size.height - mousePos.y);
+        defos_set_cursor_pos_view(mousePos.x, bounds.size.height - mousePos.y);
     }
 }
 

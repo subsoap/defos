@@ -91,7 +91,7 @@ extern bool defos_is_cursor_visible();
 
 extern bool defos_is_mouse_in_view();
 extern void defos_set_cursor_pos(float x, float y);
-extern void defos_move_cursor_to(float x, float y);
+extern void defos_set_cursor_pos_view(float x, float y);
 
 extern void defos_set_cursor_clipped(bool clipped);
 extern bool defos_is_cursor_clipped();

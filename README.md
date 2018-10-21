@@ -174,7 +174,7 @@ end)
 
 ```lua
 defos.set_cursor_pos(x, y) -- In screen coordinates
-defos.move_cursor_to(x, y) -- In game view coordinates
+defos.set_cursor_pos_view(x, y) -- In game view coordinates
 ```
 
 ---

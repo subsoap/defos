@@ -438,7 +438,7 @@ void defos_set_cursor_pos(float x, float y)
     XFlush(disp);
 }
 
-void defos_move_cursor_to(float x, float y)
+void defos_set_cursor_pos_view(float x, float y)
 {
     XWarpPointer(disp, None, win, 0, 0, 0, 0, (int)x, (int)y);
     XFlush(disp);

@@ -317,7 +317,7 @@ void defos_set_cursor_pos(float x, float y)
 
 // move cursor to pos relative to current window
 // top-left is (0, 0)
-void defos_move_cursor_to(float x, float y)
+void defos_set_cursor_pos_view(float x, float y)
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();
 

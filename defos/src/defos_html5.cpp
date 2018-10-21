@@ -252,8 +252,8 @@ void defos_set_cursor_pos(float x, float y) {
     dmLogInfo("Method 'defos_set_cursor_pos' is not supported in html5");
 }
 
-void defos_move_cursor_to(float x, float y) {
-    dmLogInfo("Method 'defos_move_cursor_to' is not supported in html5");
+void defos_set_cursor_pos_view(float x, float y) {
+    dmLogInfo("Method 'defos_set_cursor_pos_view' is not supported in html5");
 }
 
 void defos_set_cursor_clipped(bool clipped) {

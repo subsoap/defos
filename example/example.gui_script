@@ -11,25 +11,6 @@ local ICON_NAMES = {
 	["Darwin"] = "mac.png"
 }
 
-function window_callback(self, event, data)
-	if event == window.WINDOW_EVENT_FOCUS_LOST then
-		-- though after lost focus cursor clipping will restore, we should restore it
-		if self.cursor_clipped then
-			defos.set_cursor_clipped(false)
-		end
-		if self.cursor_locked then
-			defos.set_cursor_locked(false)
-		end
-	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
-		if self.cursor_clipped then
-			defos.set_cursor_clipped(true)
-		end
-		if self.cursor_locked then
-			defos.set_cursor_locked(true)
-		end
-	end
-end
-
 function toggle_cursor_lock(self)
 	self.cursor_locked = not self.cursor_locked
 	defos.set_cursor_locked(self.cursor_locked)
@@ -148,7 +129,7 @@ function init(self)
 		)
 	end
 
-	window.set_listener(window_callback)
+	print("App command line arguments:")
 	pprint(defos.get_parameters())
 end
 

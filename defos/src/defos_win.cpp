@@ -23,6 +23,7 @@ static bool is_cursor_clipped = false;
 static POINT lock_point;
 static bool is_cursor_locked = false;
 
+static bool is_window_active = true;
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
 static HCURSOR custom_cursor;
@@ -41,6 +42,7 @@ void subclass_window();
 
 void defos_init()
 {
+    is_window_active = true;
     is_mouse_inside = false;
     is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
@@ -357,7 +359,7 @@ bool defos_is_cursor_locked()
 }
 
 void defos_update() {
-    if (is_cursor_locked) {
+    if (is_cursor_locked && is_window_active) {
         SetCursorPos(lock_point.x, lock_point.y);
     }
 }
@@ -570,12 +572,14 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
         }
         break;
 
-    case WM_SIZE:
-        if (is_cursor_locked)
+    case WM_ACTIVATE:
+        if (wp != WA_INACTIVE)
         {
-            defos_set_cursor_locked(true);
+            is_window_active = true;
+            if (is_cursor_clipped) { defos_set_cursor_clipped(true); }
+        } else {
+            is_window_active = false;
         }
-        break;
     }
 
     if (originalProc != NULL)

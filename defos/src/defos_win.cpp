@@ -256,14 +256,15 @@ void defos_get_parameters(dmArray<char*> &parameters) {
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    WINDOWPLACEMENT frame = {sizeof(placement)};
-    GetWindowPlacement(window, &frame);
-    WinRect rect;
-    rect.x = (float)frame.rcNormalPosition.left;
-    rect.y = (float)frame.rcNormalPosition.top;
-    rect.w = (float)(frame.rcNormalPosition.right - frame.rcNormalPosition.left);
-    rect.h = (float)(frame.rcNormalPosition.bottom - frame.rcNormalPosition.top);
-    return rect;
+    RECT rect;
+    GetWindowRect(window, &rect);
+    WinRect result = {
+        .x = rect.left,
+        .y = rect.top,
+        .w = rect.right - rect.left,
+        .h = rect.bottom - rect.top,
+    };
+    return result;
 }
 
 WinRect defos_get_view_size()
@@ -276,13 +277,12 @@ WinRect defos_get_view_size()
     POINT pos = {wrect.left, wrect.top};
     ClientToScreen(window, &pos);
 
-    WINDOWPLACEMENT frame = {sizeof(placement)};
-    GetWindowPlacement(window, &frame);
-    WinRect rect;
-    rect.x = (float)pos.x;
-    rect.y = (float)pos.y;
-    rect.w = (float)(wrect.right - wrect.left);
-    rect.h = (float)(wrect.bottom - wrect.top);
+    WinRect rect = {
+        .x = pos.x,
+        .y = pos.y,
+        .w = wrect.right - wrect.left,
+        .h = wrect.bottom - wrect.top,
+    };
     return rect;
 }
 

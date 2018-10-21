@@ -791,12 +791,12 @@ __attribute__((section(".init_array"), used))
 void (* defos_arguments_main_hook)(int,char*[],char*[]) = &arguments_main_hook;
 
 
-void defos_get_parameters(dmArray<char*> &parameters)
+void defos_get_arguments(dmArray<char*> &arguments)
 {
-    parameters.OffsetCapacity(shared_argc);
+    arguments.OffsetCapacity(shared_argc);
     for (int i = 0; i < shared_argc; i++)
     {
-        parameters.Push(copy_string(shared_argv[i]));
+        arguments.Push(copy_string(shared_argv[i]));
     }
 }
 

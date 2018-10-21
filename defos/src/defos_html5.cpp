@@ -191,7 +191,7 @@ char* defos_get_bundle_root() {
     return bundlePath;
 }
 
-void defos_get_parameters(dmArray<char*> &parameters) {
+void defos_get_arguments(dmArray<char*> &arguments) {
     char *param = (char*)EM_ASM_INT({
         var jsString = window.location.search;
         var lengthBytes = lengthBytesUTF8(jsString) + 1;
@@ -199,8 +199,8 @@ void defos_get_parameters(dmArray<char*> &parameters) {
         stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
         return stringOnWasmHeap;
     },0);
-    parameters.OffsetCapacity(1);
-    parameters.Push(param);
+    arguments.OffsetCapacity(1);
+    arguments.Push(param);
 }
 
 void defos_set_window_size(float x, float y, float w, float h) {

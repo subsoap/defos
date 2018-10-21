@@ -130,7 +130,7 @@ function init(self)
 	end
 
 	print("App command line arguments:")
-	pprint(defos.get_parameters())
+	pprint(defos.get_arguments())
 end
 
 local function change_mouse_label(text)

@@ -291,7 +291,7 @@ defos.set_window_icon(path_to_icon)
 **Returns a table of command line arguments** used to run the app. On HTML5, returns a table with a single string: the query string part of the URL (eg. `{ "?param1=foo&param2=bar" }`).
 
 ```lua
-arguments = defos.get_parameters()
+arguments = defos.get_arguments()
 ```
 
 ---

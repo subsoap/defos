@@ -185,17 +185,17 @@ static int get_bundle_root(lua_State *L)
     return 1;
 }
 
-static int get_parameters(lua_State *L)
+static int get_arguments(lua_State *L)
 {
-    dmArray<char*> parameters;
-    defos_get_parameters(parameters);
+    dmArray<char*> arguments;
+    defos_get_arguments(arguments);
     lua_newtable(L);
-    for (unsigned int i = 0; i < parameters.Size(); i++)
+    for (unsigned int i = 0; i < arguments.Size(); i++)
     {
-        char* param = parameters[i];
-        lua_pushstring(L, param);
+        char* arg = arguments[i];
+        lua_pushstring(L, arg);
         lua_rawseti(L, 1, i+1);
-        free(param);
+        free(arg);
     }
     return 1;
 }
@@ -603,7 +603,8 @@ static const luaL_reg Module_methods[] =
         {"get_current_display_id", get_current_display_id},
         {"set_window_icon", set_window_icon},
         {"get_bundle_root", get_bundle_root},
-        {"get_parameters", get_parameters},
+        {"get_arguments", get_arguments},
+        {"get_parameters", get_arguments}, // For backwards compatibility
         {0, 0}};
 
 static void LuaInit(lua_State *L)

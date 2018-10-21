@@ -259,19 +259,19 @@ char* defos_get_bundle_root() {
     return bundlePath;
 }
 
-void defos_get_parameters(dmArray<char*> &parameters) {
+void defos_get_arguments(dmArray<char*> &arguments) {
     LPWSTR *szArglist;
     int nArgs;
     int i;
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
     if( NULL != szArglist ){
-        parameters.OffsetCapacity(nArgs);
+        arguments.OffsetCapacity(nArgs);
         for( i=0; i<nArgs; i++) {
             const wchar_t *param = szArglist[i];
             int len = wcslen(param) + 1;
             char* lua_param = (char*)malloc(len);
             wcstombs(lua_param, param, len);
-            parameters.Push(lua_param);
+            arguments.Push(lua_param);
         }
     }
     LocalFree(szArglist);

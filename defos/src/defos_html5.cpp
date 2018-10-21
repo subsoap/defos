@@ -144,6 +144,14 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
+void defos_toggle_always_on_top() {
+    dmLogInfo("Method 'toggle_always_on_top' is not supported in html5");
+}
+
+bool defos_is_always_on_top() {
+    return false;
+}
+
 void defos_set_window_title(const char* title_lua) {
     EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
 }

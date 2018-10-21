@@ -144,6 +144,26 @@ static int is_maximized(lua_State *L)
     return 1;
 }
 
+static int toggle_always_on_top(lua_State *L)
+{
+    defos_toggle_always_on_top();
+    return 0;
+}
+
+static int set_always_on_top(lua_State *L)
+{
+    if (checkboolean(L, 1) != defos_is_always_on_top()) {
+        defos_toggle_always_on_top();
+    }
+    return 0;
+}
+
+static int is_always_on_top(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_always_on_top());
+    return 1;
+}
+
 static int minimize(lua_State *L)
 {
     defos_minimize();
@@ -530,6 +550,9 @@ static const luaL_reg Module_methods[] =
         {"toggle_fullscreen", toggle_fullscreen},
         {"set_fullscreen", set_fullscreen},
         {"is_fullscreen", is_fullscreen},
+        {"toggle_always_on_top", toggle_always_on_top},
+        {"set_always_on_top", set_always_on_top},
+        {"is_always_on_top", is_always_on_top},
         {"toggle_maximize", toggle_maximized}, // For backwards compatibility
         {"toggle_maximized", toggle_maximized},
         {"set_maximized", set_maximized},

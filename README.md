@@ -41,6 +41,16 @@ bool_value = defos.is_fullscreen()
 
 ---
 
+**Keep window on top**.
+
+```lua
+defos.set_always_on_top(bool_value)
+defos.toggle_always_on_top()
+bool_value = defos.is_always_on_top()
+```
+
+---
+
 **Minimize window**.
 
 ```lua

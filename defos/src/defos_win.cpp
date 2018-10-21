@@ -23,6 +23,7 @@ static bool is_cursor_clipped = false;
 static POINT lock_point;
 static bool is_cursor_locked = false;
 
+static bool is_window_on_top = false;
 static bool is_window_active = true;
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
@@ -43,6 +44,7 @@ void subclass_window();
 void defos_init()
 {
     is_window_active = true;
+    is_window_on_top = false;
     is_mouse_inside = false;
     is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
@@ -153,6 +155,20 @@ void defos_toggle_maximized()
         GetWindowPlacement(window, &placement);
         ShowWindow(window, SW_MAXIMIZE);
     }
+}
+
+void defos_toggle_always_on_top()
+{
+    is_window_on_top = !is_window_on_top;
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    SetWindowPos(window,
+        is_window_on_top ? HWND_TOPMOST : HWND_NOTOPMOST,
+        0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE
+    );
+}
+
+bool defos_is_always_on_top() {
+    return is_window_on_top;
 }
 
 void defos_minimize()

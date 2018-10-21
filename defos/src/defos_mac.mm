@@ -106,6 +106,10 @@ void defos_toggle_maximized() {
     }
 }
 
+void defos_toggle_always_on_top() {
+    window.level = defos_is_always_on_top() ? NSNormalWindowLevel : NSFloatingWindowLevel;
+}
+
 bool defos_is_fullscreen() {
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;
@@ -113,6 +117,10 @@ bool defos_is_fullscreen() {
 
 bool defos_is_maximized() {
     return is_maximized;
+}
+
+bool defos_is_always_on_top() {
+    return window.level == NSFloatingWindowLevel;
 }
 
 void defos_minimize() {

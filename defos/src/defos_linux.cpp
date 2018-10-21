@@ -51,6 +51,7 @@ static Atom NET_WM_STATE;
 static Atom NET_WM_STATE_FULLSCREEN;
 static Atom NET_WM_STATE_MAXIMIZED_VERT;
 static Atom NET_WM_STATE_MAXIMIZED_HORZ;
+static Atom NET_WM_STATE_ABOVE;
 static Atom NET_WM_ALLOWED_ACTIONS;
 static Atom NET_WM_ACTION_MAXIMIZE_HORZ;
 static Atom NET_WM_ACTION_MAXIMIZE_VERT;
@@ -80,6 +81,7 @@ void defos_init()
     NET_WM_STATE_FULLSCREEN = XATOM("_NET_WM_STATE_FULLSCREEN");
     NET_WM_STATE_MAXIMIZED_VERT = XATOM("_NET_WM_STATE_MAXIMIZED_VERT");
     NET_WM_STATE_MAXIMIZED_HORZ = XATOM("_NET_WM_STATE_MAXIMIZED_HORZ");
+    NET_WM_STATE_ABOVE = XATOM("_NET_WM_STATE_ABOVE");
     NET_WM_ALLOWED_ACTIONS = XATOM("_NET_WM_ALLOWED_ACTIONS");
     NET_WM_ACTION_MINIMIZE = XATOM("_NET_WM_ACTION_MINIMIZE");
     NET_WM_ACTION_MAXIMIZE_HORZ = XATOM("_NET_WM_ACTION_MAXIMIZE_HORZ");
@@ -159,6 +161,11 @@ bool defos_is_fullscreen()
 bool defos_is_maximized()
 {
     return hint_state_contains_atom(NET_WM_STATE_MAXIMIZED_VERT);
+}
+
+bool defos_is_always_on_top()
+{
+    return hint_state_contains_atom(NET_WM_STATE_ABOVE);
 }
 
 bool defos_is_mouse_in_view()
@@ -283,6 +290,19 @@ void defos_toggle_maximized()
         _NET_WM_STATE_TOGGLE,
         NET_WM_STATE_MAXIMIZED_VERT,
         NET_WM_STATE_MAXIMIZED_HORZ,
+        1,
+        0
+    );
+    XFlush(disp);
+}
+
+void defos_toggle_always_on_top()
+{
+    send_message(win,
+        NET_WM_STATE,
+        _NET_WM_STATE_TOGGLE,
+        NET_WM_STATE_ABOVE,
+        0,
         1,
         0
     );

@@ -115,6 +115,10 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
+void defos_minimize() {
+    [window performMiniaturize: nil];
+}
+
 void defos_set_window_title(const char* title_lua) {
     NSString* title = [NSString stringWithUTF8String:title_lua];
     [window setTitle:title];

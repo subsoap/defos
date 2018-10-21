@@ -41,6 +41,14 @@ bool_value = defos.is_fullscreen()
 
 ---
 
+**Minimize window**.
+
+```lua
+defos.minimize()
+```
+
+---
+
 **Get/set the window's size and position** in screen coordinates. The window area
 includes the title bar, so the actual contained game view area might be smaller
 than the given metrics.

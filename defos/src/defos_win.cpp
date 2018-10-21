@@ -155,6 +155,12 @@ void defos_toggle_maximized()
     }
 }
 
+void defos_minimize()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    ShowWindow(window, SW_MINIMIZE);
+}
+
 void defos_set_console_visible(bool visible)
 {
     ::ShowWindow(::GetConsoleWindow(), visible ? SW_SHOW : SW_HIDE);

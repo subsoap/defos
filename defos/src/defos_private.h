@@ -69,6 +69,7 @@ extern void defos_toggle_fullscreen();
 extern void defos_toggle_maximized();
 extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
+extern void defos_minimize();
 
 extern void defos_set_window_title(const char* title_lua);
 extern void  defos_set_window_icon(const char *icon_path);

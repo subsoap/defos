@@ -144,6 +144,12 @@ static int is_maximized(lua_State *L)
     return 1;
 }
 
+static int minimize(lua_State *L)
+{
+    defos_minimize();
+    return 0;
+}
+
 static int set_window_icon(lua_State *L)
 {
     const char *icon_path = luaL_checkstring(L, 1);
@@ -528,6 +534,7 @@ static const luaL_reg Module_methods[] =
         {"toggle_maximized", toggle_maximized},
         {"set_maximized", set_maximized},
         {"is_maximized", is_maximized},
+        {"minimize", minimize},
         {"set_console_visible", set_console_visible},
         {"is_console_visible", is_console_visible},
         {"set_cursor_visible", set_cursor_visible},

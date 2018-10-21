@@ -289,6 +289,11 @@ void defos_toggle_maximized()
     XFlush(disp);
 }
 
+void defos_minimize()
+{
+    XIconifyWindow(disp, win, screen);
+}
+
 void defos_set_console_visible(bool visible)
 {
     dmLogInfo("Method 'defos_set_console_visible' is not supported in Linux");

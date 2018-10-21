@@ -111,6 +111,10 @@ void defos_disable_window_resize() {
     dmLogInfo("Method 'disable_window_resize' is not supported in html5");
 }
 
+void defos_minimize() {
+    dmLogInfo("Method 'minimize' is not supported in html5");
+}
+
 void defos_toggle_fullscreen() {
     EM_ASM(Module.toggleFullscreen(););
 }

@@ -263,10 +263,16 @@ WinPoint defos_get_cursor_pos() {
 
 WinPoint defos_get_cursor_pos_view() {
     NSView* view = dmGraphics::GetNativeOSXNSView();
-    NSPoint point = [view convertPoint: NSEvent.mouseLocation fromView: nil];
+    NSPoint pointInScreen = NSEvent.mouseLocation;
+    NSPoint windowOrigin = window.frame.origin;
+    NSPoint pointInWindow = NSMakePoint(
+      pointInScreen.x - windowOrigin.x,
+      pointInScreen.y - windowOrigin.y
+    );
+    NSPoint point = [view convertPoint: pointInWindow fromView: nil];
     WinPoint result;
     result.x = (float)point.x;
-    result.y = (float)NSMaxY(NSScreen.screens[0].frame) - point.y;
+    result.y = (float)(view.bounds.size.height - point.y);
     return result;
 }
 

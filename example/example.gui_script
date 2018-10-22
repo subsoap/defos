@@ -125,7 +125,7 @@ function init(self)
 		print(
 			mode.width .. "x" .. mode.height .. " " ..
 			mode.bits_per_pixel .. "bit @" .. mode.refresh_rate .. "Hz x" ..
-			mode.scaling_factor
+			mode.scaling_factor .. " " .. mode.orientation .. "deg"
 		)
 	end
 

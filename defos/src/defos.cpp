@@ -377,6 +377,12 @@ static void push_display_mode(lua_State *L, const DisplayModeInfo &mode)
     lua_setfield(L, -2, "scaling_factor");
     lua_pushnumber(L, mode.bits_per_pixel);
     lua_setfield(L, -2, "bits_per_pixel");
+    lua_pushnumber(L, mode.orientation);
+    lua_setfield(L, -2, "orientation");
+    lua_pushboolean(L, mode.reflect_x);
+    lua_setfield(L, -2, "reflect_x");
+    lua_pushboolean(L, mode.reflect_y);
+    lua_setfield(L, -2, "reflect_y");
 }
 
 static int get_displays(lua_State *L)

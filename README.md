@@ -117,6 +117,9 @@ A display info table has the following format:
     scaling_factor = 2,
     refresh_rate = 60,
     bits_per_pixel = 32,
+    orientation = 0,
+    reflect_x = false,
+    reflect_y = false,
   },
   name = "Built-in Retina Display",
 }
@@ -142,6 +145,9 @@ A resolution mode has the following format:
   scaling_factor = 2, -- Hi-DPI scaling factor
   refresh_rate = 60,
   bits_per_pixel = 32,
+  orientation = 0, -- One of 0, 90, 180, 270
+  reflect_x = false, -- Linux supports flipping the screen around one of the axes
+  reflect_y = false,
 }
 ```
 

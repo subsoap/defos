@@ -573,6 +573,33 @@ static bool axis_flipped(Rotation rotation)
     return !!(rotation & (RR_Rotate_90 | RR_Rotate_270));
 }
 
+static unsigned long orientation_from_rotation(Rotation rotation)
+{
+    if (rotation & RR_Rotate_0) { return 0; }
+    if (rotation & RR_Rotate_90) { return 90; }
+    if (rotation & RR_Rotate_180) { return 180; }
+    if (rotation & RR_Rotate_270) { return 270; }
+    return 0;
+}
+
+static void parse_display_mode(const XRRModeInfo* modeInfo, DisplayModeInfo &mode, Rotation rotation)
+{
+    if (axis_flipped(rotation))
+    {
+        mode.width = modeInfo->height;
+        mode.height = modeInfo->width;
+    } else {
+        mode.width = modeInfo->width;
+        mode.height = modeInfo->height;
+    }
+    mode.refresh_rate = compute_refresh_rate(modeInfo);
+    mode.bits_per_pixel = 32;
+    mode.scaling_factor = 1.0;
+    mode.orientation = orientation_from_rotation(rotation);
+    mode.reflect_x = !!(rotation & RR_Reflect_X);
+    mode.reflect_y = !!(rotation & RR_Reflect_Y);
+}
+
 void defos_get_displays(dmArray<DisplayInfo> &displayList)
 {
     XRRScreenResources *screenResources = XRRGetScreenResourcesCurrent(disp, win);
@@ -618,13 +645,9 @@ void defos_get_displays(dmArray<DisplayInfo> &displayList)
         display.bounds.y = crtcInfo->y;
         display.bounds.w = crtcInfo->width;
         display.bounds.h = crtcInfo->height;
-        display.mode.width = modeInfo->width;
-        display.mode.height = modeInfo->height;
-        display.mode.refresh_rate = compute_refresh_rate(modeInfo);
+        parse_display_mode(modeInfo, display.mode, crtcInfo->rotation);
         display.mode.bits_per_pixel = bpp;
-        display.mode.scaling_factor = (double)display.mode.width / (double)(
-            axis_flipped(crtcInfo->rotation) ? crtcInfo->height : crtcInfo->width
-        );
+        display.mode.scaling_factor = (double)display.mode.width / (double)crtcInfo->width;
         display.name = NULL;
 
         if (crtcInfo->noutput > 0)
@@ -676,9 +699,7 @@ void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &mode
         const XRRModeInfo *modeInfo = get_mode_info(screenResources, outputInfo->modes[i]);
 
         DisplayModeInfo mode;
-        mode.width = modeInfo->width;
-        mode.height = modeInfo->height;
-        mode.refresh_rate = compute_refresh_rate(modeInfo);
+        parse_display_mode(modeInfo, mode, crtcInfo->rotation);
         mode.bits_per_pixel = bpp;
         mode.scaling_factor = scaling_factor;
 

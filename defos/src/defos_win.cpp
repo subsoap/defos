@@ -439,6 +439,18 @@ static char* copy_string(const char *s)
     return buffer;
 }
 
+static unsigned long translate_orientation(DWORD orientation)
+{
+    switch (orientation)
+    {
+        case DMDO_DEFAULT: return 0;
+        case DMDO_90: return 90;
+        case DMDO_180: return 180;
+        case DMDO_270: return 270;
+        default: return 0;
+    }
+}
+
 static void parse_display_mode(const DEVMODE &devMode, DisplayModeInfo &mode)
 {
     mode.width = devMode.dmPelsWidth;
@@ -446,6 +458,11 @@ static void parse_display_mode(const DEVMODE &devMode, DisplayModeInfo &mode)
     mode.bits_per_pixel = devMode.dmBitsPerPel;
     mode.refresh_rate = devMode.dmDisplayFrequency;
     mode.scaling_factor = 1.0;
+    mode.orientation = (devMode.dmFields & DM_DISPLAYORIENTATION)
+        ? translate_orientation(devMode.dmDisplayOrientation)
+        : 0;
+    mode.reflect_x = false;
+    mode.reflect_y = false;
 }
 
 static BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
@@ -463,7 +480,7 @@ static BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARA
 
     DEVMODE devMode;
     devMode.dmSize = sizeof(devMode);
-    EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    EnumDisplaySettingsEx(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode, 0);
     parse_display_mode(devMode, display.mode);
     display.mode.scaling_factor = (double)devMode.dmPelsWidth / (double)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
 
@@ -524,7 +541,7 @@ void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &mode
 
     double scaling_factor = scale_of_monitor(displayID);
 
-    for (int i = 0; EnumDisplaySettings(displayID, i, &devMode) != 0; i++)
+    for (int i = 0; EnumDisplaySettingsEx(displayID, i, &devMode, 0) != 0; i++)
     {
         DisplayModeInfo mode;
         parse_display_mode(devMode, mode);

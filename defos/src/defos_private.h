@@ -45,6 +45,9 @@ struct DisplayModeInfo {
     unsigned long bits_per_pixel;
     double refresh_rate;
     double scaling_factor;
+    unsigned long orientation;
+    bool reflect_x;
+    bool reflect_y;
 };
 
 struct DisplayInfo {

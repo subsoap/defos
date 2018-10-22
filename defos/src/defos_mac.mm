@@ -389,7 +389,7 @@ void defos_reset_cursor() {
     current_cursor = default_cursor;
 }
 
-static DisplayModeInfo parse_mode(CGDisplayModeRef mode, CVDisplayLinkRef displayLink) {
+static DisplayModeInfo parse_mode(CGDisplayModeRef mode, CVDisplayLinkRef displayLink, double rotation) {
     DisplayModeInfo mode_info;
     mode_info.width = CGDisplayModeGetPixelWidth(mode);
     mode_info.height = CGDisplayModeGetPixelHeight(mode);
@@ -399,6 +399,9 @@ static DisplayModeInfo parse_mode(CGDisplayModeRef mode, CVDisplayLinkRef displa
     CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
     mode_info.bits_per_pixel = getBPPFromModeString(pixelEncoding);
     CFRelease(pixelEncoding);
+    mode_info.orientation = (unsigned long)rotation;
+    mode_info.reflect_x = false;
+    mode_info.reflect_y = false;
 
     if (mode_info.refresh_rate == 0) {
         const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(displayLink);
@@ -514,7 +517,8 @@ void defos_get_displays(dmArray<DisplayInfo> &displayList){
         CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displayID);
         CVDisplayLinkRef displayLink;
         CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
-        display.mode = parse_mode(mode, displayLink);
+        double rotation = CGDisplayRotation(displayID);
+        display.mode = parse_mode(mode, displayLink, rotation);
         CVDisplayLinkRelease(displayLink);
         CGDisplayModeRelease(mode);
 
@@ -545,10 +549,12 @@ void defos_get_display_modes(DisplayID displayID_, dmArray<DisplayModeInfo> &mod
     CVDisplayLinkRef displayLink;
     CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
 
+    double rotation = CGDisplayRotation(displayID);
+
     modeList.OffsetCapacity(modeCount);
     for (int i = 0; i < modeCount; i++) {
         CGDisplayModeRef mode = allModes[i];
-        DisplayModeInfo modeInfo = parse_mode(mode, displayLink);
+        DisplayModeInfo modeInfo = parse_mode(mode, displayLink, rotation);
 
         // Remove duplicates
         size_t width = CGDisplayModeGetWidth(mode);

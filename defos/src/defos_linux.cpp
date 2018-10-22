@@ -315,7 +315,7 @@ void defos_minimize()
 
 void defos_set_console_visible(bool visible)
 {
-    dmLogInfo("Method 'defos_set_console_visible' is not supported in Linux");
+    dmLogWarning("Method 'set_console_visible' is only supported on Windows");
 }
 
 bool defos_is_console_visible()
@@ -471,7 +471,7 @@ void defos_set_cursor_pos_view(float x, float y)
 
 void defos_set_cursor_clipped(bool clipped)
 {
-    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in Linux");
+    dmLogWarning("Method 'set_cursor_clipped' is not supported on Linux");
 }
 
 bool defos_is_cursor_clipped()
@@ -481,7 +481,7 @@ bool defos_is_cursor_clipped()
 
 void defos_set_cursor_locked(bool locked)
 {
-    dmLogInfo("Method 'defos_set_cursor_locked' is not supported in Linux");
+    dmLogWarning("Method 'set_cursor_locked' is not supported on Linux");
 }
 
 bool defos_is_cursor_locked()
@@ -768,7 +768,7 @@ DisplayID defos_get_current_display()
 
 void defos_set_window_icon(const char *icon_path)
 {
-    dmLogInfo("Method 'defos_set_window_icon' is not supported on Linux");
+    dmLogWarning("Method 'set_window_icon' is not supported on Linux");
 }
 
 static char* copy_string(const char * s)

@@ -521,7 +521,7 @@ static int on_mouse_enter(lua_State *L)
 static int on_click(lua_State *L)
 {
     #ifndef DM_PLATFORM_HTML5
-    dmLogInfo("Event 'on_click' exists only on HTML5");
+    dmLogWarning("Event 'on_click' exists only in HTML5");
     #endif
     set_event_handler(L, 1, DEFOS_EVENT_CLICK);
     return 0;

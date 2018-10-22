@@ -228,7 +228,7 @@ WinRect defos_get_view_size() {
 }
 
 void defos_set_console_visible(bool visible) {
-    dmLogInfo("Method 'defos_set_console_visible' is not supported in macOS");
+    dmLogWarning("Method 'set_console_visible' is only supported on Windows");
 }
 
 bool defos_is_console_visible() {

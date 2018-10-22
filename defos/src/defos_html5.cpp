@@ -109,19 +109,19 @@ void defos_event_handler_was_set(DefosEvent event) {
 }
 
 void defos_disable_maximize_button() {
-    dmLogInfo("Method 'disable_maximize_button' is not supported in html5");
+    dmLogWarning("Method 'disable_maximize_button' is not supported in HTML5");
 }
 
 void defos_disable_minimize_button() {
-    dmLogInfo("Method 'disable_minimize_button' is not supported in html5");
+    dmLogWarning("Method 'disable_minimize_button' is not supported in HTML5");
 }
 
 void defos_disable_window_resize() {
-    dmLogInfo("Method 'disable_window_resize' is not supported in html5");
+    dmLogWarning("Method 'disable_window_resize' is not supported in HTML5");
 }
 
 void defos_minimize() {
-    dmLogInfo("Method 'minimize' is not supported in html5");
+    dmLogWarning("Method 'minimize' is not supported in HTML5");
 }
 
 void defos_toggle_fullscreen() {
@@ -154,7 +154,7 @@ bool defos_is_maximized() {
 }
 
 void defos_toggle_always_on_top() {
-    dmLogInfo("Method 'toggle_always_on_top' is not supported in html5");
+    dmLogWarning("Method 'toggle_always_on_top' is not supported in HTML5");
 }
 
 bool defos_is_always_on_top() {
@@ -236,7 +236,7 @@ bool defos_is_console_visible() {
 }
 
 void defos_set_console_visible(bool visible) {
-    dmLogInfo("Method 'defos_set_console_visible' is not supported in html5, it is meant for Windows builds only");
+    dmLogWarning("Method 'set_console_visible' is only supported on Windows");
 }
 
 void defos_set_cursor_visible(bool visible) {
@@ -269,15 +269,15 @@ WinPoint defos_get_cursor_pos_view() {
 }
 
 void defos_set_cursor_pos(float x, float y) {
-    dmLogInfo("Method 'defos_set_cursor_pos' is not supported in html5");
+    dmLogWarning("Method 'defos_set_cursor_pos' is not supported in HTML5");
 }
 
 void defos_set_cursor_pos_view(float x, float y) {
-    dmLogInfo("Method 'defos_set_cursor_pos_view' is not supported in html5");
+    dmLogWarning("Method 'defos_set_cursor_pos_view' is not supported in HTML5");
 }
 
 void defos_set_cursor_clipped(bool clipped) {
-    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in html5");
+    dmLogWarning("Method 'defos_set_cursor_clipped' is not supported in HTML5");
 }
 
 bool defos_is_cursor_clipped() {

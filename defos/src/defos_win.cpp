@@ -448,7 +448,7 @@ static void parse_display_mode(const DEVMODE &devMode, DisplayModeInfo &mode)
     mode.scaling_factor = 1.0;
 }
 
-BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
+static BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
 {
     MONITORINFOEX monitorInfo;
     monitorInfo.cbSize = sizeof(monitorInfo);
@@ -484,15 +484,51 @@ void defos_get_displays(dmArray<DisplayInfo> &displayList)
     EnumDisplayMonitors(NULL, NULL, monitor_enum_callback, reinterpret_cast<LPARAM>(&displayList));
 }
 
+struct MonitorScaleData {
+    const char *display_device_name;
+    double scaling_factor;
+};
+
+static BOOL CALLBACK monitor_scale_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
+{
+    MonitorScaleData *data = reinterpret_cast<MonitorScaleData*>(dwData);
+
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (!GetMonitorInfo(hMonitor, &monitorInfo)) { return TRUE; }
+
+    if (strcmp(monitorInfo.szDevice, data->display_device_name) != 0) { return TRUE; }
+
+    DEVMODE devMode;
+    devMode.dmSize = sizeof(devMode);
+    EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    data->scaling_factor = (double)devMode.dmPelsWidth / (double)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
+
+    return FALSE;
+}
+
+static double scale_of_monitor(DisplayID displayID)
+{
+    MonitorScaleData data = {
+        .display_device_name = displayID,
+        .scaling_factor = 1.0,
+    };
+    EnumDisplayMonitors(NULL, NULL, monitor_scale_enum_callback, reinterpret_cast<LPARAM>(&data));
+    return data.scaling_factor;
+}
+
 void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
 {
     DEVMODE devMode = {};
     devMode.dmSize = sizeof(devMode);
 
+    double scaling_factor = scale_of_monitor(displayID);
+
     for (int i = 0; EnumDisplaySettings(displayID, i, &devMode) != 0; i++)
     {
         DisplayModeInfo mode;
         parse_display_mode(devMode, mode);
+        mode.scaling_factor = scaling_factor;
 
         bool isDuplicate = false;
         for (int j = (int)modeList.Size() - 1; j >= 0; j--)

@@ -365,8 +365,8 @@ void defos_set_window_size(float x, float y, float w, float h)
         {
             WinRect screenBounds;
             get_current_crtc(screenBounds);
-            if (isnan(x) { x = screenBounds.x + ((float)screenBounds.w - w) / 2; }
-            if (isnan(y) { y = screenBounds.y + ((float)screenBounds.h - h) / 2; }
+            if (isnan(x)) { x = screenBounds.x + ((float)screenBounds.w - w) / 2; }
+            if (isnan(y)) { y = screenBounds.y + ((float)screenBounds.h - h) / 2; }
         }
 
         WindowExtents extents = get_window_extents();

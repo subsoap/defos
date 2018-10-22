@@ -189,28 +189,33 @@ bool defos_is_console_visible()
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
-    if (isnan(x))
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    if (isnan(x) || isnan(y))
     {
-        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
-    }
-    if (isnan(y))
-    {
-        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO monitorInfo;
+        monitorInfo.cbSize = sizeof(monitorInfo);
+        GetMonitorInfo(hMonitor, &monitorInfo);
+        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
+        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
     }
 
-    HWND window = dmGraphics::GetNativeWindowsHWND();
     SetWindowPos(window, window, (int)x, (int)y, (int)w, (int)h, SWP_NOZORDER);
 }
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
-    if (isnan(x))
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    if (isnan(x) || isnan(y))
     {
-        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
-    }
-    if (isnan(y))
-    {
-        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO monitorInfo;
+        monitorInfo.cbSize = sizeof(monitorInfo);
+        GetMonitorInfo(hMonitor, &monitorInfo);
+        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
+        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
     }
 
     RECT rect = {0, 0, (int)w, (int)h};
@@ -219,8 +224,6 @@ void defos_set_view_size(float x, float y, float w, float h)
 
     // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
     AdjustWindowRect(&rect, style, false);
-
-    HWND window = dmGraphics::GetNativeWindowsHWND();
 
     SetWindowPos(window, window, (int)x, (int)y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }

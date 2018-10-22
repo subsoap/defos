@@ -146,8 +146,8 @@ A resolution mode has the following format:
   refresh_rate = 60,
   bits_per_pixel = 32,
   orientation = 0, -- One of 0, 90, 180, 270
-  reflect_x = false, -- Linux supports flipping the screen around one of the axes
-  reflect_y = false,
+  reflect_x = false, -- Linux supports reflecting either of the axes,
+  reflect_y = false, -- effectively flipping the image like a mirror
 }
 ```
 

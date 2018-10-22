@@ -11,11 +11,10 @@
 */
 
 /* TODO:
- 1. ON_MOUSE_ENTER / ON_MOUSE_LEAVE
- 2. cursor locking
- 3. cursor clipping
- 4. getting arguments
- 5. setting the window icon
+ ON_MOUSE_ENTER / ON_MOUSE_LEAVE
+ cursor locking
+ cursor clipping
+ setting the window icon
 */
 
 #include "defos_private.h"

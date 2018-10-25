@@ -4,7 +4,11 @@
 #include <math.h>
 
 struct WinRect {
-    float x,y,w,h;
+    float x, y, w, h;
+};
+
+struct WinPoint {
+    float x, y;
 };
 
 struct LuaCallbackInfo {
@@ -29,6 +33,30 @@ typedef enum {
     DEFOS_CURSOR_IBEAM,
 } DefosCursor;
 
+#ifdef DM_PLATFORM_WINDOWS
+typedef const char* DisplayID;
+#else
+typedef void* DisplayID;
+#endif
+
+struct DisplayModeInfo {
+    unsigned long width;
+    unsigned long height;
+    unsigned long bits_per_pixel;
+    double refresh_rate;
+    double scaling_factor;
+    unsigned long orientation;
+    bool reflect_x;
+    bool reflect_y;
+};
+
+struct DisplayInfo {
+    DisplayID id;
+    struct WinRect bounds;
+    struct DisplayModeInfo mode;
+    char * name;
+};
+
 extern LuaCallbackInfo defos_event_handlers[];
 extern void defos_emit_event(DefosEvent event);
 extern void defos_event_handler_was_set(DefosEvent event);
@@ -46,13 +74,16 @@ extern void defos_disable_window_resize();
 
 extern void defos_toggle_fullscreen();
 extern void defos_toggle_maximized();
+extern void defos_toggle_always_on_top();
 extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
+extern bool defos_is_always_on_top();
+extern void defos_minimize();
 
 extern void defos_set_window_title(const char* title_lua);
 extern void  defos_set_window_icon(const char *icon_path);
 extern char* defos_get_bundle_root();
-extern void defos_get_parameters(dmArray<char*>* parameters);
+extern void defos_get_arguments(dmArray<char*> &arguments);
 
 extern void defos_set_window_size(float x, float y, float w, float h);
 extern WinRect defos_get_window_size();
@@ -67,7 +98,9 @@ extern bool defos_is_cursor_visible();
 
 extern bool defos_is_mouse_in_view();
 extern void defos_set_cursor_pos(float x, float y);
-extern void defos_move_cursor_to(float x, float y);
+extern void defos_set_cursor_pos_view(float x, float y);
+extern WinPoint defos_get_cursor_pos();
+extern WinPoint defos_get_cursor_pos_view();
 
 extern void defos_set_cursor_clipped(bool clipped);
 extern bool defos_is_cursor_clipped();
@@ -80,3 +113,7 @@ extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX
 extern void defos_set_custom_cursor_linux(const char *filename);
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();
+
+extern void defos_get_displays(dmArray<DisplayInfo> &displayList);
+extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList);
+extern DisplayID defos_get_current_display();

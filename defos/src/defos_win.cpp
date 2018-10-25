@@ -23,6 +23,8 @@ static bool is_cursor_clipped = false;
 static POINT lock_point;
 static bool is_cursor_locked = false;
 
+static bool is_window_on_top = false;
+static bool is_window_active = true;
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
 static HCURSOR custom_cursor;
@@ -41,6 +43,8 @@ void subclass_window();
 
 void defos_init()
 {
+    is_window_active = true;
+    is_window_on_top = false;
     is_mouse_inside = false;
     is_cursor_clipped = false;
     GetClipCursor(&originalRect);  // keep the original clip for restore
@@ -153,6 +157,26 @@ void defos_toggle_maximized()
     }
 }
 
+void defos_toggle_always_on_top()
+{
+    is_window_on_top = !is_window_on_top;
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    SetWindowPos(window,
+        is_window_on_top ? HWND_TOPMOST : HWND_NOTOPMOST,
+        0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE
+    );
+}
+
+bool defos_is_always_on_top() {
+    return is_window_on_top;
+}
+
+void defos_minimize()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    ShowWindow(window, SW_MINIMIZE);
+}
+
 void defos_set_console_visible(bool visible)
 {
     ::ShowWindow(::GetConsoleWindow(), visible ? SW_SHOW : SW_HIDE);
@@ -165,28 +189,33 @@ bool defos_is_console_visible()
 
 void defos_set_window_size(float x, float y, float w, float h)
 {
-    if (isnan(x))
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    if (isnan(x) || isnan(y))
     {
-        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
-    }
-    if (isnan(y))
-    {
-        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO monitorInfo;
+        monitorInfo.cbSize = sizeof(monitorInfo);
+        GetMonitorInfo(hMonitor, &monitorInfo);
+        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
+        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
     }
 
-    HWND window = dmGraphics::GetNativeWindowsHWND();
     SetWindowPos(window, window, (int)x, (int)y, (int)w, (int)h, SWP_NOZORDER);
 }
 
 void defos_set_view_size(float x, float y, float w, float h)
 {
-    if (isnan(x))
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    if (isnan(x) || isnan(y))
     {
-        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
-    }
-    if (isnan(y))
-    {
-        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO monitorInfo;
+        monitorInfo.cbSize = sizeof(monitorInfo);
+        GetMonitorInfo(hMonitor, &monitorInfo);
+        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
+        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
     }
 
     RECT rect = {0, 0, (int)w, (int)h};
@@ -195,8 +224,6 @@ void defos_set_view_size(float x, float y, float w, float h)
 
     // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
     AdjustWindowRect(&rect, style, false);
-
-    HWND window = dmGraphics::GetNativeWindowsHWND();
 
     SetWindowPos(window, window, (int)x, (int)y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }
@@ -235,19 +262,19 @@ char* defos_get_bundle_root() {
     return bundlePath;
 }
 
-void defos_get_parameters(dmArray<char*>* parameters) {
+void defos_get_arguments(dmArray<char*> &arguments) {
     LPWSTR *szArglist;
     int nArgs;
     int i;
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
     if( NULL != szArglist ){
+        arguments.OffsetCapacity(nArgs);
         for( i=0; i<nArgs; i++) {
             const wchar_t *param = szArglist[i];
             int len = wcslen(param) + 1;
             char* lua_param = (char*)malloc(len);
             wcstombs(lua_param, param, len);
-            parameters->OffsetCapacity(1);
-            parameters->Push(lua_param);
+            arguments.Push(lua_param);
         }
     }
     LocalFree(szArglist);
@@ -256,14 +283,15 @@ void defos_get_parameters(dmArray<char*>* parameters) {
 WinRect defos_get_window_size()
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();
-    WINDOWPLACEMENT frame = {sizeof(placement)};
-    GetWindowPlacement(window, &frame);
-    WinRect rect;
-    rect.x = (float)frame.rcNormalPosition.left;
-    rect.y = (float)frame.rcNormalPosition.top;
-    rect.w = (float)(frame.rcNormalPosition.right - frame.rcNormalPosition.left);
-    rect.h = (float)(frame.rcNormalPosition.bottom - frame.rcNormalPosition.top);
-    return rect;
+    RECT rect;
+    GetWindowRect(window, &rect);
+    WinRect result = {
+        .x = rect.left,
+        .y = rect.top,
+        .w = rect.right - rect.left,
+        .h = rect.bottom - rect.top,
+    };
+    return result;
 }
 
 WinRect defos_get_view_size()
@@ -276,14 +304,34 @@ WinRect defos_get_view_size()
     POINT pos = {wrect.left, wrect.top};
     ClientToScreen(window, &pos);
 
-    WINDOWPLACEMENT frame = {sizeof(placement)};
-    GetWindowPlacement(window, &frame);
-    WinRect rect;
-    rect.x = (float)pos.x;
-    rect.y = (float)pos.y;
-    rect.w = (float)(wrect.right - wrect.left);
-    rect.h = (float)(wrect.bottom - wrect.top);
+    WinRect rect = {
+        .x = pos.x,
+        .y = pos.y,
+        .w = wrect.right - wrect.left,
+        .h = wrect.bottom - wrect.top,
+    };
     return rect;
+}
+
+WinPoint defos_get_cursor_pos()
+{
+    POINT point;
+    GetCursorPos(&point);
+
+    WinPoint result = { .x = point.x, .y = point.y };
+    return result;
+}
+
+WinPoint defos_get_cursor_pos_view()
+{
+    POINT point;
+    GetCursorPos(&point);
+
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    ScreenToClient(window, &point);
+
+    WinPoint result = { .x = point.x, .y = point.y };
+    return result;
 }
 
 void defos_set_cursor_pos(float x, float y)
@@ -293,7 +341,7 @@ void defos_set_cursor_pos(float x, float y)
 
 // move cursor to pos relative to current window
 // top-left is (0, 0)
-void defos_move_cursor_to(float x, float y)
+void defos_set_cursor_pos_view(float x, float y)
 {
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
@@ -357,7 +405,7 @@ bool defos_is_cursor_locked()
 }
 
 void defos_update() {
-    if (is_cursor_locked) {
+    if (is_cursor_locked && is_window_active) {
         SetCursorPos(lock_point.x, lock_point.y);
     }
 }
@@ -385,6 +433,151 @@ void defos_reset_cursor()
 {
     // here we do not need to set cursor again, as we already ignore that in winproc
     is_custom_cursor_loaded = false;
+}
+
+static char* copy_string(const char *s)
+{
+    char *buffer = (char*)malloc(strlen(s) + 1);
+    strcpy(buffer, s);
+    return buffer;
+}
+
+static unsigned long translate_orientation(DWORD orientation)
+{
+    switch (orientation)
+    {
+        case DMDO_DEFAULT: return 0;
+        case DMDO_90: return 90;
+        case DMDO_180: return 180;
+        case DMDO_270: return 270;
+        default: return 0;
+    }
+}
+
+static void parse_display_mode(const DEVMODE &devMode, DisplayModeInfo &mode)
+{
+    mode.width = devMode.dmPelsWidth;
+    mode.height = devMode.dmPelsHeight;
+    mode.bits_per_pixel = devMode.dmBitsPerPel;
+    mode.refresh_rate = devMode.dmDisplayFrequency;
+    mode.scaling_factor = 1.0;
+    mode.orientation = (devMode.dmFields & DM_DISPLAYORIENTATION)
+        ? translate_orientation(devMode.dmDisplayOrientation)
+        : 0;
+    mode.reflect_x = false;
+    mode.reflect_y = false;
+}
+
+static BOOL CALLBACK monitor_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
+{
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (!GetMonitorInfo(hMonitor, &monitorInfo)) { return TRUE; }
+
+    DisplayInfo display;
+    display.id = copy_string(monitorInfo.szDevice);
+    display.bounds.x = monitorInfo.rcMonitor.left;
+    display.bounds.y = monitorInfo.rcMonitor.top;
+    display.bounds.w = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+    display.bounds.h = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+
+    DEVMODE devMode;
+    devMode.dmSize = sizeof(devMode);
+    EnumDisplaySettingsEx(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode, 0);
+    parse_display_mode(devMode, display.mode);
+    display.mode.scaling_factor = (double)devMode.dmPelsWidth / (double)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
+
+    DISPLAY_DEVICE displayDevice;
+    displayDevice.cb = sizeof(displayDevice);
+    EnumDisplayDevices(monitorInfo.szDevice, 0, &displayDevice, 0);
+    display.name = copy_string(displayDevice.DeviceString);
+
+    dmArray<DisplayInfo> *displayList = reinterpret_cast<dmArray<DisplayInfo>*>(dwData);
+    displayList->OffsetCapacity(1);
+    displayList->Push(display);
+
+    return TRUE;
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList)
+{
+    EnumDisplayMonitors(NULL, NULL, monitor_enum_callback, reinterpret_cast<LPARAM>(&displayList));
+}
+
+struct MonitorScaleData {
+    const char *display_device_name;
+    double scaling_factor;
+};
+
+static BOOL CALLBACK monitor_scale_enum_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData)
+{
+    MonitorScaleData *data = reinterpret_cast<MonitorScaleData*>(dwData);
+
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (!GetMonitorInfo(hMonitor, &monitorInfo)) { return TRUE; }
+
+    if (strcmp(monitorInfo.szDevice, data->display_device_name) != 0) { return TRUE; }
+
+    DEVMODE devMode;
+    devMode.dmSize = sizeof(devMode);
+    EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    data->scaling_factor = (double)devMode.dmPelsWidth / (double)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
+
+    return FALSE;
+}
+
+static double scale_of_monitor(DisplayID displayID)
+{
+    MonitorScaleData data = {
+        .display_device_name = displayID,
+        .scaling_factor = 1.0,
+    };
+    EnumDisplayMonitors(NULL, NULL, monitor_scale_enum_callback, reinterpret_cast<LPARAM>(&data));
+    return data.scaling_factor;
+}
+
+void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList)
+{
+    DEVMODE devMode = {};
+    devMode.dmSize = sizeof(devMode);
+
+    double scaling_factor = scale_of_monitor(displayID);
+
+    for (int i = 0; EnumDisplaySettingsEx(displayID, i, &devMode, 0) != 0; i++)
+    {
+        DisplayModeInfo mode;
+        parse_display_mode(devMode, mode);
+        mode.scaling_factor = scaling_factor;
+
+        bool isDuplicate = false;
+        for (int j = (int)modeList.Size() - 1; j >= 0; j--)
+        {
+            DisplayModeInfo &otherMode = modeList[j];
+            if (mode.width == otherMode.width
+                && mode.height == otherMode.height
+                && mode.bits_per_pixel == otherMode.bits_per_pixel
+                && mode.refresh_rate == otherMode.refresh_rate
+            ) {
+                isDuplicate = true;
+                break;
+            }
+        }
+
+        if (isDuplicate) { continue; }
+        modeList.OffsetCapacity(1);
+        modeList.Push(mode);
+    }
+}
+
+DisplayID defos_get_current_display()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    GetMonitorInfo(hMonitor, &monitorInfo);
+    return copy_string(monitorInfo.szDevice);
 }
 
 /********************
@@ -478,12 +671,14 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
         }
         break;
 
-    case WM_SIZE:
-        if (is_cursor_locked)
+    case WM_ACTIVATE:
+        if (wp != WA_INACTIVE)
         {
-            defos_set_cursor_locked(true);
+            is_window_active = true;
+            if (is_cursor_clipped) { defos_set_cursor_clipped(true); }
+        } else {
+            is_window_active = false;
         }
-        break;
     }
 
     if (originalProc != NULL)

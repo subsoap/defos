@@ -49,9 +49,17 @@ void defos_init() {
         Module.__defosjs_click_listener = function () {
             _defos_emit_event_from_js($2);
         };
+        Module.__defosjs_mousemove_listener = function (evt) {
+            var rect = Module.canvas.getBoundingClientRect();
+            Module.__defosjs_mouse_x = evt.clientX - rect.left;
+            Module.__defosjs_mouse_y = evt.clientY - rect.top;
+        };
+        Module.__defosjs_mouse_x = -1;
+        Module.__defosjs_mouse_y = -1;
         Module.canvas.addEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.addEventListener('click', Module.__defosjs_click_listener);
+        document.addEventListener('mousemove', Module.__defosjs_mousemove_listener);
     }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
 
     EM_ASM_({
@@ -86,6 +94,7 @@ void defos_final() {
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
+        document.removeEventListener('mousemove', Module.__defosjs_mousemove_listener);
         document.removeEventListener('pointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('webkitpointerlockchange', Module.__defosjs_pointerlockchange_listener);
@@ -100,15 +109,19 @@ void defos_event_handler_was_set(DefosEvent event) {
 }
 
 void defos_disable_maximize_button() {
-    dmLogInfo("Method 'disable_maximize_button' is not supported in html5");
+    dmLogWarning("Method 'disable_maximize_button' is not supported in HTML5");
 }
 
 void defos_disable_minimize_button() {
-    dmLogInfo("Method 'disable_minimize_button' is not supported in html5");
+    dmLogWarning("Method 'disable_minimize_button' is not supported in HTML5");
 }
 
 void defos_disable_window_resize() {
-    dmLogInfo("Method 'disable_window_resize' is not supported in html5");
+    dmLogWarning("Method 'disable_window_resize' is not supported in HTML5");
+}
+
+void defos_minimize() {
+    dmLogWarning("Method 'minimize' is not supported in HTML5");
 }
 
 void defos_toggle_fullscreen() {
@@ -140,6 +153,14 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
+void defos_toggle_always_on_top() {
+    dmLogWarning("Method 'toggle_always_on_top' is not supported in HTML5");
+}
+
+bool defos_is_always_on_top() {
+    return false;
+}
+
 void defos_set_window_title(const char* title_lua) {
     EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
 }
@@ -152,7 +173,7 @@ void defos_set_window_icon(const char *icon_path)
             if (oldLink) { document.head.removeChild(oldLink); }
             var link = document.createElement('link');
             link.rel = 'shortcut icon';
-            link.href = src;        
+            link.href = src;
             document.head.appendChild(link);
         }
         changeFavicon(UTF8ToString($0));
@@ -170,16 +191,16 @@ char* defos_get_bundle_root() {
     return bundlePath;
 }
 
-void defos_get_parameters(dmArray<char*>* parameters) {
-    char*param = (char*)EM_ASM_INT({
+void defos_get_arguments(dmArray<char*> &arguments) {
+    char *param = (char*)EM_ASM_INT({
         var jsString = window.location.search;
         var lengthBytes = lengthBytesUTF8(jsString) + 1;
         var stringOnWasmHeap = _malloc(lengthBytes);
         stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
         return stringOnWasmHeap;
     },0);
-    parameters->OffsetCapacity(1);
-    parameters->Push(param);
+    arguments.OffsetCapacity(1);
+    arguments.Push(param);
 }
 
 void defos_set_window_size(float x, float y, float w, float h) {
@@ -215,7 +236,7 @@ bool defos_is_console_visible() {
 }
 
 void defos_set_console_visible(bool visible) {
-    dmLogInfo("Method 'defos_set_console_visible' is not supported in html5, it is meant for Windows builds only");
+    dmLogWarning("Method 'set_console_visible' is only supported on Windows");
 }
 
 void defos_set_cursor_visible(bool visible) {
@@ -236,16 +257,27 @@ bool defos_is_mouse_in_view() {
     return is_mouse_inside;
 }
 
-void defos_set_cursor_pos(float x, float y) {
-    dmLogInfo("Method 'defos_set_cursor_pos' is not supported in html5");
+WinPoint defos_get_cursor_pos() {
+    return defos_get_cursor_pos_view();
 }
 
-void defos_move_cursor_to(float x, float y) {
-    dmLogInfo("Method 'defos_move_cursor_to' is not supported in html5");
+WinPoint defos_get_cursor_pos_view() {
+    WinPoint point;
+    point.x = (float)EM_ASM_DOUBLE({ return Module.__defosjs_mouse_x }, 0.0);
+    point.y = (float)EM_ASM_DOUBLE({ return Module.__defosjs_mouse_y }, 0.0);
+    return point;
+}
+
+void defos_set_cursor_pos(float x, float y) {
+    dmLogWarning("Method 'defos_set_cursor_pos' is not supported in HTML5");
+}
+
+void defos_set_cursor_pos_view(float x, float y) {
+    dmLogWarning("Method 'defos_set_cursor_pos_view' is not supported in HTML5");
 }
 
 void defos_set_cursor_clipped(bool clipped) {
-    dmLogInfo("Method 'defos_set_cursor_clipped' is not supported in html5");
+    dmLogWarning("Method 'defos_set_cursor_clipped' is not supported in HTML5");
 }
 
 bool defos_is_cursor_clipped() {
@@ -332,6 +364,16 @@ void defos_reset_cursor() {
     if (is_cursor_visible) {
         EM_ASM(Module.canvas.style.cursor = 'default';);
     }
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList) {
+}
+
+void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList) {
+}
+
+DisplayID defos_get_current_display() {
+    return NULL;
 }
 
 #endif

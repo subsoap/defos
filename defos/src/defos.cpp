@@ -144,6 +144,32 @@ static int is_maximized(lua_State *L)
     return 1;
 }
 
+static int toggle_always_on_top(lua_State *L)
+{
+    defos_toggle_always_on_top();
+    return 0;
+}
+
+static int set_always_on_top(lua_State *L)
+{
+    if (checkboolean(L, 1) != defos_is_always_on_top()) {
+        defos_toggle_always_on_top();
+    }
+    return 0;
+}
+
+static int is_always_on_top(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_always_on_top());
+    return 1;
+}
+
+static int minimize(lua_State *L)
+{
+    defos_minimize();
+    return 0;
+}
+
 static int set_window_icon(lua_State *L)
 {
     const char *icon_path = luaL_checkstring(L, 1);
@@ -159,19 +185,18 @@ static int get_bundle_root(lua_State *L)
     return 1;
 }
 
-static int get_parameters(lua_State *L)
+static int get_arguments(lua_State *L)
 {
-    dmArray<char*>* parameters = new dmArray<char*>();
-    defos_get_parameters(parameters);
+    dmArray<char*> arguments;
+    defos_get_arguments(arguments);
     lua_newtable(L);
-    for(int i = 0; i < parameters->Size(); i++)
+    for (unsigned int i = 0; i < arguments.Size(); i++)
     {
-        char* param = (*parameters)[i];
-        lua_pushstring(L, param);
+        char* arg = arguments[i];
+        lua_pushstring(L, arg);
         lua_rawseti(L, 1, i+1);
-        free(param);
+        free(arg);
     }
-    delete parameters;
     return 1;
 }
 
@@ -209,6 +234,24 @@ static int is_cursor_visible(lua_State *L)
     return 1;
 }
 
+static int get_cursor_pos(lua_State *L)
+{
+    WinPoint point;
+    point = defos_get_cursor_pos();
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+    return 2;
+}
+
+static int get_cursor_pos_view(lua_State *L)
+{
+    WinPoint point;
+    point = defos_get_cursor_pos_view();
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+    return 2;
+}
+
 static int set_cursor_pos(lua_State *L)
 {
     float x = luaL_checknumber(L, 1);
@@ -216,11 +259,11 @@ static int set_cursor_pos(lua_State *L)
     defos_set_cursor_pos(x, y);
     return 0;
 }
-static int move_cursor_to(lua_State *L)
+static int set_cursor_pos_view(lua_State *L)
 {
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
-    defos_move_cursor_to(x, y);
+    defos_set_cursor_pos_view(x, y);
     return 0;
 }
 
@@ -319,6 +362,118 @@ static int reset_cursor(lua_State *L)
     return 0;
 }
 
+// Displays
+
+static void push_display_mode(lua_State *L, const DisplayModeInfo &mode)
+{
+    lua_newtable(L);
+    lua_pushnumber(L, mode.width);
+    lua_setfield(L, -2, "width");
+    lua_pushnumber(L, mode.height);
+    lua_setfield(L, -2, "height");
+    lua_pushnumber(L, mode.refresh_rate);
+    lua_setfield(L, -2, "refresh_rate");
+    lua_pushnumber(L, mode.scaling_factor);
+    lua_setfield(L, -2, "scaling_factor");
+    lua_pushnumber(L, mode.bits_per_pixel);
+    lua_setfield(L, -2, "bits_per_pixel");
+    lua_pushnumber(L, mode.orientation);
+    lua_setfield(L, -2, "orientation");
+    lua_pushboolean(L, mode.reflect_x);
+    lua_setfield(L, -2, "reflect_x");
+    lua_pushboolean(L, mode.reflect_y);
+    lua_setfield(L, -2, "reflect_y");
+}
+
+static int get_displays(lua_State *L)
+{
+    dmArray<DisplayInfo> displayList;
+    defos_get_displays(displayList);
+
+    lua_newtable(L); // Final result
+    for (int i = 0; i < displayList.Size(); i++)
+    {
+        DisplayInfo &display = displayList[i];
+        lua_newtable(L); // The display info table
+
+        #ifdef DM_PLATFORM_WINDOWS
+        lua_pushstring(L, display.id);
+        free(const_cast<char*>(display.id));
+        #else
+        lua_pushlightuserdata(L, display.id);
+        #endif
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -3, "id");
+
+        // screen positioning bounds
+        lua_newtable(L);
+        lua_pushnumber(L, display.bounds.x);
+        lua_setfield(L, -2, "x");
+        lua_pushnumber(L, display.bounds.y);
+        lua_setfield(L, -2, "y");
+        lua_pushnumber(L, display.bounds.w);
+        lua_setfield(L, -2, "width");
+        lua_pushnumber(L, display.bounds.h);
+        lua_setfield(L, -2, "height");
+        lua_setfield(L, -3, "bounds");
+
+        push_display_mode(L, display.mode);
+        lua_setfield(L, -3, "mode");
+
+        if (display.name)
+        {
+            lua_pushstring(L, display.name);
+            lua_setfield(L, -3, "name");
+            free(display.name);
+        }
+
+        // result[id] = display
+        lua_pushvalue(L, -2);
+        lua_settable(L, -4);
+
+        // result[i + 1] = display
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
+static int get_display_modes(lua_State *L)
+{
+    #ifdef DM_PLATFORM_WINDOWS
+    DisplayID displayID = luaL_checkstring(L, 1);
+    #else
+    luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+    DisplayID displayID = lua_touserdata(L, 1);
+    #endif
+
+    dmArray<DisplayModeInfo> modeList;
+    defos_get_display_modes(displayID, modeList);
+
+    lua_newtable(L);
+    for (int i = 0; i < modeList.Size(); i++)
+    {
+        push_display_mode(L, modeList[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
+static int get_current_display_id(lua_State *L)
+{
+    DisplayID displayID = defos_get_current_display();
+
+    #ifdef DM_PLATFORM_WINDOWS
+    lua_pushstring(L, displayID);
+    free(const_cast<char*>(displayID));
+    #else
+    lua_pushlightuserdata(L, displayID);
+    #endif
+
+    return 1;
+}
+
 // Events
 
 static void set_event_handler(lua_State *L, int index, DefosEvent event)
@@ -366,7 +521,7 @@ static int on_mouse_enter(lua_State *L)
 static int on_click(lua_State *L)
 {
     #ifndef DM_PLATFORM_HTML5
-    dmLogInfo("Event 'on_click' exists only on HTML5");
+    dmLogWarning("Event 'on_click' exists only in HTML5");
     #endif
     set_event_handler(L, 1, DEFOS_EVENT_CLICK);
     return 0;
@@ -419,10 +574,14 @@ static const luaL_reg Module_methods[] =
         {"toggle_fullscreen", toggle_fullscreen},
         {"set_fullscreen", set_fullscreen},
         {"is_fullscreen", is_fullscreen},
+        {"toggle_always_on_top", toggle_always_on_top},
+        {"set_always_on_top", set_always_on_top},
+        {"is_always_on_top", is_always_on_top},
         {"toggle_maximize", toggle_maximized}, // For backwards compatibility
         {"toggle_maximized", toggle_maximized},
         {"set_maximized", set_maximized},
         {"is_maximized", is_maximized},
+        {"minimize", minimize},
         {"set_console_visible", set_console_visible},
         {"is_console_visible", is_console_visible},
         {"set_cursor_visible", set_cursor_visible},
@@ -431,8 +590,11 @@ static const luaL_reg Module_methods[] =
         {"on_mouse_leave", on_mouse_leave},
         {"on_click", on_click},
         {"is_mouse_in_view", is_mouse_in_view},
+        {"get_cursor_pos", get_cursor_pos},
+        {"get_cursor_pos_view", get_cursor_pos_view},
         {"set_cursor_pos", set_cursor_pos},
-        {"move_cursor_to", move_cursor_to},
+        {"set_cursor_pos_view", set_cursor_pos_view},
+        {"move_cursor_to", set_cursor_pos_view}, // For backwards compatibility
         {"set_cursor_clipped", set_cursor_clipped},
         {"is_cursor_clipped", is_cursor_clipped},
         {"set_cursor_locked", set_cursor_locked},
@@ -442,16 +604,20 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
+        {"get_displays", get_displays},
+        {"get_display_modes", get_display_modes},
+        {"get_current_display_id", get_current_display_id},
         {"set_window_icon", set_window_icon},
         {"get_bundle_root", get_bundle_root},
-        {"get_parameters", get_parameters},
+        {"get_arguments", get_arguments},
+        {"get_parameters", get_arguments}, // For backwards compatibility
         {0, 0}};
 
 static void LuaInit(lua_State *L)
 {
     int top = lua_gettop(L);
     luaL_register(L, MODULE_NAME, Module_methods);
-    
+
     lua_pushnumber(L, DEFOS_CURSOR_ARROW);
     lua_setfield(L, -2, "CURSOR_ARROW");
     lua_pushnumber(L, DEFOS_CURSOR_CROSSHAIR);
@@ -460,15 +626,15 @@ static void LuaInit(lua_State *L)
     lua_setfield(L, -2, "CURSOR_HAND");
     lua_pushnumber(L, DEFOS_CURSOR_IBEAM);
     lua_setfield(L, -2, "CURSOR_IBEAM");
-    
+
     #if defined(DM_PLATFORM_WINDOWS)
     lua_pushstring(L, "\\");
     lua_setfield(L, -2, "PATH_SEP");
     #else
     lua_pushstring(L, "/");
     lua_setfield(L, -2, "PATH_SEP");
-    #endif 
-    
+    #endif
+
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
 }

@@ -5,11 +5,15 @@
 
 #include "defos_private.h"
 #include <AppKit/AppKit.h>
+#include <IOKit/graphics/IOGraphicsLib.h>
 #include <CoreGraphics/CoreGraphics.h>
+#include <CoreVideo/CVDisplayLink.h>
 
 static NSWindow* window = nil;
 static NSCursor* current_cursor = nil;
 static NSCursor* default_cursor = nil;
+
+#define MAX_DISPLAYS 32
 
 static bool is_maximized = false;
 static bool is_mouse_in_view = false;
@@ -20,6 +24,29 @@ static NSRect previous_state;
 
 static void enable_mouse_tracking();
 static void disable_mouse_tracking();
+
+/*
+* Convert the mode string to the more convinient bits per pixel value
+*/
+static int getBPPFromModeString(CFStringRef mode)
+{
+    if ((CFStringCompare(mode, CFSTR(kIO30BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)) {
+        // This is a strange mode, where we using 10 bits per RGB component and pack it into 32 bits
+        // Java is not ready to work with this mode but we have to specify it as supported
+        return 30;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 32;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 16;
+    }
+    else if (CFStringCompare(mode, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        return 8;
+    }
+
+    return 0;
+}
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
@@ -79,6 +106,10 @@ void defos_toggle_maximized() {
     }
 }
 
+void defos_toggle_always_on_top() {
+    window.level = defos_is_always_on_top() ? NSNormalWindowLevel : NSFloatingWindowLevel;
+}
+
 bool defos_is_fullscreen() {
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;
@@ -86,6 +117,14 @@ bool defos_is_fullscreen() {
 
 bool defos_is_maximized() {
     return is_maximized;
+}
+
+bool defos_is_always_on_top() {
+    return window.level == NSFloatingWindowLevel;
+}
+
+void defos_minimize() {
+    [window performMiniaturize: nil];
 }
 
 void defos_set_window_title(const char* title_lua) {
@@ -110,14 +149,15 @@ char* defos_get_bundle_root() {
     return bundlePath_lua;
 }
 
-void defos_get_parameters(dmArray<char*>* parameters) {
+void defos_get_arguments(dmArray<char*> &arguments) {
     NSArray *args = [[NSProcessInfo processInfo] arguments];
-    for (int i = 0; i < [args count]; i++){
+    int argCount = [args count];
+    arguments.OffsetCapacity(argCount);
+    for (int i = 0; i < argCount; i++){
         const char *param = [args[i] UTF8String];
         char* lua_param = (char*)malloc(strlen(param) + 1);
         strcpy(lua_param, param);
-        parameters->OffsetCapacity(1);
-        parameters->Push(lua_param);
+        arguments.Push(lua_param);
     }
 }
 
@@ -188,7 +228,7 @@ WinRect defos_get_view_size() {
 }
 
 void defos_set_console_visible(bool visible) {
-    dmLogInfo("Method 'defos_set_console_visible' is not supported in macOS");
+    dmLogWarning("Method 'set_console_visible' is only supported on Windows");
 }
 
 bool defos_is_console_visible() {
@@ -199,28 +239,51 @@ void defos_set_cursor_visible(bool visible) {
     if (is_cursor_visible == visible) { return; }
     is_cursor_visible = visible;
     if (visible) {
-      [NSCursor unhide];
+        [NSCursor unhide];
     } else {
-      [NSCursor hide];
+        [NSCursor hide];
     }
 }
 
 bool defos_is_cursor_visible() {
-  return is_cursor_visible;
+    return is_cursor_visible;
 }
 
 bool defos_is_mouse_in_view() {
     return is_mouse_in_view;
 }
 
+WinPoint defos_get_cursor_pos() {
+    NSPoint point = NSEvent.mouseLocation;
+    WinPoint result;
+    result.x = (float)point.x;
+    result.y = (float)NSMaxY(NSScreen.screens[0].frame) - point.y;
+    return result;
+}
+
+WinPoint defos_get_cursor_pos_view() {
+    NSView* view = dmGraphics::GetNativeOSXNSView();
+    NSPoint pointInScreen = NSEvent.mouseLocation;
+    NSPoint windowOrigin = window.frame.origin;
+    NSPoint pointInWindow = NSMakePoint(
+      pointInScreen.x - windowOrigin.x,
+      pointInScreen.y - windowOrigin.y
+    );
+    NSPoint point = [view convertPoint: pointInWindow fromView: nil];
+    WinPoint result;
+    result.x = (float)point.x;
+    result.y = (float)(view.bounds.size.height - point.y);
+    return result;
+}
+
 void defos_set_cursor_pos(float x, float y) {
     CGWarpMouseCursorPosition(CGPointMake(x, y));
     if (!is_cursor_locked) {
-      CGAssociateMouseAndMouseCursorPosition(true); // Prevents a delay after the Wrap call
+        CGAssociateMouseAndMouseCursorPosition(true); // Prevents a delay after the Wrap call
     }
 }
 
-void defos_move_cursor_to(float x, float y) {
+void defos_set_cursor_pos_view(float x, float y) {
     NSView* view = dmGraphics::GetNativeOSXNSView();
     NSPoint pointInWindow = [view convertPoint: NSMakePoint(x, view.bounds.size.height - y) toView: nil];
     NSPoint windowOrigin = window.frame.origin;
@@ -262,7 +325,7 @@ static void clip_cursor(NSEvent * event) {
     }
 
     if (willClip) {
-        defos_move_cursor_to(mousePos.x, bounds.size.height - mousePos.y);
+        defos_set_cursor_pos_view(mousePos.x, bounds.size.height - mousePos.y);
     }
 }
 
@@ -324,6 +387,224 @@ void defos_reset_cursor() {
     [default_cursor retain];
     [current_cursor release];
     current_cursor = default_cursor;
+}
+
+static DisplayModeInfo parse_mode(CGDisplayModeRef mode, CVDisplayLinkRef displayLink, double rotation) {
+    DisplayModeInfo mode_info;
+    mode_info.width = CGDisplayModeGetPixelWidth(mode);
+    mode_info.height = CGDisplayModeGetPixelHeight(mode);
+    mode_info.scaling_factor = (double)mode_info.width / (double)CGDisplayModeGetWidth(mode);
+    mode_info.refresh_rate = CGDisplayModeGetRefreshRate(mode);
+
+    CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
+    mode_info.bits_per_pixel = getBPPFromModeString(pixelEncoding);
+    CFRelease(pixelEncoding);
+    mode_info.orientation = (unsigned long)rotation;
+    mode_info.reflect_x = false;
+    mode_info.reflect_y = false;
+
+    if (mode_info.refresh_rate == 0) {
+        const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(displayLink);
+        if (!(time.flags & kCVTimeIsIndefinite)) {
+            mode_info.refresh_rate = (double)time.timeScale / (double)time.timeValue;
+        }
+    }
+
+    return mode_info;
+}
+
+static io_service_t IOServicePortFromCGDisplayID(CGDirectDisplayID displayID) {
+    io_iterator_t iter;
+    io_service_t serv, servicePort = 0;
+
+    CFMutableDictionaryRef matching = IOServiceMatching("IODisplayConnect");
+
+    // releases matching for us
+    kern_return_t err = IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iter);
+    if (err) { return 0; }
+
+    while ((serv = IOIteratorNext(iter)) != 0) {
+        CFDictionaryRef displayInfo;
+        CFNumberRef vendorIDRef;
+        CFNumberRef productIDRef;
+        CFNumberRef serialNumberRef;
+
+        displayInfo = IODisplayCreateInfoDictionary(serv, kIODisplayOnlyPreferredName);
+
+        Boolean success;
+        success =  CFDictionaryGetValueIfPresent(displayInfo, CFSTR(kDisplayVendorID),  (const void**)&vendorIDRef);
+        success &= CFDictionaryGetValueIfPresent(displayInfo, CFSTR(kDisplayProductID), (const void**)&productIDRef);
+
+        if (!success) {
+            CFRelease(displayInfo);
+            continue;
+        }
+
+        SInt32 vendorID;
+        CFNumberGetValue(vendorIDRef, kCFNumberSInt32Type, &vendorID);
+        SInt32 productID;
+        CFNumberGetValue(productIDRef, kCFNumberSInt32Type, &productID);
+
+        // If a serial number is found, use it.
+        // Otherwise serial number will be nil (= 0) which will match with the output of 'CGDisplaySerialNumber'
+        SInt32 serialNumber = 0;
+        if (CFDictionaryGetValueIfPresent(displayInfo, CFSTR(kDisplaySerialNumber), (const void**)&serialNumberRef)) {
+            CFNumberGetValue(serialNumberRef, kCFNumberSInt32Type, &serialNumber);
+        }
+
+        // If the vendor and product id along with the serial don't match
+        // then we are not looking at the correct monitor.
+        // NOTE: The serial number is important in cases where two monitors
+        //       are the exact same.
+        if (CGDisplayVendorNumber(displayID) != vendorID ||
+            CGDisplayModelNumber(displayID)  != productID ||
+            CGDisplaySerialNumber(displayID) != serialNumber ) {
+            CFRelease(displayInfo);
+            continue;
+        }
+
+        servicePort = serv;
+        CFRelease(displayInfo);
+        break;
+    }
+
+    IOObjectRelease(iter);
+    return servicePort;
+}
+
+static char* get_display_name(CGDirectDisplayID displayID) {
+    NSString *screenName = nil;
+
+    NSDictionary *deviceInfo = (NSDictionary *)IODisplayCreateInfoDictionary(IOServicePortFromCGDisplayID(displayID), kIODisplayOnlyPreferredName);
+    NSDictionary *localizedNames = [deviceInfo objectForKey:[NSString stringWithUTF8String:kDisplayProductName]];
+
+    if ([localizedNames count] > 0) {
+        NSString *screenName = [localizedNames objectForKey:[[localizedNames allKeys] objectAtIndex:0]];
+        size_t nameLength = [screenName lengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
+        char *name = (char*)malloc(nameLength);
+        [screenName getCString:name maxLength:nameLength encoding:NSUTF8StringEncoding];
+        [deviceInfo release];
+        return name;
+    }
+
+    [deviceInfo release];
+    return NULL;
+}
+
+void defos_get_displays(dmArray<DisplayInfo> &displayList){
+    uint32_t numDisplays;
+    CGDirectDisplayID displays[MAX_DISPLAYS];
+    CGGetActiveDisplayList(MAX_DISPLAYS, displays, &numDisplays);
+
+    displayList.OffsetCapacity(numDisplays);
+    for (int i = 0; i < numDisplays; i++) {
+        CGDirectDisplayID displayID = displays[i];
+
+        // We don't report mirrored displays
+        if (CGDisplayIsInMirrorSet(displayID) && CGDisplayPrimaryDisplay(displayID) != displayID) {
+            continue;
+        }
+
+        DisplayInfo display;
+        display.id = (void*)(size_t)displayID;
+
+        CGRect bounds = CGDisplayBounds(displayID);
+        display.bounds.x = bounds.origin.x;
+        display.bounds.y = bounds.origin.y;
+        display.bounds.w = bounds.size.width;
+        display.bounds.h = bounds.size.height;
+
+        CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displayID);
+        CVDisplayLinkRef displayLink;
+        CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
+        double rotation = CGDisplayRotation(displayID);
+        display.mode = parse_mode(mode, displayLink, rotation);
+        CVDisplayLinkRelease(displayLink);
+        CGDisplayModeRelease(mode);
+
+        display.name = get_display_name(displayID);
+
+        displayList.Push(display);
+    }
+}
+
+void defos_get_display_modes(DisplayID displayID_, dmArray<DisplayModeInfo> &modeList) {
+    CGDirectDisplayID displayID = (CGDirectDisplayID)(size_t)displayID_;
+
+    NSDictionary *optDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+        [NSNumber numberWithBool: YES], kCGDisplayShowDuplicateLowResolutionModes, nil
+    ];
+    CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, (__bridge CFDictionaryRef)optDict);
+    [optDict release];
+
+    // Prepend the current display mode
+    int modeCount = CFArrayGetCount(modes) + 1;
+    CGDisplayModeRef* allModes = new CGDisplayModeRef[modeCount];
+    allModes[0] = CGDisplayCopyDisplayMode(displayID);
+    for (int i = 1; i < modeCount; i++) {
+        allModes[i] = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i - 1);
+    }
+
+    // Make a display link for refresh rate detection fallback
+    CVDisplayLinkRef displayLink;
+    CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
+
+    double rotation = CGDisplayRotation(displayID);
+
+    modeList.OffsetCapacity(modeCount);
+    for (int i = 0; i < modeCount; i++) {
+        CGDisplayModeRef mode = allModes[i];
+        DisplayModeInfo modeInfo = parse_mode(mode, displayLink, rotation);
+
+        // Remove duplicates
+        size_t width = CGDisplayModeGetWidth(mode);
+        size_t height = CGDisplayModeGetHeight(mode);
+        size_t pixelWidth = modeInfo.width;
+        size_t pixelHeight = modeInfo.height;
+        double refreshRate = CGDisplayModeGetRefreshRate(mode);
+        CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
+
+        bool shouldAdd = true;
+        for (int j = 0; j < i; j++) {
+            CGDisplayModeRef otherMode = allModes[j];
+            if (CFEqual(mode, otherMode)) {
+                shouldAdd = false;
+                break;
+            }
+
+            size_t otherWidth = CGDisplayModeGetWidth(otherMode);
+            size_t otherHeight = CGDisplayModeGetHeight(otherMode);
+            size_t otherPixelWidth = CGDisplayModeGetPixelWidth(otherMode);
+            size_t otherPixelHeight = CGDisplayModeGetPixelHeight(otherMode);
+            double otherRefreshRate = CGDisplayModeGetRefreshRate(otherMode);
+            CFStringRef otherPixelEncoding = CGDisplayModeCopyPixelEncoding(otherMode);
+
+            bool samePixelEncoding = (CFStringCompare(pixelEncoding, otherPixelEncoding, 0) == kCFCompareEqualTo);
+            CFRelease(pixelEncoding);
+            CFRelease(otherPixelEncoding);
+
+            if (samePixelEncoding
+                && pixelWidth == otherPixelWidth
+                && pixelHeight == otherPixelHeight
+                && width == otherWidth
+                && height == otherHeight
+                && refreshRate == otherRefreshRate
+            ) {
+                shouldAdd = false;
+                break;
+            }
+        }
+
+        if (shouldAdd) { modeList.Push(modeInfo); }
+    }
+
+    CVDisplayLinkRelease(displayLink);
+    CGDisplayModeRelease(allModes[0]);
+    CFRelease(modes);
+}
+
+DisplayID defos_get_current_display() {
+    return (void*)(size_t)[[[[window screen] deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue];
 }
 
 @interface DefOSMouseTracker : NSResponder

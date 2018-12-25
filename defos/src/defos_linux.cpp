@@ -57,8 +57,14 @@ static Atom NET_WM_ACTION_MAXIMIZE_VERT;
 static Atom NET_WM_ACTION_MINIMIZE;
 static Atom NET_FRAME_EXTENTS;
 
-static Cursor custom_cursor; // image cursor
-static bool has_custom_cursor = false;
+struct CustomCursor {
+    Cursor cursor;
+    int ref_count;
+};
+
+static CustomCursor * current_cursor;
+static CustomCursor * default_cursors[DEFOS_CURSOR_INTMAX];
+
 static Cursor invisible_cursor;
 static bool is_cursor_visible = true;
 static bool resize_locked = false;
@@ -100,16 +106,18 @@ void defos_init()
     XFreePixmap(disp, bitmapNoData);
 
     is_cursor_visible = true;
+
+    current_cursor = NULL;
+    memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));
 }
 
 void defos_final()
 {
-    if (has_custom_cursor)
-    {
-        XFreeCursor(disp, custom_cursor);
-        has_custom_cursor = false;
-    }
     XFreeCursor(disp, invisible_cursor);
+    defos_gc_custom_cursor(current_cursor);
+    for (int i = 0; i < DEFOS_CURSOR_INTMAX; i++) {
+        defos_gc_custom_cursor(default_cursors[i]);
+    }
 }
 
 void defos_event_handler_was_set(DefosEvent event)
@@ -258,7 +266,7 @@ void defos_set_cursor_visible(bool visible)
     is_cursor_visible = visible;
     if (visible)
     {
-        XDefineCursor(disp, win, has_custom_cursor ? custom_cursor : None);
+        XDefineCursor(disp, win, current_cursor ? current_cursor->cursor : None);
     } else {
         XDefineCursor(disp, win, invisible_cursor);
     }
@@ -493,34 +501,54 @@ void defos_update()
 {
 }
 
-void defos_set_custom_cursor_linux(const char *filename)
+void * defos_load_cursor_linux(const char *filename)
 {
-    Cursor cursor = XcursorFilenameLoadCursor(disp, filename);
-    if (is_cursor_visible) { XDefineCursor(disp, win, cursor); }
-    if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
-    custom_cursor = cursor;
-    has_custom_cursor = true;
+    CustomCursor * cursor = new CustomCursor();
+    cursor->cursor = XcursorFilenameLoadCursor(disp, filename);
+    cursor->ref_count = 1;
+    return cursor;
+}
+
+void defos_gc_custom_cursor(void * _cursor)
+{
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    cursor->ref_count -= 1;
+    if (!cursor->ref_count) {
+        XFreeCursor(disp, cursor->cursor);
+        delete cursor;
+    }
+}
+
+void defos_set_custom_cursor(void * _cursor)
+{
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    cursor->ref_count += 1;
+
+    if (is_cursor_visible) { XDefineCursor(disp, win, cursor->cursor); }
+
+    defos_gc_custom_cursor(current_cursor);
+    current_cursor = cursor;
 }
 
 static unsigned int get_cursor(DefosCursor cursor);
 
 void defos_set_cursor(DefosCursor cursor_type)
 {
-    Cursor cursor = XCreateFontCursor(disp, get_cursor(cursor_type));
-    if (is_cursor_visible) { XDefineCursor(disp, win, cursor); }
-    if (has_custom_cursor) { XFreeCursor(disp, custom_cursor); }
-    custom_cursor = cursor;
-    has_custom_cursor = true;
+    CustomCursor * cursor = default_cursors[cursor_type];
+    if (!cursor) {
+        cursor = new CustomCursor();
+        cursor->cursor = XCreateFontCursor(disp, get_cursor(cursor_type));
+        cursor->ref_count = 1;
+        default_cursors[cursor_type] = cursor;
+    }
+    defos_set_custom_cursor(cursor);
 }
 
 void defos_reset_cursor()
 {
-    if (has_custom_cursor)
-    {
-        if (is_cursor_visible) { XUndefineCursor(disp, win); }
-        XFreeCursor(disp, custom_cursor);
-        has_custom_cursor = false;
-    }
+    if (is_cursor_visible) { XUndefineCursor(disp, win); }
+    defos_gc_custom_cursor(current_cursor);
+    current_cursor = NULL;
 }
 
 static unsigned int get_cursor(DefosCursor cursor)

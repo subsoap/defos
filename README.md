@@ -231,14 +231,10 @@ end)
 
 ---
 
-**Set custom hardware cursors**. `cursor` can be one of the following:
-  * `nil`: Resets the cursor to default. Equivalent to `defos.reset_cursor()`.
-  * `defos.CURSOR_ARROW`
-  * `defos.CURSOR_HAND`
-  * `defos.CURSOR_CROSSHAIR`
-  * `defos.CURSOR_IBEAM`
-  * On HTML5, an URL to an image (data URLs work as well)
+**Load custom hardware cursors**. `cursor_data` must be:
+  * On HTML5, an URL to an image (data URLs work as well).
   * On Windows, a path to an `.ani` or `.cur` file on the file system.
+  * On Linux, a path to an X11 cursor file on the file system.
   * On macOS, a table of the form:  
   ```lua
   {
@@ -256,6 +252,21 @@ The hotspot is an anchor point within the image that will overlap with the
 functional position of the mouse pointer (eg. the tip of the arrow).
 
 [cursor-tiff]: https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Optimizing/Optimizing.html#//apple_ref/doc/uid/TP40012302-CH7-SW27
+
+```lua
+local cursor = defos.load_cursor(cursor_data)
+```
+
+---
+
+**Set custom hardware cursors**. `cursor` can be one of the following:
+  * `nil`: Resets the cursor to default. Equivalent to `defos.reset_cursor()`.
+  * `defos.CURSOR_ARROW`
+  * `defos.CURSOR_HAND`
+  * `defos.CURSOR_CROSSHAIR`
+  * `defos.CURSOR_IBEAM`
+  * A `cursor` value obtained with `defos.load_cursor()`.
+  * A `cursor_data` value that will be used to create a single-use cursor. See `defos.load_cursor()` above for supported values.
 
 ```lua
 defos.set_cursor(cursor)

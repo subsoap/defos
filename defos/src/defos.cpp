@@ -291,6 +291,75 @@ static int is_cursor_locked(lua_State *L)
     return 1;
 }
 
+static int cursor_metatable;
+
+static void *load_custom_cursor(lua_State *L, int index)
+{
+    #ifdef DM_PLATFORM_WINDOWS
+    const char *cursor_path_lua = luaL_checkstring(L, index);
+    return defos_load_cursor_win(cursor_path_lua);
+    #endif
+
+    #ifdef DM_PLATFORM_LINUX
+    const char *cursor_path_lua = luaL_checkstring(L, index);
+    return defos_load_cursor_linux(cursor_path_lua);
+    return 0;
+
+    // TODO: X11 support animated cursor by XRender
+    #endif
+
+    #ifdef DM_PLATFORM_OSX
+    luaL_checktype(L, index, LUA_TTABLE);
+
+    lua_getfield(L, index, "hot_spot_x");
+    float hotSpotX = 0.0f;
+    if (!lua_isnil(L, -1))
+    {
+        hotSpotX = luaL_checknumber(L, -1);
+    }
+
+    lua_getfield(L, index, "hot_spot_y");
+    float hotSpotY = 0.0f;
+    if (!lua_isnil(L, -1))
+    {
+        hotSpotY = luaL_checknumber(L, -1);
+    }
+
+    lua_getfield(L, index, "image");
+    dmBuffer::HBuffer image = dmScript::CheckBuffer(L, -1)->m_Buffer;
+
+    void *cursor = defos_load_cursor_mac(image, hotSpotX, hotSpotY);
+    lua_pop(L, 3);
+    return cursor;
+    #endif
+
+    #ifdef DM_PLATFORM_HTML5
+    const char * cursor_url = luaL_checkstring(L, 1);
+    return defos_load_cursor_html5(cursor_url);
+    #endif
+
+    lua_pushstring(L, "Invalid argument");
+    lua_error(L);
+    return NULL;
+}
+
+static int load_cursor(lua_State *L)
+{
+    void ** userdata = (void**)lua_newuserdata(L, sizeof(void*));
+    *userdata = load_custom_cursor(L, 1);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, cursor_metatable);
+    lua_setmetatable(L, -2);
+    return 1;
+}
+
+static int gc_cursor(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TUSERDATA);
+    void **cursor = (void**)lua_touserdata(L, 1);
+    defos_gc_custom_cursor(*cursor);
+    return 0;
+}
+
 static int set_cursor(lua_State *L)
 {
     if (lua_isnil(L, 1))
@@ -306,53 +375,16 @@ static int set_cursor(lua_State *L)
         return 0;
     }
 
-    #ifdef DM_PLATFORM_WINDOWS
-    const char *cursor_path_lua = luaL_checkstring(L, 1);
-    defos_set_custom_cursor_win(cursor_path_lua);
-    return 0;
-    #endif
-
-    #ifdef DM_PLATFORM_LINUX
-    const char *cursor_path_lua = luaL_checkstring(L,1);
-    defos_set_custom_cursor_linux(cursor_path_lua);
-    return 0;
-
-    // TODO: X11 support animated cursor by XRender
-    #endif
-
-    #ifdef DM_PLATFORM_OSX
-    luaL_checktype(L, 1, LUA_TTABLE);
-
-    lua_getfield(L, 1, "hot_spot_x");
-    float hotSpotX = 0.0f;
-    if (!lua_isnil(L, -1))
+    if (lua_isuserdata(L, 1))
     {
-        hotSpotX = luaL_checknumber(L, -1);
+        void **cursor = (void**)lua_touserdata(L, 1);
+        defos_set_custom_cursor(*cursor);
+        return 0;
     }
 
-    lua_getfield(L, 1, "hot_spot_y");
-    float hotSpotY = 0.0f;
-    if (!lua_isnil(L, -1))
-    {
-        hotSpotY = luaL_checknumber(L, -1);
-    }
-
-    lua_getfield(L, 1, "image");
-    dmBuffer::HBuffer image = dmScript::CheckBuffer(L, -1)->m_Buffer;
-
-    defos_set_custom_cursor_mac(image, hotSpotX, hotSpotY);
-    lua_pop(L, 3);
-    return 0;
-    #endif
-
-    #ifdef DM_PLATFORM_HTML5
-    const char * cursor_url = luaL_checkstring(L, 1);
-    defos_set_custom_cursor_html5(cursor_url);
-    return 0;
-    #endif
-
-    lua_pushstring(L, "Invalid argument");
-    lua_error(L);
+    void *custom_cursor = load_custom_cursor(L, 1);
+    defos_set_custom_cursor(custom_cursor);
+    defos_gc_custom_cursor(custom_cursor);
     return 0;
 }
 
@@ -604,6 +636,7 @@ static const luaL_reg Module_methods[] =
         {"get_view_size", get_view_size},
         {"set_cursor", set_cursor},
         {"reset_cursor", reset_cursor},
+        {"load_cursor", load_cursor},
         {"get_displays", get_displays},
         {"get_display_modes", get_display_modes},
         {"get_current_display_id", get_current_display_id},
@@ -634,6 +667,11 @@ static void LuaInit(lua_State *L)
     lua_pushstring(L, "/");
     lua_setfield(L, -2, "PATH_SEP");
     #endif
+
+    lua_newtable(L);
+    lua_pushcfunction(L, gc_cursor);
+    lua_setfield(L, -2, "__gc");
+    cursor_metatable = dmScript::Ref(L, LUA_REGISTRYINDEX);
 
     lua_pop(L, 1);
     assert(top == lua_gettop(L));

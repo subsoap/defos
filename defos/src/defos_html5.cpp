@@ -7,8 +7,13 @@
 #include <emscripten.h>
 #include <stdlib.h>
 
+struct CustomCursor {
+    int ref_count;
+    char url[];
+};
+
 static const char * current_cursor = "default";
-static bool current_cursor_needs_free = false;
+static CustomCursor * current_custom_cursor = NULL;
 static bool is_maximized = false;
 static bool is_mouse_inside = false;
 static bool is_cursor_visible = true;
@@ -38,7 +43,7 @@ extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) 
 
 void defos_init() {
     current_cursor = "default";
-    current_cursor_needs_free = false;
+    current_custom_cursor = NULL;
     EM_ASM_({
         Module.__defosjs_mouseenter_listener = function () {
             _defos_emit_event_from_js($0);
@@ -86,9 +91,9 @@ void defos_init() {
 }
 
 void defos_final() {
-    if (current_cursor_needs_free) {
-        current_cursor_needs_free = false;
-        free((void*)current_cursor);
+    if (current_custom_cursor) {
+        defos_gc_custom_cursor(current_custom_cursor);
+        current_custom_cursor = NULL;
     }
     EM_ASM(
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
@@ -309,6 +314,42 @@ bool defos_is_cursor_locked() {
     return is_cursor_locked;
 }
 
+void *defos_load_cursor_html5(const char *url) {
+    size_t len = strlen(url);
+    CustomCursor * cursor = (CustomCursor*)malloc(sizeof(CustomCursor) + len + 12);
+    cursor->ref_count = 1;
+    strcpy(cursor->url, "url(");
+    strcpy(cursor->url + 4, url);
+    strcpy(cursor->url + 4 + len, "), auto");
+    return cursor;
+}
+
+void defos_gc_custom_cursor(void *_cursor) {
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    if (!cursor) { return; }
+    cursor->ref_count -= 1;
+    if (!cursor->ref_count) {
+        free(cursor);
+    }
+}
+
+static void update_cursor() {
+    if (is_cursor_visible) {
+        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+    }
+}
+
+void defos_set_custom_cursor(void *_cursor) {
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    cursor->ref_count += 1;
+    defos_gc_custom_cursor(current_custom_cursor);
+
+    current_cursor = cursor->url;
+    current_custom_cursor = cursor;
+
+    update_cursor();
+}
+
 static const char * get_cursor(DefosCursor cursor) {
     switch (cursor) {
         case DEFOS_CURSOR_ARROW:
@@ -325,45 +366,17 @@ static const char * get_cursor(DefosCursor cursor) {
 }
 
 void defos_set_cursor(DefosCursor cursor) {
-    if (current_cursor_needs_free) {
-        free((void*)current_cursor);
-    }
+    defos_gc_custom_cursor(current_custom_cursor);
     current_cursor = get_cursor(cursor);
-    current_cursor_needs_free = false;
-
-    if (is_cursor_visible) {
-        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
-    }
-}
-
-extern void defos_set_custom_cursor_html5(const char *url) {
-    size_t len = strlen(url);
-    char * buffer = (char*)malloc(len + 12);
-    strcpy(buffer, "url(");
-    strcpy(buffer + 4, url);
-    strcpy(buffer + 4 + len, "), auto");
-
-    if (current_cursor_needs_free) {
-        free((void*)current_cursor);
-    }
-    current_cursor = buffer;
-    current_cursor_needs_free = true;
-
-    if (is_cursor_visible) {
-        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
-    }
+    current_custom_cursor = NULL;
+    update_cursor();
 }
 
 void defos_reset_cursor() {
-    if (current_cursor_needs_free) {
-        free((void*)current_cursor);
-    }
+    defos_gc_custom_cursor(current_custom_cursor);
     current_cursor = "default";
-    current_cursor_needs_free = false;
-
-    if (is_cursor_visible) {
-        EM_ASM(Module.canvas.style.cursor = 'default';);
-    }
+    current_custom_cursor = NULL;
+    update_cursor();
 }
 
 void defos_get_displays(dmArray<DisplayInfo> &displayList) {

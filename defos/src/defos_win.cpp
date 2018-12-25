@@ -27,8 +27,14 @@ static bool is_window_on_top = false;
 static bool is_window_active = true;
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
-static HCURSOR custom_cursor;
-static HCURSOR original_cursor; // used to restore
+
+struct CustomCursor {
+    HCURSOR cursor;
+    int ref_count;
+};
+
+static CustomCursor * current_cursor;
+static CustomCursor * default_cursors[DEFOS_CURSOR_INTMAX];
 
 // forward declarations
 bool set_window_style(LONG_PTR style);
@@ -47,8 +53,9 @@ void defos_init()
     is_window_on_top = false;
     is_mouse_inside = false;
     is_cursor_clipped = false;
+    current_cursor = NULL;
+    memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));
     GetClipCursor(&originalRect);  // keep the original clip for restore
-    original_cursor = GetCursor(); // keep the original cursor
     GetWindowPlacement(dmGraphics::GetNativeWindowsHWND(), &placement);
     subclass_window();
 }
@@ -57,6 +64,10 @@ void defos_final()
 {
     defos_set_cursor_clipped(false);
     restore_window_class();
+    defos_gc_custom_cursor(current_cursor);
+    for (int i = 0; i < DEFOS_CURSOR_INTMAX; i++) {
+        defos_gc_custom_cursor(default_cursors[i]);
+    }
 }
 
 void defos_event_handler_was_set(DefosEvent event)
@@ -410,29 +421,50 @@ void defos_update() {
     }
 }
 
-// path of the cursor file,
-// for defold it we can save the cursor file to the save folder or use bundle resources,
-// then pass the path to this function to load
-void defos_set_custom_cursor_win(const char *filename)
+void * defos_load_cursor_win(const char *filename)
 {
-    custom_cursor = LoadCursorFromFile(_T(filename));
-    SetCursor(custom_cursor);
-    is_custom_cursor_loaded = true;
+    CustomCursor * cursor = new CustomCursor();
+    cursor->cursor = LoadCursorFromFile(_T(filename));
+    cursor->ref_count = 1;
+    return cursor;
+}
+
+void defos_gc_custom_cursor(void * _cursor)
+{
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    cursor->ref_count -= 1;
+    if (!cursor->ref_count) {
+        delete cursor;
+    }
+}
+
+void defos_set_custom_cursor(void * _cursor)
+{
+    CustomCursor * cursor = (CustomCursor*)_cursor;
+    cursor->ref_count += 1;
+    defos_gc_custom_cursor(current_cursor);
+    current_cursor = cursor;
+    SetCursor(current_cursor->cursor);
 }
 
 static LPCTSTR get_cursor(DefosCursor cursor);
 
-void defos_set_cursor(DefosCursor cursor)
+void defos_set_cursor(DefosCursor cursor_type)
 {
-    custom_cursor = LoadCursor(NULL, get_cursor(cursor));
-    SetCursor(custom_cursor);
-    is_custom_cursor_loaded = true;
+    CustomCursor * cursor = default_cursors[cursor_type];
+    if (!cursor) {
+        cursor = new CustomCursor();
+        cursor->cursor = LoadCursor(NULL, get_cursor(cursor_type));
+        cursor->ref_count = 1;
+        default_cursors[cursor_type] = cursor;
+    }
+    defos_set_custom_cursor(cursor);
 }
 
 void defos_reset_cursor()
 {
-    // here we do not need to set cursor again, as we already ignore that in winproc
-    is_custom_cursor_loaded = false;
+    defos_gc_custom_cursor(current_cursor);
+    current_cursor = NULL;
 }
 
 static char* copy_string(const char *s)
@@ -664,9 +696,9 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
         break;
 
     case WM_SETCURSOR:
-        if (is_custom_cursor_loaded)
+        if (current_cursor)
         {
-            SetCursor(custom_cursor);
+            SetCursor(current_cursor->cursor);
             return TRUE;
         }
         break;

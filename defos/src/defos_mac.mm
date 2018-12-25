@@ -53,6 +53,7 @@ void defos_init() {
     // [window disableCursorRects];
     // [window resetCursorRects];
     default_cursor = NSCursor.arrowCursor;
+    [default_cursor retain];
     current_cursor = default_cursor;
     [current_cursor retain];
     enable_mouse_tracking();
@@ -60,8 +61,10 @@ void defos_init() {
 
 void defos_final() {
     disable_mouse_tracking();
+    [default_cursor release];
     [current_cursor release];
     current_cursor = nil;
+    default_cursor = nil;
 }
 
 void defos_update() {
@@ -338,24 +341,37 @@ bool defos_is_cursor_locked() {
     return is_cursor_locked;
 }
 
-void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {
-    uint8_t* bytes = NULL;
-    uint32_t size = 0;
-    if (dmBuffer::GetBytes(buffer, (void**)&bytes, &size) != dmBuffer::RESULT_OK) {
-        dmLogError("defos_set_custom_cursor_mac: dmBuffer::GetBytes failed");
-        return;
+void *defos_load_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY) {
+    @autoreleasepool {
+        uint8_t* bytes = NULL;
+        uint32_t size = 0;
+        if (dmBuffer::GetBytes(buffer, (void**)&bytes, &size) != dmBuffer::RESULT_OK) {
+            dmLogError("defos_set_custom_cursor_mac: dmBuffer::GetBytes failed");
+            return NULL;
+        }
+
+        uint8_t* copy = (uint8_t*)malloc(size);
+        memcpy(copy, bytes, size);
+        NSData * data = [[NSData alloc] initWithBytesNoCopy:copy length:size freeWhenDone:YES];
+        NSImage * image = [[NSImage alloc] initWithData:data];
+        NSCursor * cursor = [[NSCursor alloc] initWithImage:image hotSpot:NSMakePoint(hotSpotX, hotSpotY)];
+
+        [image release];
+        [data release];
+        return cursor;
     }
+}
 
-    uint8_t* copy = (uint8_t*)malloc(size);
-    memcpy(copy, bytes, size);
-    NSData * data = [[NSData alloc] initWithBytesNoCopy:copy length:size freeWhenDone:YES];
+void defos_gc_custom_cursor(void * _cursor) {
+    NSCursor * cursor = (NSCursor*)_cursor;
+    [cursor release];
+}
 
-    NSImage * image = [[NSImage alloc] initWithData:data];
-    NSCursor * cursor = [[NSCursor alloc] initWithImage:image hotSpot:NSMakePoint(hotSpotX, hotSpotY)];
+void defos_set_custom_cursor(void * _cursor) {
+    NSCursor * cursor = (NSCursor*)_cursor;
+    [cursor retain];
     [current_cursor release];
     current_cursor = cursor;
-    [image release];
-    [data release];
     [current_cursor set];
 }
 
@@ -376,10 +392,10 @@ static NSCursor * get_cursor(DefosCursor cursor) {
 
 void defos_set_cursor(DefosCursor cur) {
     NSCursor * cursor = get_cursor(cur);
-    [cursor set];
     [cursor retain];
     [current_cursor release];
     current_cursor = cursor;
+    [current_cursor set];
 }
 
 void defos_reset_cursor() {

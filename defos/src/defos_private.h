@@ -107,10 +107,12 @@ extern bool defos_is_cursor_clipped();
 extern void defos_set_cursor_locked(bool locked);
 extern bool defos_is_cursor_locked();
 
-extern void defos_set_custom_cursor_html5(const char *url);
-extern void defos_set_custom_cursor_win(const char *filename);
-extern void defos_set_custom_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
-extern void defos_set_custom_cursor_linux(const char *filename);
+extern void *defos_load_cursor_html5(const char *url);
+extern void *defos_load_cursor_win(const char *filename);
+extern void *defos_load_cursor_mac(dmBuffer::HBuffer buffer, float hotSpotX, float hotSpotY);
+extern void *defos_load_cursor_linux(const char *filename);
+extern void defos_gc_custom_cursor(void *cursor);
+extern void defos_set_custom_cursor(void *cursor);
 extern void defos_set_cursor(DefosCursor cursor);
 extern void defos_reset_cursor();
 

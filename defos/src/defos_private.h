@@ -27,10 +27,11 @@ typedef enum {
 } DefosEvent;
 
 typedef enum {
-    DEFOS_CURSOR_ARROW,
+    DEFOS_CURSOR_ARROW = 0,
     DEFOS_CURSOR_CROSSHAIR,
     DEFOS_CURSOR_HAND,
     DEFOS_CURSOR_IBEAM,
+    DEFOS_CURSOR_INTMAX,
 } DefosCursor;
 
 #ifdef DM_PLATFORM_WINDOWS

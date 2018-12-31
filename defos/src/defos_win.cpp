@@ -432,6 +432,7 @@ void * defos_load_cursor_win(const char *filename)
 void defos_gc_custom_cursor(void * _cursor)
 {
     CustomCursor * cursor = (CustomCursor*)_cursor;
+    if (!cursor) { return; }
     cursor->ref_count -= 1;
     if (!cursor->ref_count) {
         delete cursor;

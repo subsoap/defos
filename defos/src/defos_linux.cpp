@@ -504,7 +504,14 @@ void defos_update()
 void * defos_load_cursor_linux(const char *filename)
 {
     CustomCursor * cursor = new CustomCursor();
-    cursor->cursor = XcursorFilenameLoadCursor(disp, filename);
+    int cursorSize = XcursorGetDefaultSize(disp);
+    XcursorImage * image = XcursorFilenameLoadImage(filename, cursorSize);
+    if (image) {
+      cursor->cursor = XcursorImageLoadCursor(disp, image);
+      XcursorImageDestroy(image);
+    } else {
+      cursor->cursor = invisible_cursor;
+    }
     cursor->ref_count = 1;
     return cursor;
 }

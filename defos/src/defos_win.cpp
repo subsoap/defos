@@ -704,6 +704,10 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
         }
         break;
 
+    case WM_WINDOWPOSCHANGED:
+        if (is_cursor_clipped) { defos_set_cursor_clipped(true); }
+        break;
+
     case WM_ACTIVATE:
         if (wp != WA_INACTIVE)
         {

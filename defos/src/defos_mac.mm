@@ -1,4 +1,6 @@
+#ifndef DLIB_LOG_DOMAIN
 #define DLIB_LOG_DOMAIN "defos"
+#endif
 #include <dmsdk/sdk.h>
 
 #if defined(DM_PLATFORM_OSX)

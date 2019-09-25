@@ -13,7 +13,6 @@
 /* TODO:
  ON_MOUSE_ENTER / ON_MOUSE_LEAVE
  cursor locking
- cursor clipping
  setting the window icon
 */
 

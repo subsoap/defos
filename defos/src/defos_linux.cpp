@@ -108,6 +108,7 @@ void defos_init()
     XFreePixmap(disp, bitmapNoData);
 
     is_cursor_visible = true;
+    is_cursor_clipped = false;
 
     current_cursor = NULL;
     memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));

@@ -69,6 +69,8 @@ static Cursor invisible_cursor;
 static bool is_cursor_visible = true;
 static bool resize_locked = false;
 
+static bool is_cursor_clipped = false;
+
 static bool is_window_visible(Window window);
 static void send_message(Window &window, Atom type, long a, long b, long c, long d, long e);
 
@@ -479,12 +481,31 @@ void defos_set_cursor_pos_view(float x, float y)
 
 void defos_set_cursor_clipped(bool clipped)
 {
-    dmLogWarning("Method 'set_cursor_clipped' is not supported on Linux");
+    if (clipped == is_cursor_clipped) { return; }
+    is_cursor_clipped = clipped;
+    if (clipped)
+    {
+        XGrabPointer(disp, win, true, ButtonPressMask |
+                ButtonReleaseMask |
+                PointerMotionMask |
+                FocusChangeMask |
+                EnterWindowMask |
+                LeaveWindowMask, GrabModeAsync, GrabModeAsync, win,
+                current_cursor ? current_cursor->cursor : None, CurrentTime);
+    } else {
+        XGrabPointer(disp, win, true, ButtonPressMask |
+                ButtonReleaseMask |
+                PointerMotionMask |
+                FocusChangeMask |
+                EnterWindowMask |
+                LeaveWindowMask, GrabModeAsync, GrabModeAsync, None,
+                current_cursor ? current_cursor->cursor : None, CurrentTime) ;
+    };
 }
 
 bool defos_is_cursor_clipped()
 {
-    return false;
+    return is_cursor_clipped;
 }
 
 void defos_set_cursor_locked(bool locked)

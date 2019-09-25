@@ -266,9 +266,21 @@ void defos_set_cursor_visible(bool visible)
     is_cursor_visible = visible;
     if (visible)
     {
-        XDefineCursor(disp, win, current_cursor ? current_cursor->cursor : None);
+        XGrabPointer(disp, win, true, ButtonPressMask |
+                ButtonReleaseMask |
+                PointerMotionMask |
+                FocusChangeMask |
+                EnterWindowMask |
+                LeaveWindowMask, GrabModeAsync, GrabModeAsync, None,
+                current_cursor ? current_cursor->cursor : None, CurrentTime);
     } else {
-        XDefineCursor(disp, win, invisible_cursor);
+        XGrabPointer(disp, win, true, ButtonPressMask |
+                ButtonReleaseMask |
+                PointerMotionMask |
+                FocusChangeMask |
+                EnterWindowMask |
+                LeaveWindowMask, GrabModeAsync, GrabModeAsync, None,
+                invisible_cursor, CurrentTime);
     }
 }
 

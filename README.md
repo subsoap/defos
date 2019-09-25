@@ -207,7 +207,7 @@ defos.set_cursor_pos_view(x, y) -- In game view coordinates
 
 **Clip cursor** to current game view area.
 
-Not supported on Linux and HTML5.
+Not supported on HTML5.
 
 ```lua
 defos.set_cursor_clipped(bool_value)

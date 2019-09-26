@@ -23,6 +23,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/Xfixes.h>
 #include <Xcursor.h>
 #include <Xrandr.h>
 
@@ -266,21 +267,11 @@ void defos_set_cursor_visible(bool visible)
     is_cursor_visible = visible;
     if (visible)
     {
-        XGrabPointer(disp, win, true, ButtonPressMask |
-                ButtonReleaseMask |
-                PointerMotionMask |
-                FocusChangeMask |
-                EnterWindowMask |
-                LeaveWindowMask, GrabModeAsync, GrabModeAsync, None,
-                current_cursor ? current_cursor->cursor : None, CurrentTime);
+		XFixesShowCursor(disp, win);
+		XFlush(disp);
     } else {
-        XGrabPointer(disp, win, true, ButtonPressMask |
-                ButtonReleaseMask |
-                PointerMotionMask |
-                FocusChangeMask |
-                EnterWindowMask |
-                LeaveWindowMask, GrabModeAsync, GrabModeAsync, None,
-                invisible_cursor, CurrentTime);
+		XFixesHideCursor(disp, win);
+		XFlush(disp);
     }
 }
 

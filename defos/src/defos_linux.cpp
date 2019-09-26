@@ -260,16 +260,20 @@ void defos_disable_window_resize()
     lock_resize(w, h);
 }
 
+static void apply_cursor() {
+    Cursor cursor = is_cursor_visible
+        ? (current_cursor ? current_cursor->cursor : None)
+        : invisible_cursor;
+
+    // XGrabPointer(disp, win, true, 0, GrabModeAsync, GrabModeAsync, None, cursor, CurrentTime);
+    XDefineCursor(disp, win, cursor);
+}
+
 void defos_set_cursor_visible(bool visible)
 {
     if (visible == is_cursor_visible) { return; }
     is_cursor_visible = visible;
-    if (visible)
-    {
-        XDefineCursor(disp, win, current_cursor ? current_cursor->cursor : None);
-    } else {
-        XDefineCursor(disp, win, invisible_cursor);
-    }
+    apply_cursor();
 }
 
 bool defos_is_cursor_visible()
@@ -529,13 +533,15 @@ void defos_gc_custom_cursor(void * _cursor)
 
 void defos_set_custom_cursor(void * _cursor)
 {
+    CustomCursor * old_cursor = current_cursor;
+
     CustomCursor * cursor = (CustomCursor*)_cursor;
     cursor->ref_count += 1;
-
-    if (is_cursor_visible) { XDefineCursor(disp, win, cursor->cursor); }
-
-    defos_gc_custom_cursor(current_cursor);
     current_cursor = cursor;
+
+    apply_cursor();
+
+    defos_gc_custom_cursor(old_cursor);
 }
 
 static unsigned int get_cursor(DefosCursor cursor);

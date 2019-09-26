@@ -826,6 +826,7 @@ char* defos_get_bundle_root()
     char* path = (char*)malloc(PATH_MAX + 2);
     ssize_t ret = readlink("/proc/self/exe", path, PATH_MAX + 2);
     if (ret >= 0 && ret <= PATH_MAX + 1) {
+        path[ret] = '\0';
         result = copy_string(dirname(path));
     } else {
         const char* path2 = (const char*)getauxval(AT_EXECFN);

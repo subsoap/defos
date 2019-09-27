@@ -518,7 +518,7 @@ void defos_update()
 
 	// Cursor enter/exit events
 	bool state = defos_is_mouse_in_view();
-	if (state != is_cursor_in_view)
+	if (state != is_cursor_in_view && window_has_focus)
 	{
 		switch(state)
 		{

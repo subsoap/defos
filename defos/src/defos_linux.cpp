@@ -262,11 +262,7 @@ void defos_disable_window_resize()
 }
 
 static void apply_cursor() {
-    Cursor cursor = is_cursor_visible
-        ? (current_cursor ? current_cursor->cursor : None)
-        : invisible_cursor;
-
-    // XGrabPointer(disp, win, true, 0, GrabModeAsync, GrabModeAsync, None, cursor, CurrentTime);
+    Cursor cursor = current_cursor ? current_cursor->cursor : None;
     XDefineCursor(disp, win, cursor);
 }
 
@@ -275,14 +271,12 @@ void defos_set_cursor_visible(bool visible)
     if (visible == is_cursor_visible) { return; }
     is_cursor_visible = visible;
 
-    if (visible)
-    {
+    if (visible) {
 		    XFixesShowCursor(disp, win);
-		    XFlush(disp);
     } else {
 		    XFixesHideCursor(disp, win);
-		    XFlush(disp);
     }
+    XFlush(disp);
 }
 
 bool defos_is_cursor_visible()

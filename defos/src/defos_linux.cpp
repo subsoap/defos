@@ -66,7 +66,6 @@ struct CustomCursor {
 static CustomCursor * current_cursor;
 static CustomCursor * default_cursors[DEFOS_CURSOR_INTMAX];
 
-static Cursor invisible_cursor;
 static bool is_cursor_visible = true;
 static bool resize_locked = false;
 
@@ -95,17 +94,6 @@ void defos_init()
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
 
     resize_locked = false;
-
-    // Create invisible cursor
-    Pixmap bitmapNoData;
-    XColor black;
-    static char noData[] = { 0,0,0,0,0,0,0,0 };
-    black.red = black.green = black.blue = 0;
-
-    bitmapNoData = XCreateBitmapFromData(disp, win, noData, 8, 8);
-    invisible_cursor = XCreatePixmapCursor(disp, bitmapNoData, bitmapNoData, &black, &black, 0, 0);
-    XFreePixmap(disp, bitmapNoData);
-
     is_cursor_visible = true;
 
     current_cursor = NULL;
@@ -114,7 +102,6 @@ void defos_init()
 
 void defos_final()
 {
-    XFreeCursor(disp, invisible_cursor);
     defos_gc_custom_cursor(current_cursor);
     for (int i = 0; i < DEFOS_CURSOR_INTMAX; i++) {
         defos_gc_custom_cursor(default_cursors[i]);
@@ -517,7 +504,7 @@ void * defos_load_cursor_linux(const char *filename)
       cursor->cursor = XcursorImageLoadCursor(disp, image);
       XcursorImageDestroy(image);
     } else {
-      cursor->cursor = invisible_cursor;
+      cursor->cursor = XCreateFontCursor(disp, XC_left_ptr);
     }
     cursor->ref_count = 1;
     return cursor;

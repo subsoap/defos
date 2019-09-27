@@ -172,8 +172,6 @@ bool_value = defos.is_cursor_visible()
 
 **Respond to the mouse entering and leaving** the game view area.
 
-`on_mouse_enter()` / `on_mouse_leave()` not supported on Linux yet.
-
 ```lua
 bool_value = defos.is_mouse_in_view()
 defos.on_mouse_enter(function ()

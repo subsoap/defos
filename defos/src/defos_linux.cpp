@@ -74,6 +74,9 @@ static bool resize_locked = false;
 static bool is_window_visible(Window window);
 static void send_message(Window &window, Atom type, long a, long b, long c, long d, long e);
 
+static int last_cursor_event;
+static XEvent cursor_event;
+
 void defos_init()
 {
     disp = XOpenDisplay(NULL);
@@ -102,6 +105,9 @@ void defos_init()
 
     current_cursor = NULL;
     memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));
+
+	// Get enter/exit cursor events
+	XSelectInput(disp, win, EnterWindowMask | LeaveWindowMask);
 }
 
 void defos_final()
@@ -504,6 +510,7 @@ bool defos_is_cursor_locked()
 
 void defos_update()
 {
+	// Show/hide cursor when window is focused/unfocused
     Window focused_window;
     int revert_to;
     if (!XGetInputFocus(disp, &focused_window, &revert_to)) {
@@ -512,6 +519,24 @@ void defos_update()
 
     window_has_focus = focused_window == win;
     apply_cursor_visible();
+
+	// Cursor enter/exit events
+	if (last_cursor_event != cursor_event.type)
+	{
+		switch (cursor_event.type)
+		{
+		case LeaveNotify:
+			defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
+			break;
+		case EnterNotify:
+			defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+			break;
+		}
+	}
+	
+	last_cursor_event = cursor_event.type;
+	while(XPending(disp))
+		XNextEvent(disp, &cursor_event);
 }
 
 void * defos_load_cursor_linux(const char *filename)

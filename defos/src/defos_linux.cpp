@@ -516,21 +516,13 @@ void defos_update()
     window_has_focus = focused_window == win;
     apply_cursor_visible();
 
-	// Cursor enter/exit events
-	bool state = defos_is_mouse_in_view();
-	if (state != is_cursor_in_view && window_has_focus)
-	{
-		switch(state)
-		{
-			case true:
-				defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
-				break;
-			case false:
-				defos_emit_event(DEFOS_EVENT_MOUSE_LEAVE);
-				break;
-		}
-		is_cursor_in_view = state;
-	}
+    // Cursor enter/exit events
+    bool visible = defos_is_mouse_in_view() && window_has_focus;
+    if (visible != is_cursor_in_view)
+    {
+        is_cursor_in_view = visible;
+        defos_emit_event(current_state ? DEFOS_EVENT_MOUSE_ENTER : DEFOS_EVENT_MOUSE_LEAVE);
+    }
 }
 
 void * defos_load_cursor_linux(const char *filename)

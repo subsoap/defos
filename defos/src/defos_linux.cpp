@@ -521,7 +521,7 @@ void defos_update()
     if (visible != is_cursor_in_view)
     {
         is_cursor_in_view = visible;
-        defos_emit_event(current_state ? DEFOS_EVENT_MOUSE_ENTER : DEFOS_EVENT_MOUSE_LEAVE);
+        defos_emit_event(is_cursor_in_view ? DEFOS_EVENT_MOUSE_ENTER : DEFOS_EVENT_MOUSE_LEAVE);
     }
 }
 

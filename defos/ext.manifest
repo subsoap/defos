@@ -13,11 +13,11 @@ platforms:
     context:      
         frameworks: ["X11", "Xrender"]
         libs: ["Xrender", "Xfixes"]
-        
- x86_64-win32:
-     context:
-         flags: [“-Wno-c++11-narrowing”]
-         
- x86-win32:
-     context:
-         flags: [“-Wno-c++11-narrowing”]
+
+  x86_64-win32:
+    context:
+        flags: ["-Wno-c++11-narrowing"]
+
+  x86-win32:
+    context:
+        flags: ["-Wno-c++11-narrowing"]

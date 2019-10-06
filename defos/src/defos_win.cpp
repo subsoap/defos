@@ -297,10 +297,10 @@ WinRect defos_get_window_size()
     RECT rect;
     GetWindowRect(window, &rect);
     WinRect result = {
-        .x = rect.left,
-        .y = rect.top,
-        .w = rect.right - rect.left,
-        .h = rect.bottom - rect.top,
+        .x = (float)rect.left,
+        .y = (float)rect.top,
+        .w = (float)(rect.right - rect.left),
+        .h = (float)(rect.bottom - rect.top),
     };
     return result;
 }
@@ -316,10 +316,10 @@ WinRect defos_get_view_size()
     ClientToScreen(window, &pos);
 
     WinRect rect = {
-        .x = pos.x,
-        .y = pos.y,
-        .w = wrect.right - wrect.left,
-        .h = wrect.bottom - wrect.top,
+        .x = (float)pos.x,
+        .y = (float)pos.y,
+        .w = (float)(wrect.right - wrect.left),
+        .h = (float)(wrect.bottom - wrect.top),
     };
     return rect;
 }
@@ -329,7 +329,7 @@ WinPoint defos_get_cursor_pos()
     POINT point;
     GetCursorPos(&point);
 
-    WinPoint result = { .x = point.x, .y = point.y };
+    WinPoint result = { .x = (float)point.x, .y = (float)point.y };
     return result;
 }
 
@@ -341,7 +341,7 @@ WinPoint defos_get_cursor_pos_view()
     HWND window = dmGraphics::GetNativeWindowsHWND();
     ScreenToClient(window, &point);
 
-    WinPoint result = { .x = point.x, .y = point.y };
+    WinPoint result = { .x = (float)point.x, .y = (float)point.y };
     return result;
 }
 

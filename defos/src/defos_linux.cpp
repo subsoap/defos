@@ -57,6 +57,7 @@ static Atom NET_WM_ACTION_MAXIMIZE_HORZ;
 static Atom NET_WM_ACTION_MAXIMIZE_VERT;
 static Atom NET_WM_ACTION_MINIMIZE;
 static Atom NET_FRAME_EXTENTS;
+static Atom NET_ACTIVE_WINDOW;
 
 struct CustomCursor {
     Cursor cursor;
@@ -96,6 +97,7 @@ void defos_init()
     NET_WM_ACTION_MAXIMIZE_HORZ = XATOM("_NET_WM_ACTION_MAXIMIZE_HORZ");
     NET_WM_ACTION_MAXIMIZE_VERT = XATOM("_NET_WM_ACTION_MAXIMIZE_VERT");
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
+    NET_ACTIVE_WINDOW = XATOM("_NET_ACTIVE_WINDOW");
 
     resize_locked = false;
     is_cursor_visible = true;
@@ -331,7 +333,7 @@ void defos_minimize()
 void defos_activate()
 {
     send_message(win,
-        _NET_ACTIVE_WINDOW,
+        NET_ACTIVE_WINDOW,
         1,
         1,
         0,

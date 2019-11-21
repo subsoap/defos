@@ -328,6 +328,19 @@ void defos_minimize()
     XIconifyWindow(disp, win, screen);
 }
 
+void defos_activate()
+{
+    send_message(win,
+        _NET_ACTIVE_WINDOW,
+        1,
+        1,
+        0,
+        0,
+        0
+    );
+    XFlush(disp);
+}
+
 void defos_set_console_visible(bool visible)
 {
     dmLogWarning("Method 'set_console_visible' is only supported on Windows");

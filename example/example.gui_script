@@ -229,6 +229,12 @@ function on_input(self, action_id, action)
 		defos.set_window_icon(defos.get_bundle_root()..defos.PATH_SEP..ICON_NAMES[system_name])
 	end)
 
+	dirtylarry:button("activate", action_id, action, function()
+		timer.delay(5, false, function ()
+			defos.activate()
+		end)
+	end)
+
 	dirtylarry:button("change_cursor", action_id, action, function()
 		self.current_cursor = self.current_cursor + 1
 

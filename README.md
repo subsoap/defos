@@ -63,6 +63,14 @@ defos.minimize()
 
 ---
 
+**Activate (focus) window**. Not supported on HTML5.
+
+```lua
+defos.activate()
+```
+
+---
+
 **Get/set the window's size and position** in screen coordinates. The window area
 includes the title bar, so the actual contained game view area might be smaller
 than the given metrics.

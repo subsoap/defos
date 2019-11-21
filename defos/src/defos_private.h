@@ -80,6 +80,7 @@ extern bool defos_is_fullscreen();
 extern bool defos_is_maximized();
 extern bool defos_is_always_on_top();
 extern void defos_minimize();
+extern void defos_activate();
 
 extern void defos_set_window_title(const char* title_lua);
 extern void  defos_set_window_icon(const char *icon_path);

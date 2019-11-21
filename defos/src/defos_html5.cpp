@@ -131,6 +131,10 @@ void defos_minimize() {
     dmLogWarning("Method 'minimize' is not supported in HTML5");
 }
 
+void defos_activate() {
+    dmLogWarning("Method 'activate' is not supported in HTML5");
+}
+
 void defos_toggle_fullscreen() {
     EM_ASM(Module.toggleFullscreen(););
 }

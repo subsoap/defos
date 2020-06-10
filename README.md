@@ -8,9 +8,10 @@ Currently supports macOS, Windows, Linux and HTML5. Contribute!
 
 You can use DefOS in your own project by adding this project as a
 [Defold library dependency](http://www.defold.com/manuals/libraries/).
-Open your `game.project` file and in the dependencies field under project add:
 
-https://github.com/subsoap/defos/archive/master.zip
+Add the latest dependency URL from the
+[releases page](https://github.com/subsoap/defos/releases) to your
+dependencies field in `game.project`.
 
 ## Methods
 

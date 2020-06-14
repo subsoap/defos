@@ -23,7 +23,7 @@ static bool is_cursor_locked = false;
 static WinRect previous_state;
 
 void js_warn(const char* msg) {
-    EM_ASM_({console.warn(UTF8ToString($0))}, msg);
+    EM_ASM({console.warn(UTF8ToString($0))}, msg);
 }
 
 extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) {
@@ -46,7 +46,7 @@ extern "C" void EMSCRIPTEN_KEEPALIVE defos_emit_event_from_js(DefosEvent event) 
 void defos_init() {
     current_cursor = "default";
     current_custom_cursor = NULL;
-    EM_ASM_({
+    EM_ASM({
         Module.__defosjs_mouseenter_listener = function () {
             _defos_emit_event_from_js($0);
         };
@@ -69,7 +69,7 @@ void defos_init() {
         document.addEventListener('mousemove', Module.__defosjs_mousemove_listener);
     }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
 
-    EM_ASM_({
+    EM_ASM({
         Module.__defosjs_pointerlockchange_listener = function () {
             if ((
                 document.pointerLockElement ||
@@ -97,7 +97,7 @@ void defos_final() {
         defos_gc_custom_cursor(current_custom_cursor);
         current_custom_cursor = NULL;
     }
-    EM_ASM(
+    EM_ASM({
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
@@ -106,7 +106,7 @@ void defos_final() {
         document.removeEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('webkitpointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('mspointerlockchange', Module.__defosjs_pointerlockchange_listener);
-    );
+    });
 }
 
 void defos_update() {
@@ -156,7 +156,7 @@ void defos_toggle_maximized() {
 bool defos_is_fullscreen() {
     int is_fullscreen = EM_ASM_INT({
         return GLFW.isFullscreen;
-    },0);
+    });
     return is_fullscreen != 0;
 }
 
@@ -173,12 +173,12 @@ bool defos_is_always_on_top() {
 }
 
 void defos_set_window_title(const char* title_lua) {
-    EM_ASM_({document.title = UTF8ToString($0)}, title_lua);
+    EM_ASM({document.title = UTF8ToString($0)}, title_lua);
 }
 
 void defos_set_window_icon(const char *icon_path)
 {
-    EM_ASM_({
+    EM_ASM({
         function changeFavicon(src) {
             var oldLink = document.querySelector("link[rel*='icon']");
             if (oldLink) { document.head.removeChild(oldLink); }
@@ -192,13 +192,13 @@ void defos_set_window_icon(const char *icon_path)
 }
 
 char* defos_get_bundle_root() {
-    char*bundlePath = (char*)EM_ASM_INT({
+    char *bundlePath = (char*)EM_ASM_INT({
         var jsString = location.href.substring(0, location.href.lastIndexOf("/"));
         var lengthBytes = lengthBytesUTF8(jsString)+1; // 'jsString.length' would return the length of the string as UTF-16 units, but Emscripten C strings operate as UTF-8.
         var stringOnWasmHeap = _malloc(lengthBytes);
         stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
         return stringOnWasmHeap;
-    },0);
+    });
     return bundlePath;
 }
 
@@ -209,7 +209,7 @@ void defos_get_arguments(dmArray<char*> &arguments) {
         var stringOnWasmHeap = _malloc(lengthBytes);
         stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
         return stringOnWasmHeap;
-    },0);
+    });
     arguments.OffsetCapacity(1);
     arguments.Push(param);
 }
@@ -219,7 +219,7 @@ void defos_set_window_size(float x, float y, float w, float h) {
 }
 
 void defos_set_view_size(float x, float y, float w, float h) {
-    EM_ASM_({
+    EM_ASM({
         Module.canvas.width = $0;
         Module.canvas.height = $1;
     }, w, h);
@@ -235,10 +235,10 @@ WinRect defos_get_view_size() {
     rect.y = 0;
     rect.w = EM_ASM_INT({
         return Module.canvas.width;
-    }, 0);
+    });
     rect.h = EM_ASM_INT({
         return Module.canvas.height;
-    }, 0);
+    });
     return rect;
 }
 
@@ -254,7 +254,7 @@ void defos_set_cursor_visible(bool visible) {
     if (is_cursor_visible == visible) { return; }
     is_cursor_visible = visible;
     if (visible) {
-        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+        EM_ASM({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
     } else {
         EM_ASM(Module.canvas.style.cursor = 'none';);
     }
@@ -295,25 +295,25 @@ bool defos_is_cursor_clipped() {
     return false;
 }
 
-extern void defos_set_cursor_locked(bool locked) {
-    is_cursor_locked = locked;
+EM_JS(void, defos_set_cursor_locked_, (bool locked), {
     if (locked) {
-        EM_ASM(
-            (Module.canvas.requestPointerLock ||
-            Module.canvas.mozRequestPointerLock ||
-            Module.canvas.webkitRequestPointerLock ||
-            Module.canvas.msRequestPointerLock ||
-            function () {}).call(Module.canvas);
-        );
+        (Module.canvas.requestPointerLock ||
+        Module.canvas.mozRequestPointerLock ||
+        Module.canvas.webkitRequestPointerLock ||
+        Module.canvas.msRequestPointerLock ||
+        function () {}).call(Module.canvas);
     } else {
-        EM_ASM(
-            (document.exitPointerLock ||
-            document.mozExitPointerLock ||
-            document.webkitExitPointerLock ||
-            document.msExitPointerLock ||
-            function () {}).call(document);
-        );
+        (document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock ||
+        document.msExitPointerLock ||
+        function () {}).call(document);
     }
+});
+
+void defos_set_cursor_locked(bool locked) {
+    is_cursor_locked = locked;
+    defos_set_cursor_locked_(locked);
 }
 
 bool defos_is_cursor_locked() {
@@ -341,7 +341,7 @@ void defos_gc_custom_cursor(void *_cursor) {
 
 static void update_cursor() {
     if (is_cursor_visible) {
-        EM_ASM_({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
+        EM_ASM({Module.canvas.style.cursor = UTF8ToString($0);}, current_cursor);
     }
 }
 

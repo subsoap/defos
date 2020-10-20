@@ -1,7 +1,8 @@
+
+#if defined(DM_PLATFORM_WINDOWS) && !defined(DM_HEADLESS)
+
 #include <dmsdk/sdk.h>
 #include "defos_private.h"
-
-#if defined(DM_PLATFORM_WINDOWS)
 
 #include <atlbase.h>
 #include <atlconv.h>

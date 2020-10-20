@@ -1,11 +1,8 @@
-#ifndef DLIB_LOG_DOMAIN
-#define DLIB_LOG_DOMAIN "defos"
-#endif
-#include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_HTML5)
+#if defined(DM_PLATFORM_HTML5) && !defined(DM_HEADLESS)
 
 #include "defos_private.h"
+#include <dmsdk/sdk.h>
 #include <emscripten.h>
 #include <stdlib.h>
 

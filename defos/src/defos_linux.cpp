@@ -1,6 +1,4 @@
-#include <dmsdk/sdk.h>
-
-#if defined(DM_PLATFORM_LINUX)
+#if defined(DM_PLATFORM_LINUX) && !defined(DM_HEADLESS)
 
 /*
     some resources to manage window for x11.
@@ -16,6 +14,8 @@
  cursor clipping
  setting the window icon
 */
+
+#include <dmsdk/sdk.h>
 
 #include "defos_private.h"
 #include <X11/Xlib.h>

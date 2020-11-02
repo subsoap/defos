@@ -633,6 +633,10 @@ DisplayID defos_get_current_display() {
     is_mouse_in_view = true;
     if (!is_cursor_clipped) {
         defos_emit_event(DEFOS_EVENT_MOUSE_ENTER);
+        if (!is_cursor_visible) {
+            [NSCursor unhide]; // Work around a macOS bug?
+            [NSCursor hide];
+        }
     }
 }
 - (void)mouseExited:(NSEvent *)event {

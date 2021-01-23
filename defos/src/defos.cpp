@@ -566,6 +566,15 @@ static int on_click(lua_State *L)
     return 0;
 }
 
+static int on_interaction(lua_State *L)
+{
+    #ifndef DM_PLATFORM_HTML5
+    dmLogWarning("Event 'on_interaction' exists only in HTML5");
+    #endif
+    set_event_handler(L, 1, DEFOS_EVENT_INTERACTION);
+    return 0;
+}
+
 static int on_cursor_lock_disabled(lua_State *L)
 {
     set_event_handler(L, 1, DEFOS_EVENT_CURSOR_LOCK_DISABLED);
@@ -629,6 +638,7 @@ static const luaL_reg Module_methods[] =
         {"on_mouse_enter", on_mouse_enter},
         {"on_mouse_leave", on_mouse_leave},
         {"on_click", on_click},
+        {"on_interaction", on_interaction},
         {"is_mouse_in_view", is_mouse_in_view},
         {"get_cursor_pos", get_cursor_pos},
         {"get_cursor_pos_view", get_cursor_pos_view},

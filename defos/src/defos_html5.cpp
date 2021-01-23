@@ -52,6 +52,10 @@ void defos_init() {
         };
         Module.__defosjs_click_listener = function () {
             _defos_emit_event_from_js($2);
+            _defos_emit_event_from_js($3);
+        };
+        Module.__defosjs_keyup_listener = function () {
+            _defos_emit_event_from_js($3);
         };
         Module.__defosjs_mousemove_listener = function (evt) {
             var rect = Module.canvas.getBoundingClientRect();
@@ -63,8 +67,9 @@ void defos_init() {
         Module.canvas.addEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.addEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.addEventListener('click', Module.__defosjs_click_listener);
+        Module.canvas.addEventListener('keyup', Module.__defosjs_keyup_listener);
         document.addEventListener('mousemove', Module.__defosjs_mousemove_listener);
-    }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK);
+    }, DEFOS_EVENT_MOUSE_ENTER, DEFOS_EVENT_MOUSE_LEAVE, DEFOS_EVENT_CLICK, DEFOS_EVENT_INTERACTION);
 
     EM_ASM({
         Module.__defosjs_pointerlockchange_listener = function () {
@@ -98,6 +103,7 @@ void defos_final() {
         Module.canvas.removeEventListener('mouseenter', Module.__defosjs_mouseenter_listener);
         Module.canvas.removeEventListener('mouseleave', Module.__defosjs_mouseleave_listener);
         Module.canvas.removeEventListener('click', Module.__defosjs_click_listener);
+        Module.canvas.removeEventListener('keyup', Module.__defosjs_keyup_listener);
         document.removeEventListener('mousemove', Module.__defosjs_mousemove_listener);
         document.removeEventListener('pointerlockchange', Module.__defosjs_pointerlockchange_listener);
         document.removeEventListener('mozpointerlockchange', Module.__defosjs_pointerlockchange_listener);

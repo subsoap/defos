@@ -36,7 +36,7 @@ bool_value = defos.is_maximized()
 
 ---
 
-**Toggle full screen**. On HTML5, this only works from `defos.on_click()`.
+**Toggle full screen**. On HTML5, this only works from `defos.on_click()` or `defos.on_interaction()`.
 
 ```lua
 defos.set_fullscreen(bool_value)
@@ -225,7 +225,7 @@ bool_value = defos.is_cursor_clipped()
 
 **Lock cursor movement**.
 
-On HTML5 this only works from `defos.on_click()`.
+On HTML5 this only works from `defos.on_click()` or `defos.on_interaction()`.
 Not supported on Linux yet.
 
 ```lua
@@ -292,7 +292,8 @@ bool_value = defos.is_console_visible()
 
 ---
 
-On HTML5 only, **get a synchronous event when the user clicks** in the canvas.
+On HTML5 only, **get a synchronous event on user interaction** with the canvas.
+User interaction is either a mouse click, touch or key press.
 This is necessary because some HTML5 functions only work when called
 synchronously from an event handler.
 
@@ -301,6 +302,10 @@ This is currently needed for:
 * `defos.set_cursor_locked(true)`
 
 ```lua
+defos.on_interaction(function ()
+  print("The user has interacted with the canvas. I have the chance to respond synchronously")
+end)
+
 defos.on_click(function ()
   print("The user has clicked. I have the chance to respond synchronously")
 end)

@@ -1,10 +1,10 @@
 [project]
 title = DefOS
 version = 1.0.1
-dependencies = https://github.com/andsve/dirtylarry/archive/master.zip
 custom_resources = resources/
 bundle_resources = /icons
 write_log = 0
+dependencies#0 = https://github.com/andsve/dirtylarry/archive/master.zip
 
 [bootstrap]
 main_collection = /example/example.collectionc
@@ -34,4 +34,10 @@ bundle_identifier = com.subsoap.defos
 
 [osx]
 bundle_identifier = com.subsoap.defos
+
+[defos]
+window_width = 640
+window_height = 480
+window_x = 20
+window_y = 40
 

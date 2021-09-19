@@ -13,6 +13,20 @@ Add the latest dependency URL from the
 [releases page](https://github.com/subsoap/defos/releases) to your
 dependencies field in `game.project`.
 
+## game.project
+
+It's possible to change the initial window size and position by changing `game.project`. Just open `game.project` in a text editor and add the following lines:
+
+```
+[defos]
+window_width = 640
+window_height = 480
+window_x = 20
+window_y = 40
+```
+
+It's possible use `window_width` and `window_heigh` without `window_x` and `window_y` but not vice versa. 
+
 ## Methods
 
 **Customize title bar** accessories and title.

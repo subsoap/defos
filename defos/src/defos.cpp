@@ -713,11 +713,11 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
     {
         if (window_x != -1.0 && window_y != -1.0)
         {
-            defos_set_window_size(window_x, window_y, window_width, window_height);
+            defos_set_view_size(window_x, window_y, window_width, window_height);
         }
         else
         {
-            defos_set_window_size(nanf(""), nanf(""), window_width, window_height);
+            defos_set_view_size(nanf(""), nanf(""), window_width, window_height);
         }
     }
     

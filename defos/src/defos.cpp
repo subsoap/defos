@@ -705,19 +705,19 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
     defos_init();
 
     //read initial size and position from game.project
-    float window_width = dmConfigFile::GetInt(params->m_ConfigFile, "defos.window_width", -1.0);
-    float window_height = dmConfigFile::GetInt(params->m_ConfigFile, "defos.window_height", -1.0);
-    float window_x = dmConfigFile::GetInt(params->m_ConfigFile, "defos.window_x", -1.0);
-    float window_y = dmConfigFile::GetInt(params->m_ConfigFile, "defos.window_y", -1.0);
-    if (window_width != -1.0 && window_height != -1.0)
+    float view_width = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_width", -1.0);
+    float view_height = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_height", -1.0);
+    float view_x = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_x", -1.0);
+    float view_y = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_y", -1.0);
+    if (view_width != -1.0 && view_height != -1.0)
     {
-        if (window_x != -1.0 && window_y != -1.0)
+        if (view_x != -1.0 && view_y != -1.0)
         {
-            defos_set_view_size(window_x, window_y, window_width, window_height);
+            defos_set_view_size(view_x, view_y, view_width, view_height);
         }
         else
         {
-            defos_set_view_size(nanf(""), nanf(""), window_width, window_height);
+            defos_set_view_size(nanf(""), nanf(""), view_width, view_height);
         }
     }
     

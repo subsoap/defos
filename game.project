@@ -36,8 +36,8 @@ bundle_identifier = com.subsoap.defos
 bundle_identifier = com.subsoap.defos
 
 [defos]
-window_width = 800
-window_height = 600
-window_x = 60
-window_y = 40
+view_width = 800
+view_height = 600
+view_x = 60
+view_y = 40
 

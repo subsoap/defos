@@ -13,6 +13,22 @@ Add the latest dependency URL from the
 [releases page](https://github.com/subsoap/defos/releases) to your
 dependencies field in `game.project`.
 
+## game.project 
+
+> (From Defold 1.2.188)
+
+It's possible to change the initial window size and position by changing `game.project`. Just open `game.project` in a text editor and add the following lines:
+
+```
+[defos]
+view_width = 640
+view_height = 480
+view_x = 20
+view_y = 40
+```
+
+It's possible use `view_width` and `view_height` without `view_x` and `view_y` but not vice versa. 
+
 ## Methods
 
 **Customize title bar** accessories and title.

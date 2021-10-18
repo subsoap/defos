@@ -703,6 +703,24 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
         defos_event_handlers[i].m_Callback = LUA_NOREF;
     }
     defos_init();
+
+    //read initial size and position from game.project
+    float view_width = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_width", -1.0);
+    float view_height = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_height", -1.0);
+    float view_x = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_x", -1.0);
+    float view_y = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_y", -1.0);
+    if (view_width != -1.0 && view_height != -1.0)
+    {
+        if (view_x != -1.0 && view_y != -1.0)
+        {
+            defos_set_view_size(view_x, view_y, view_width, view_height);
+        }
+        else
+        {
+            defos_set_view_size(nanf(""), nanf(""), view_width, view_height);
+        }
+    }
+    
     LuaInit(params->m_L);
     return dmExtension::RESULT_OK;
 }

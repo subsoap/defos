@@ -17,7 +17,7 @@ dependencies field in `game.project`.
 
 > (From Defold 1.2.188)
 
-It's possible to change the initial window size and position by changing `game.project`. Just open `game.project` in a text editor and add the following lines:
+You can change the initial view size and position of your game's window by editing the `game.project` file of your project in a plain text editor and adding the following lines:
 
 ```
 [defos]
@@ -27,7 +27,9 @@ view_x = 20
 view_y = 40
 ```
 
-It's possible use `view_width` and `view_height` without `view_x` and `view_y` but not vice versa. 
+`view_width` and `view_height` can be used without `view_x` and `view_y` but not vice versa.
+
+These initial values will be used at the launch of your project without needing to call any extension functions. Use these values to decrease the initial size of your game’s window view size if your game.project's [display] width / height values are large.
 
 ## Methods
 

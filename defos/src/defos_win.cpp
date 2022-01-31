@@ -1,6 +1,8 @@
 
 #if defined(DM_PLATFORM_WINDOWS) && !defined(DM_HEADLESS)
 
+#define MAX_WINDOW_TITLE_LENGTH 255
+
 #include <dmsdk/sdk.h>
 #include "defos_private.h"
 
@@ -8,6 +10,7 @@
 #include <atlconv.h>
 #include <WinUser.h>
 #include <Windows.h>
+#include <stringapiset.h>
 
 // keep track of window placement when going to/from fullscreen or maximized
 static WINDOWPLACEMENT placement = {sizeof(placement)};
@@ -248,7 +251,13 @@ void defos_set_view_size(float x, float y, float w, float h)
 
 void defos_set_window_title(const char *title_lua)
 {
-    SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), CA2W(title_lua));
+    wchar_t unicode_title[MAX_WINDOW_TITLE_LENGTH];
+    int res = MultiByteToWideChar(CP_UTF8, 0, title_lua, -1, unicode_title, MAX_WINDOW_TITLE_LENGTH);
+    if (res <= 0)
+    {
+        unicode_title[0] = 0;
+    }
+    SetWindowTextW(dmGraphics::GetNativeWindowsHWND(), unicode_title);
 }
 
 void defos_set_window_icon(const char *icon_path)

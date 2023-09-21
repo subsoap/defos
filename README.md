@@ -27,6 +27,8 @@ view_x = 20
 view_y = 40
 ```
 
+> :warning: It may show you `ERROR:ENGINE: Could not find '@render' socket.` error on start. But that means only that window change event can't send to the render_script because it's not created yet. More info is available here: https://github.com/subsoap/defos/issues/130
+
 `view_width` and `view_height` can be used without `view_x` and `view_y` but not vice versa.
 
 These initial values will be used at the launch of your project without needing to call any extension functions. Use these values to decrease the initial size of your game’s window view size if your game.project's [display] width / height values are large.

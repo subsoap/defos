@@ -1,0 +1,10 @@
+- name: defos
+  type: table
+  desc: The Defos extension provides functions to manage windows, cursors, displays, and events in the Defold game engine. It allows for advanced control over window properties, mouse events, and display configurations.
+
+  members:
+  - name: disable_maximize_button
+    type: function
+    desc: Disables the maximize button on the window.
+    examples:
+    - desc: Disables the maximize button, preventing users from maximizing the window.

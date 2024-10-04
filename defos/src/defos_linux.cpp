@@ -161,6 +161,11 @@ bool defos_is_fullscreen()
     return hint_state_contains_atom(NET_WM_STATE_FULLSCREEN);
 }
 
+bool defos_is_borderless() {
+    // TODO: add defos_is_borderless for Linux
+    return true;
+}
+
 bool defos_is_maximized()
 {
     return hint_state_contains_atom(NET_WM_STATE_MAXIMIZED_VERT);
@@ -297,6 +302,10 @@ void defos_toggle_fullscreen()
         0
     );
     XFlush(disp);
+}
+
+void defos_toggle_borderless() {
+    // TODO: add defos_toggle_borderless for Linux
 }
 
 void defos_toggle_maximized()

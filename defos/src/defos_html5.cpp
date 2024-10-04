@@ -145,6 +145,10 @@ void defos_toggle_fullscreen() {
     EM_ASM(Module.toggleFullscreen(););
 }
 
+void defos_toggle_borderless() {
+    // TODO: add defos_toggle_borderless for HTML5
+}
+
 void defos_toggle_maximized() {
     if (is_maximized) {
         is_maximized = false;
@@ -164,6 +168,11 @@ bool defos_is_fullscreen() {
         return GLFW.isFullscreen;
     });
     return is_fullscreen != 0;
+}
+
+bool defos_is_borderless() {
+    // TODO: add defos_is_borderless for HTML5
+    return true;
 }
 
 bool defos_is_maximized() {

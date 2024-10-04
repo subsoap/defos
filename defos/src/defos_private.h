@@ -75,9 +75,11 @@ extern void defos_disable_minimize_button();
 extern void defos_disable_window_resize();
 
 extern void defos_toggle_fullscreen();
+extern void defos_toggle_borderless();
 extern void defos_toggle_maximized();
 extern void defos_toggle_always_on_top();
 extern bool defos_is_fullscreen();
+extern bool defos_is_borderless();
 extern bool defos_is_maximized();
 extern bool defos_is_always_on_top();
 extern void defos_minimize();

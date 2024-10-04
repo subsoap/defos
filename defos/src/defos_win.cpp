@@ -83,6 +83,11 @@ bool defos_is_fullscreen()
     return !(get_window_style() & WS_OVERLAPPEDWINDOW);
 }
 
+bool defos_is_borderless()
+{
+    return !(get_window_style() & (WS_CAPTION | WS_THICKFRAME));
+}
+
 bool defos_is_maximized()
 {
     return !!IsZoomed(dmGraphics::GetNativeWindowsHWND());
@@ -151,6 +156,27 @@ void defos_toggle_fullscreen()
         set_window_style(get_window_style() | WS_OVERLAPPEDWINDOW);
         SetWindowPlacement(window, &placement);
     }
+}
+
+void defos_toggle_borderless()
+{
+    LONG_PTR style = get_window_style();
+
+    if (!defos_is_borderless())
+    {
+        // Remove the WS_CAPTION and WS_THICKFRAME styles to make the window borderless
+        style &= ~(WS_CAPTION | WS_THICKFRAME);
+    }
+    else
+    {
+        // Restore the default window style with borders
+        style |= (WS_CAPTION | WS_THICKFRAME);
+    }
+    set_window_style(style);
+
+    // Adjust the window size and position to apply the new style without changing the window's position or size
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    SetWindowPos(window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
 void defos_toggle_maximized()

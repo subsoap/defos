@@ -92,6 +92,9 @@ function init(self)
 			if gui.get_flipbook(gui.get_node("toggle_fullscreen/larrybutton")) == hash("button_pressed") then
 				defos.toggle_fullscreen()
 			end
+			if gui.get_flipbook(gui.get_node("toggle_borderless/larrybutton")) == hash("button_pressed") then
+				defos.toggle_borderless()
+			end
 		end)
 	end
 
@@ -194,6 +197,11 @@ function on_input(self, action_id, action)
 		end
 	end)
 
+	dirtylarry:button("toggle_borderless", action_id, action, function ()
+		if system_name == "Windows" then
+			defos.toggle_borderless()
+		end
+	end)
 
 	dirtylarry:button("toggle_maximize", action_id, action, function ()
 		defos.toggle_maximized()

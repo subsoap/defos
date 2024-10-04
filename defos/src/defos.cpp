@@ -125,6 +125,26 @@ static int is_fullscreen(lua_State *L)
     return 1;
 }
 
+static int toggle_borderless(lua_State *L)
+{
+    defos_toggle_borderless();
+    return 0;
+}
+
+static int set_borderless(lua_State *L)
+{
+    if (checkboolean(L, 1) != defos_is_borderless()) {
+        defos_toggle_borderless();
+    }
+    return 0;
+}
+
+static int is_borderless(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_borderless());
+    return 1;
+}
+
 static int toggle_maximized(lua_State *L)
 {
     defos_toggle_maximized();
@@ -622,6 +642,9 @@ static const luaL_reg Module_methods[] =
         {"toggle_fullscreen", toggle_fullscreen},
         {"set_fullscreen", set_fullscreen},
         {"is_fullscreen", is_fullscreen},
+        {"toggle_borderless", toggle_borderless},
+        {"set_borderless", set_borderless},
+        {"is_borderless", is_borderless},
         {"toggle_always_on_top", toggle_always_on_top},
         {"set_always_on_top", set_always_on_top},
         {"is_always_on_top", is_always_on_top},

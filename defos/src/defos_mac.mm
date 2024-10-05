@@ -92,6 +92,10 @@ void defos_toggle_fullscreen() {
     [window toggleFullScreen:window];
 }
 
+void defos_toggle_borderless() {
+    // TODO: add defos_toggle_borderless for Mac
+}
+
 void defos_toggle_maximized() {
     if (defos_is_fullscreen()){
         defos_toggle_fullscreen();
@@ -115,6 +119,11 @@ void defos_toggle_always_on_top() {
 bool defos_is_fullscreen() {
     BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
     return fullscreen == YES;
+}
+
+bool defos_is_borderless() {
+    // TODO: add defos_is_borderless for Mac
+    return true;
 }
 
 bool defos_is_maximized() {

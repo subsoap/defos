@@ -66,6 +66,16 @@ bool_value = defos.is_fullscreen()
 
 ---
 
+**Toggle borderless window**. Works and tested only on Windows platform.
+
+```lua
+defos.set_borderless(bool_value)
+defos.toggle_borderless()
+bool_value = defos.is_borderless()
+```
+
+---
+
 **Keep window on top**. Not supported on HTML5.
 
 ```lua

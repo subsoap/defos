@@ -93,7 +93,16 @@ void defos_toggle_fullscreen() {
 }
 
 void defos_toggle_borderless() {
-    // TODO: add defos_toggle_borderless for Mac
+    if (!window) return;
+
+    NSUInteger currentStyleMask = [window styleMask];
+    if (currentStyleMask == NSWindowStyleMaskBorderless) {
+        [window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable];
+    } else {
+        [window setStyleMask:NSWindowStyleMaskBorderless];
+    }
+
+    [window makeKeyAndOrderFront:nil];
 }
 
 void defos_toggle_maximized() {
@@ -122,8 +131,9 @@ bool defos_is_fullscreen() {
 }
 
 bool defos_is_borderless() {
-    // TODO: add defos_is_borderless for Mac
-    return true;
+    if (!window) return false;
+    NSUInteger currentStyleMask = [window styleMask];
+    return currentStyleMask == NSWindowStyleMaskBorderless;
 }
 
 bool defos_is_maximized() {

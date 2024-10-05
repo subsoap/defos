@@ -10,7 +10,7 @@ textures {
 nodes {
   position {
     x: 525.0
-    y: 104.0
+    y: 141.0
   }
   scale {
     x: 0.7
@@ -36,7 +36,7 @@ nodes {
 nodes {
   position {
     x: 525.0
-    y: 69.0
+    y: 106.0
   }
   scale {
     x: 0.7
@@ -406,7 +406,7 @@ nodes {
 nodes {
   position {
     x: 525.0
-    y: 174.0
+    y: 211.0
   }
   scale {
     x: 0.7
@@ -431,7 +431,7 @@ nodes {
 nodes {
   position {
     x: 525.0
-    y: 34.0
+    y: 71.0
   }
   scale {
     x: 0.7
@@ -561,7 +561,7 @@ nodes {
 nodes {
   position {
     x: 525.0
-    y: 139.0
+    y: 176.0
   }
   scale {
     x: 0.7
@@ -682,7 +682,7 @@ nodes {
 nodes {
   position {
     x: 525.0
-    y: 209.0
+    y: 246.0
   }
   scale {
     x: 0.7
@@ -768,5 +768,30 @@ nodes {
   overridden_fields: 8
   overridden_fields: 18
   template_node_child: true
+}
+nodes {
+  position {
+    x: 525.0
+    y: 33.0
+  }
+  scale {
+    x: 0.7
+    y: 0.7
+  }
+  size {
+    x: 450.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "is_mouse_in_view"
+  font: "larryfont"
+  id: "is_borderless"
+  pivot: PIVOT_NW
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  inherit_alpha: true
 }
 material: "/builtins/materials/gui.material"

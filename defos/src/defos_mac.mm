@@ -97,7 +97,7 @@ void defos_toggle_borderless() {
 
     NSUInteger currentStyleMask = [window styleMask];
     if (currentStyleMask == NSWindowStyleMaskBorderless) {
-        [window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable];
+        [window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable];
     } else {
         [window setStyleMask:NSWindowStyleMaskBorderless];
     }

@@ -10,3 +10,4 @@ builtins
 .clang_complete
 .vscode/
 *.txt
+/.editor_settings

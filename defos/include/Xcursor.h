@@ -76,8 +76,8 @@ typedef XcursorUInt	XcursorPixel;
  */
 
 #define XCURSOR_LIB_MAJOR 1
-#define XCURSOR_LIB_MINOR 1
-#define XCURSOR_LIB_REVISION 15
+#define XCURSOR_LIB_MINOR 2
+#define XCURSOR_LIB_REVISION 0
 #define XCURSOR_LIB_VERSION	((XCURSOR_LIB_MAJOR * 10000) + \
 				 (XCURSOR_LIB_MINOR * 100) + \
 				 (XCURSOR_LIB_REVISION))
@@ -499,5 +499,4 @@ XcursorSetThemeCore (Display *dpy, XcursorBool theme_core);
 _XFUNCPROTOEND
 
 #endif
-
 #endif

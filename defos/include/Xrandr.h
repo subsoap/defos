@@ -586,5 +586,4 @@ XRRFreeMonitors(XRRMonitorInfo *monitors);
 _XFUNCPROTOEND
 
 #endif /* _XRANDR_H_ */
-
 #endif

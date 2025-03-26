@@ -1,0 +1,427 @@
+- name: defos
+  type: table
+  desc: Extra native OS functions for games written using the Defold game engine.
+  members:
+
+  - name: disable_maximize_button
+    type: function
+    desc: Disables the maximize button in the window title bar. Platforms - Linux, Windows, OSX.
+
+  - name: disable_minimize_button
+    type: function
+    desc: Disables the minimize button in the window title bar. Platforms - Linux, Windows, OSX.
+
+  - name: disable_window_resize
+    type: function
+    desc: Disables window resizing. Platforms - Linux, Windows, OSX.
+
+  - name: set_window_title
+    type: function
+    desc: Sets the window title. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: title
+      type: string
+      desc: The new window title
+
+  - name: set_maximized
+    type: function
+    desc: Sets the window maximized state. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: maximized
+      type: boolean
+      desc: Whether to maximize the window
+
+  - name: toggle_maximized
+    type: function
+    desc: Toggles the window maximized state. Platforms - Linux, Windows, OSX, HTML5.
+
+  - name: is_maximized
+    type: function
+    desc: Checks if the window is maximized. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: maximized
+      type: boolean
+
+  - name: set_fullscreen
+    type: function
+    desc: Sets the window fullscreen state. On HTML5, this only works from defos.on_click() or defos.on_interaction(). Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: fullscreen
+      type: boolean
+      desc: Whether to set fullscreen mode
+
+  - name: toggle_fullscreen
+    type: function
+    desc: Toggles the window fullscreen state. Platforms - Linux, Windows, OSX, HTML5.
+
+  - name: is_fullscreen
+    type: function
+    desc: Checks if the window is in fullscreen mode. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: fullscreen
+      type: boolean
+
+  - name: set_borderless
+    type: function
+    desc: Sets the window borderless state. Platforms - Windows.
+    parameters:
+    - name: borderless
+      type: boolean
+      desc: Whether to set borderless mode
+
+  - name: toggle_borderless
+    type: function
+    desc: Toggles the window borderless state. Platforms - Windows.
+
+  - name: is_borderless
+    type: function
+    desc: Checks if the window is borderless. Platforms - Windows.
+    returns:
+    - name: borderless
+      type: boolean
+
+  - name: set_always_on_top
+    type: function
+    desc: Sets whether the window should always stay on top. Platforms - Linux, Windows, OSX.
+    parameters:
+    - name: always_on_top
+      type: boolean
+      desc: Whether to keep window on top
+
+  - name: toggle_always_on_top
+    type: function
+    desc: Toggles whether the window should always stay on top. Platforms - Linux, Windows, OSX.
+
+  - name: is_always_on_top
+    type: function
+    desc: Checks if the window is set to always stay on top. Platforms - Linux, Windows, OSX.
+    returns:
+    - name: always_on_top
+      type: boolean
+
+  - name: minimize
+    type: function
+    desc: Minimizes the window. Platforms - Linux, Windows, OSX.
+
+  - name: activate
+    type: function
+    desc: Activates (focuses) the window. Platforms - Linux, Windows, OSX.
+
+  - name: get_window_size
+    type: function
+    desc: Gets the window's size and position in screen coordinates. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+    - name: width
+      type: number
+      desc: Window width
+    - name: height
+      type: number
+      desc: Window height
+
+  - name: set_window_size
+    type: function
+    desc: Sets the window's size and position in screen coordinates. Passing nil for x and y will center the window. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: x
+      type: number
+      desc: X position
+      optional: true
+    - name: y
+      type: number
+      desc: Y position
+      optional: true
+    - name: width
+      type: number
+      desc: Window width
+    - name: height
+      type: number
+      desc: Window height
+
+  - name: get_view_size
+    type: function
+    desc: Gets the game view size and position in screen coordinates. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+    - name: width
+      type: number
+      desc: View width
+    - name: height
+      type: number
+      desc: View height
+
+  - name: set_view_size
+    type: function
+    desc: Sets the game view size and position in screen coordinates. Passing nil for x and y will center the window. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: x
+      type: number
+      desc: X position
+      optional: true
+    - name: y
+      type: number
+      desc: Y position
+      optional: true
+    - name: width
+      type: number
+      desc: View width
+    - name: height
+      type: number
+      desc: View height
+
+  - name: get_displays
+    type: function
+    desc: Returns information about all displays. Platforms - Linux, Windows, OSX.
+    returns:
+    - name: displays
+      type: table
+      desc: Table of display information, indexed by number or display id
+
+  - name: get_current_display_id
+    type: function
+    desc: Gets the ID of the game's current display. Platforms - Linux, Windows, OSX.
+    returns:
+    - name: display_id
+      type: userdata
+      desc: The current display ID
+
+  - name: get_display_modes
+    type: function
+    desc: Gets all supported resolution modes for a display. Platforms - Linux, Windows, OSX.
+    parameters:
+    - name: display_id
+      type: userdata
+      desc: The display ID to get modes for
+    returns:
+    - name: modes
+      type: table
+      desc: Table of supported resolution modes
+
+  - name: set_cursor_visible
+    type: function
+    desc: Sets the mouse cursor visibility. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: visible
+      type: boolean
+      desc: Whether to show the cursor
+
+  - name: is_cursor_visible
+    type: function
+    desc: Checks if the mouse cursor is visible. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: visible
+      type: boolean
+
+  - name: is_mouse_in_view
+    type: function
+    desc: Checks if the mouse is within the game view area. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: in_view
+      type: boolean
+
+  - name: on_mouse_enter
+    type: function
+    desc: Sets a callback for when the mouse enters the game view area. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: callback
+      type: function
+      desc: Function to be called when mouse enters
+
+  - name: on_mouse_leave
+    type: function
+    desc: Sets a callback for when the mouse leaves the game view area. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: callback
+      type: function
+      desc: Function to be called when mouse leaves
+
+  - name: get_cursor_pos
+    type: function
+    desc: Gets the cursor position in screen coordinates. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+
+  - name: get_cursor_pos_view
+    type: function
+    desc: Gets the cursor position in game view coordinates. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+
+  - name: set_cursor_pos
+    type: function
+    desc: Sets the cursor position in screen coordinates. Platforms - Linux, Windows, OSX.
+    parameters:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+
+  - name: set_cursor_pos_view
+    type: function
+    desc: Sets the cursor position in game view coordinates. Platforms - Linux, Windows, OSX.
+    parameters:
+    - name: x
+      type: number
+      desc: X position
+    - name: y
+      type: number
+      desc: Y position
+
+  - name: set_cursor_clipped
+    type: function
+    desc: Clips cursor to current game view area. Platforms - Windows, OSX.
+    parameters:
+    - name: clipped
+      type: boolean
+      desc: Whether to clip the cursor
+
+  - name: is_cursor_clipped
+    type: function
+    desc: Checks if the cursor is clipped to the game view area. Platforms - Linux, Windows, OSX.
+    returns:
+    - name: clipped
+      type: boolean
+
+  - name: set_cursor_locked
+    type: function
+    desc: Locks cursor movement. On HTML5 this only works from defos.on_click() or defos.on_interaction(). Platforms - Windows, OSX, HTML5.
+    parameters:
+    - name: locked
+      type: boolean
+      desc: Whether to lock the cursor
+
+  - name: is_cursor_locked
+    type: function
+    desc: Checks if the cursor is locked. Platforms - Windows, OSX, HTML5.
+    returns:
+    - name: locked
+      type: boolean
+
+  - name: on_cursor_lock_disabled
+    type: function
+    desc: Sets a callback for when cursor lock is disabled (e.g. when user presses ESC on HTML5). Platforms - Windows, OSX, HTML5.
+    parameters:
+    - name: callback
+      type: function
+      desc: Function to be called when cursor lock is disabled
+
+  - name: load_cursor
+    type: function
+    desc: Loads a custom hardware cursor. See README for supported formats per platform. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: cursor_data
+      type: string|table
+      desc: Cursor data in platform-specific format
+    returns:
+    - name: cursor
+      type: userdata
+      desc: The loaded cursor
+
+  - name: set_cursor
+    type: function
+    desc: Sets the current cursor. See README for supported values. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: cursor
+      type: userdata|string|nil
+      desc: The cursor to set
+
+  - name: reset_cursor
+    type: function
+    desc: Resets the cursor to default. Platforms - Linux, Windows, OSX, HTML5.
+
+  - name: set_console_visible
+    type: function
+    desc: Shows/hides the console window. Platforms - Windows.
+    parameters:
+    - name: visible
+      type: boolean
+      desc: Whether to show the console
+
+  - name: is_console_visible
+    type: function
+    desc: Checks if the console window is visible. Platforms - Windows.
+    returns:
+    - name: visible
+      type: boolean
+
+  - name: on_interaction
+    type: function
+    desc: Sets a callback for user interaction with the canvas. Platforms - HTML5.
+    parameters:
+    - name: callback
+      type: function
+      desc: Function to be called on interaction
+
+  - name: on_click
+    type: function
+    desc: Sets a callback for user click on the canvas. Platforms - HTML5.
+    parameters:
+    - name: callback
+      type: function
+      desc: Function to be called on click
+
+  - name: get_bundle_root
+    type: function
+    desc: Gets the absolute path to the game's containing directory. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: path
+      type: string
+      desc: The bundle root path
+
+  - name: set_window_icon
+    type: function
+    desc: Changes the game window's icon at runtime. Platforms - Windows, OSX, HTML5.
+    parameters:
+    - name: path
+      type: string
+      desc: Path to the icon file
+
+  - name: get_arguments
+    type: function
+    desc: Returns command line arguments used to run the app. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: arguments
+      type: table
+      desc: Table of command line arguments
+
+  - name: CURSOR_ARROW
+    type: number
+    desc: Default arrow cursor
+
+  - name: CURSOR_HAND
+    type: number
+    desc: Hand cursor
+
+  - name: CURSOR_CROSSHAIR
+    type: number
+    desc: Crosshair cursor
+
+  - name: CURSOR_IBEAM
+    type: number
+    desc: I-beam cursor
+
+  - name: PATH_SEP
+    type: string
+    desc: The system path separator ("\\" on Windows, "/" everywhere else)

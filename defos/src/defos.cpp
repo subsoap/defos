@@ -727,7 +727,10 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
     }
     defos_init();
 
-    //read initial size and position from game.project
+    // Read initial size and position from game.project.
+    // On HTML5, applying this here would also change the initial canvas size until the first browser resize.
+    // Keep the config behavior desktop-only. HTML5 can still use defos.set_view_size() explicitly at runtime.
+    #if !defined(DM_PLATFORM_HTML5)
     float view_width = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_width", -1.0);
     float view_height = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_height", -1.0);
     float view_x = dmConfigFile::GetInt(params->m_ConfigFile, "defos.view_x", -1.0);
@@ -743,7 +746,8 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
             defos_set_view_size(nanf(""), nanf(""), view_width, view_height);
         }
     }
-    
+    #endif
+
     LuaInit(params->m_L);
     return dmExtension::RESULT_OK;
 }

@@ -31,6 +31,7 @@ static bool is_window_on_top = false;
 static bool is_window_active = true;
 static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
+static bool is_unicode_window = false;
 
 struct CustomCursor {
     HCURSOR cursor;
@@ -694,7 +695,13 @@ static void subclass_window()
 
     HWND window = dmGraphics::GetNativeWindowsHWND();
 
-    originalProc = (WNDPROC)SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)&custom_wndproc); // keep original proc
+    is_unicode_window = IsWindowUnicode(window) != 0;
+
+    if (is_unicode_window) {
+        originalProc = (WNDPROC)SetWindowLongPtrW(window, GWLP_WNDPROC, (LONG_PTR)&custom_wndproc); // keep original proc
+    } else {
+        originalProc = (WNDPROC)SetWindowLongPtrA(window, GWLP_WNDPROC, (LONG_PTR)&custom_wndproc); // keep original proc
+    }
 
     if (originalProc == NULL)
     {
@@ -708,7 +715,11 @@ static void restore_window_class()
     if (originalProc != NULL)
     {
         HWND window = dmGraphics::GetNativeWindowsHWND();
-        SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
+        if (is_unicode_window) {
+            SetWindowLongPtrW(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
+        } else {
+            SetWindowLongPtrA(window, GWLP_WNDPROC, (LONG_PTR)originalProc);
+        }
         originalProc = NULL;
     }
 }
@@ -761,7 +772,9 @@ static LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
     }
 
     if (originalProc != NULL)
-        return CallWindowProc(originalProc, hwnd, umsg, wp, lp);
+        return is_unicode_window
+            ? CallWindowProcW(originalProc, hwnd, umsg, wp, lp)
+            : CallWindowProcA(originalProc, hwnd, umsg, wp, lp);
     else
         return 0;
 }

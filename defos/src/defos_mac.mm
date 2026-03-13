@@ -19,10 +19,88 @@ static bool is_mouse_in_view = false;
 static bool is_cursor_visible = true;
 static bool is_cursor_locked = false;
 static bool is_cursor_clipped = false;
+static bool is_fullscreen_transitioning = false;
+static bool desired_borderless = false;
+static bool has_pending_borderless_change = false;
 static NSRect previous_state;
+static NSUInteger windowed_style_mask = 0;
 
 static void enable_mouse_tracking();
 static void disable_mouse_tracking();
+static NSUInteger default_windowed_style_mask();
+static void apply_borderless_state(bool borderless);
+static void apply_pending_borderless_state();
+
+@interface DefosWindowObserver : NSObject
+@end
+
+static DefosWindowObserver* window_observer = nil;
+
+@implementation DefosWindowObserver
+
+- (void)windowWillEnterFullScreen:(NSNotification*)notification {
+    (void)notification;
+    is_fullscreen_transitioning = true;
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification*)notification {
+    (void)notification;
+    is_fullscreen_transitioning = false;
+    if (has_pending_borderless_change && window != nil && defos_is_fullscreen()) {
+        [window toggleFullScreen:window];
+    }
+}
+
+- (void)windowWillExitFullScreen:(NSNotification*)notification {
+    (void)notification;
+    is_fullscreen_transitioning = true;
+}
+
+- (void)windowDidExitFullScreen:(NSNotification*)notification {
+    (void)notification;
+    is_fullscreen_transitioning = false;
+    apply_pending_borderless_state();
+}
+
+@end
+
+static NSUInteger default_windowed_style_mask() {
+    return NSWindowStyleMaskTitled |
+           NSWindowStyleMaskResizable |
+           NSWindowStyleMaskClosable |
+           NSWindowStyleMaskMiniaturizable;
+}
+
+static void apply_borderless_state(bool borderless) {
+    if (!window || is_fullscreen_transitioning || defos_is_fullscreen()) {
+        return;
+    }
+
+    if (borderless) {
+        NSUInteger current_style_mask = [window styleMask] & ~NSWindowStyleMaskFullScreen;
+        if (current_style_mask != NSWindowStyleMaskBorderless) {
+            windowed_style_mask = current_style_mask;
+        }
+        [window setStyleMask:NSWindowStyleMaskBorderless];
+    } else {
+        NSUInteger target_style_mask = windowed_style_mask;
+        if (target_style_mask == NSWindowStyleMaskBorderless) {
+            target_style_mask = default_windowed_style_mask();
+        }
+        [window setStyleMask:target_style_mask];
+    }
+
+    [window makeKeyAndOrderFront:nil];
+}
+
+static void apply_pending_borderless_state() {
+    if (!has_pending_borderless_change || is_fullscreen_transitioning || defos_is_fullscreen()) {
+        return;
+    }
+
+    apply_borderless_state(desired_borderless);
+    has_pending_borderless_change = false;
+}
 
 /*
 * Convert the mode string to the more convinient bits per pixel value
@@ -49,6 +127,24 @@ static int getBPPFromModeString(CFStringRef mode)
 
 void defos_init() {
     window = dmGraphics::GetNativeOSXNSWindow();
+    windowed_style_mask = default_windowed_style_mask();
+    desired_borderless = false;
+    has_pending_borderless_change = false;
+    is_fullscreen_transitioning = false;
+    if (window) {
+        NSUInteger initial_style_mask = [window styleMask] & ~NSWindowStyleMaskFullScreen;
+        desired_borderless = initial_style_mask == NSWindowStyleMaskBorderless;
+        if (!desired_borderless && initial_style_mask != NSWindowStyleMaskBorderless) {
+            windowed_style_mask = initial_style_mask;
+        }
+
+        window_observer = [[DefosWindowObserver alloc] init];
+        NSNotificationCenter* notification_center = [NSNotificationCenter defaultCenter];
+        [notification_center addObserver:window_observer selector:@selector(windowWillEnterFullScreen:) name:NSWindowWillEnterFullScreenNotification object:window];
+        [notification_center addObserver:window_observer selector:@selector(windowDidEnterFullScreen:) name:NSWindowDidEnterFullScreenNotification object:window];
+        [notification_center addObserver:window_observer selector:@selector(windowWillExitFullScreen:) name:NSWindowWillExitFullScreenNotification object:window];
+        [notification_center addObserver:window_observer selector:@selector(windowDidExitFullScreen:) name:NSWindowDidExitFullScreenNotification object:window];
+    }
     // [window disableCursorRects];
     // [window resetCursorRects];
     default_cursor = NSCursor.arrowCursor;
@@ -60,6 +156,11 @@ void defos_init() {
 
 void defos_final() {
     disable_mouse_tracking();
+    if (window_observer != nil) {
+        [[NSNotificationCenter defaultCenter] removeObserver:window_observer];
+        [window_observer release];
+        window_observer = nil;
+    }
     [default_cursor release];
     [current_cursor release];
     current_cursor = nil;
@@ -67,6 +168,7 @@ void defos_final() {
 }
 
 void defos_update() {
+    apply_pending_borderless_state();
 }
 
 void defos_event_handler_was_set(DefosEvent event) {
@@ -81,7 +183,7 @@ void defos_disable_minimize_button() {
 }
 
 void defos_disable_window_resize() {
-    [window setStyleMask:[window styleMask] & ~NSResizableWindowMask];
+    [window setStyleMask:[window styleMask] & ~NSWindowStyleMaskResizable];
 }
 
 void defos_toggle_fullscreen() {
@@ -95,14 +197,17 @@ void defos_toggle_fullscreen() {
 void defos_toggle_borderless() {
     if (!window) return;
 
-    NSUInteger currentStyleMask = [window styleMask];
-    if (currentStyleMask == NSWindowStyleMaskBorderless) {
-        [window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable];
-    } else {
-        [window setStyleMask:NSWindowStyleMaskBorderless];
+    desired_borderless = !desired_borderless;
+
+    if (defos_is_fullscreen() || is_fullscreen_transitioning) {
+        has_pending_borderless_change = true;
+        if (defos_is_fullscreen() && !is_fullscreen_transitioning) {
+            [window toggleFullScreen:window];
+        }
+        return;
     }
 
-    [window makeKeyAndOrderFront:nil];
+    apply_borderless_state(desired_borderless);
 }
 
 void defos_toggle_maximized() {
@@ -126,14 +231,13 @@ void defos_toggle_always_on_top() {
 }
 
 bool defos_is_fullscreen() {
-    BOOL fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+    if (!window) return false;
+    BOOL fullscreen = (([window styleMask] & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen);
     return fullscreen == YES;
 }
 
 bool defos_is_borderless() {
-    if (!window) return false;
-    NSUInteger currentStyleMask = [window styleMask];
-    return currentStyleMask == NSWindowStyleMaskBorderless;
+    return desired_borderless;
 }
 
 bool defos_is_maximized() {

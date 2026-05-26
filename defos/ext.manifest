@@ -3,9 +3,9 @@ name: "defos"
 platforms:
   osx:
     context:
-        frameworks: ["AppKit"]
+        frameworks: ["AppKit", "IOKit"]
         
   linux:
     context:      
         frameworks: ["X11", "Xrender"]
-        libs: ["Xrender", "Xfixes"]
+        libs: ["Xrender", "Xfixes", "Xss"]

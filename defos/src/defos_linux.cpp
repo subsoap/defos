@@ -24,6 +24,7 @@
 #include <X11/Xos.h>
 #include <X11/cursorfont.h>
 #include <X11/extensions/Xfixes.h>
+#include <X11/extensions/scrnsaver.h>
 #include <Xcursor.h>
 #include <Xrandr.h>
 
@@ -43,6 +44,7 @@ static Display *disp;
 static int screen;
 static Window win;
 static Window root;
+static bool g_xss_supported = false;
 
 // TODO: add support checking
 static Atom UTF8_STRING;
@@ -103,6 +105,13 @@ void defos_init()
     is_cursor_visible = true;
     is_cursor_actually_visible = true;
     window_has_focus = true;
+
+    // Probe for XScreenSaver extension availability.
+    // event/error base and version outputs are required by the API but not used beyond the check.
+    int xss_event_base, xss_error_base;
+    int xss_major = 0, xss_minor = 0;
+    g_xss_supported = XScreenSaverQueryExtension(disp, &xss_event_base, &xss_error_base) &&
+                      XScreenSaverQueryVersion(disp, &xss_major, &xss_minor);
 
     current_cursor = NULL;
     memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));
@@ -924,6 +933,22 @@ static void send_message(Window &window, Atom type, long a, long b, long c, long
     event.xclient.data.l[4] = e;
 
     XSendEvent(disp, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &event);
+}
+
+static bool g_keep_awake = false;
+
+void defos_set_keep_awake(bool keep_awake)
+{
+    if (keep_awake == g_keep_awake) { return; }
+    g_keep_awake = keep_awake;
+    if (!g_xss_supported) { return; }
+    XScreenSaverSuspend(disp, keep_awake ? True : False);
+    XFlush(disp);
+}
+
+bool defos_is_keep_awake_supported()
+{
+    return g_xss_supported;
 }
 
 #endif

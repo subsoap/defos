@@ -381,6 +381,28 @@ arguments = defos.get_arguments()
 
 ---
 
+**Prevent screen dimming and sleep** when the game is active (e.g. when using a gamepad). On HTML5, requires an active/visible tab and a browser that supports the Screen Wake Lock API (Chrome 84+, Firefox 126+, Safari 16.4+). Use `defos.is_keep_awake_supported()` to check browser support before calling `defos.set_keep_awake(true)` on HTML5.
+
+```lua
+defos.set_keep_awake(bool_value)
+local supported = defos.is_keep_awake_supported()
+```
+
+Example usage with gamepad input:
+```lua
+local keep_awake = false
+function on_input(self, action_id, action)
+    if action.gamepad ~= nil then
+        if not keep_awake then
+            keep_awake = true
+            defos.set_keep_awake(true)
+        end
+    end
+end
+```
+
+---
+
 If you'd like to see any other features, open an issue.
 
 ## Example

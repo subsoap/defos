@@ -629,6 +629,20 @@ void defos_emit_event(DefosEvent event)
     assert(top == lua_gettop(L));
 }
 
+// Keep awake
+
+static int set_keep_awake(lua_State *L)
+{
+    defos_set_keep_awake(checkboolean(L, 1));
+    return 0;
+}
+
+static int is_keep_awake_supported(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_keep_awake_supported());
+    return 1;
+}
+
 // Lua module initialization
 
 static const luaL_reg Module_methods[] =
@@ -685,6 +699,8 @@ static const luaL_reg Module_methods[] =
         {"get_bundle_root", get_bundle_root},
         {"get_arguments", get_arguments},
         {"get_parameters", get_arguments}, // For backwards compatibility
+        {"set_keep_awake", set_keep_awake},
+        {"is_keep_awake_supported", is_keep_awake_supported},
         {0, 0}};
 
 static void LuaInit(lua_State *L)
@@ -754,6 +770,7 @@ dmExtension::Result InitializeDefos(dmExtension::Params *params)
 
 dmExtension::Result FinalizeDefos(dmExtension::Params *params)
 {
+    defos_set_keep_awake(false);
     defos_final();
     return dmExtension::RESULT_OK;
 }

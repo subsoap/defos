@@ -410,4 +410,71 @@ DisplayID defos_get_current_display() {
     return NULL;
 }
 
+void defos_set_keep_awake(bool keep_awake) {
+    EM_ASM({
+        var keep = $0 !== 0;
+
+        // Initialize shared state and helpers once.
+        if (!Module.__defosjs_keepAwakeInitialized) {
+            Module.__defosjs_keepAwakeInitialized = true;
+            Module.__defosjs_keepAwakeDesired = false;
+            Module.__defosjs_wakeLock = null;
+
+            Module.__defosjs_requestWakeLock = function() {
+                if (!Module.__defosjs_keepAwakeDesired) { return; }
+                if (!('wakeLock' in navigator)) { return; }
+                if (Module.__defosjs_wakeLock) { return; }
+                navigator.wakeLock.request('screen').then(function(lock) {
+                    // Check whether the desired state changed while the promise was in flight.
+                    if (!Module.__defosjs_keepAwakeDesired) {
+                        lock.release();
+                        return;
+                    }
+                    Module.__defosjs_wakeLock = lock;
+                    lock.addEventListener('release', function() {
+                        Module.__defosjs_wakeLock = null;
+                        // Re-acquire if still desired (e.g. browser released due to tab hide).
+                        if (Module.__defosjs_keepAwakeDesired) {
+                            Module.__defosjs_requestWakeLock();
+                        }
+                    });
+                }).catch(function(err) {
+                    console.error('defos: wake lock request failed:', err);
+                });
+            };
+
+            // Re-try when the document becomes visible again.
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' &&
+                    Module.__defosjs_keepAwakeDesired &&
+                    !Module.__defosjs_wakeLock) {
+                    Module.__defosjs_requestWakeLock();
+                }
+            });
+        }
+
+        Module.__defosjs_keepAwakeDesired = keep;
+
+        if (keep) {
+            Module.__defosjs_requestWakeLock();
+        } else {
+            if (Module.__defosjs_wakeLock) {
+                Module.__defosjs_wakeLock.release().then(function() {
+                    Module.__defosjs_wakeLock = null;
+                }).catch(function(err) {
+                    console.error('defos: wake lock release failed:', err);
+                    Module.__defosjs_wakeLock = null;
+                });
+            }
+        }
+    }, keep_awake ? 1 : 0);
+}
+
+bool defos_is_keep_awake_supported() {
+    int supported = EM_ASM_INT({
+        return ('wakeLock' in navigator) ? 1 : 0;
+    });
+    return supported != 0;
+}
+
 #endif

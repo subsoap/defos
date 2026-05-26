@@ -124,3 +124,6 @@ extern void defos_reset_cursor();
 extern void defos_get_displays(dmArray<DisplayInfo> &displayList);
 extern void defos_get_display_modes(DisplayID displayID, dmArray<DisplayModeInfo> &modeList);
 extern DisplayID defos_get_current_display();
+
+extern void defos_set_keep_awake(bool keep_awake);
+extern bool defos_is_keep_awake_supported();

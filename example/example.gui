@@ -771,6 +771,41 @@ nodes {
 }
 nodes {
   position {
+    x: 635.0
+    y: 350.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "toggle_keep_awake"
+  inherit_alpha: true
+  template: "/dirtylarry/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "toggle_keep_awake/larrybutton"
+  parent: "toggle_keep_awake"
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 250.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Keep screen awake"
+  id: "toggle_keep_awake/larrylabel"
+  line_break: true
+  parent: "toggle_keep_awake/larrybutton"
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
     x: 525.0
     y: 33.0
   }

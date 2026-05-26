@@ -406,6 +406,22 @@
       type: table
       desc: Table of command line arguments
 
+  - name: set_keep_awake
+    type: function
+    desc: Prevents or allows the screen from dimming or going to sleep. Useful when the game is controlled by a gamepad. On HTML5, requires an active/visible tab and browser support (Chrome 84+, Firefox 126+, Safari 16.4+). Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: keep_awake
+      type: boolean
+      desc: Whether to prevent screen dimming and sleep
+
+  - name: is_keep_awake_supported
+    type: function
+    desc: Checks if the keep awake feature is supported on the current platform/browser. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: supported
+      type: boolean
+      desc: Whether keep awake is supported
+
   - name: CURSOR_ARROW
     type: number
     desc: Default arrow cursor

@@ -817,4 +817,35 @@ static void disable_mouse_tracking() {
     mouse_tracker = nil;
 }
 
+#import <IOKit/pwr_mgt/IOPMLib.h>
+
+static IOPMAssertionID g_assertion_id = kIOPMNullAssertionID;
+
+void defos_set_keep_awake(bool keep_awake)
+{
+    if (keep_awake && g_assertion_id == kIOPMNullAssertionID)
+    {
+        CFStringRef reason = CFSTR("Defold game active");
+        IOReturn ret = IOPMAssertionCreateWithName(
+            kIOPMAssertionTypePreventUserIdleDisplaySleep,
+            kIOPMAssertionLevelOn,
+            reason,
+            &g_assertion_id);
+        if (ret != kIOReturnSuccess)
+        {
+            g_assertion_id = kIOPMNullAssertionID;
+        }
+    }
+    else if (!keep_awake && g_assertion_id != kIOPMNullAssertionID)
+    {
+        IOPMAssertionRelease(g_assertion_id);
+        g_assertion_id = kIOPMNullAssertionID;
+    }
+}
+
+bool defos_is_keep_awake_supported()
+{
+    return true;
+}
+
 #endif

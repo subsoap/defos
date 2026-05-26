@@ -95,6 +95,15 @@ function init(self)
 			if gui.get_flipbook(gui.get_node("toggle_borderless/larrybutton")) == hash("button_pressed") then
 				defos.toggle_borderless()
 			end
+			if gui.get_flipbook(gui.get_node("toggle_keep_awake/larrybutton")) == hash("button_pressed") then
+				if defos.is_keep_awake_supported() then
+					self.keep_awake = not self.keep_awake
+					defos.set_keep_awake(self.keep_awake)
+					gui.set_text(gui.get_node("toggle_keep_awake/larrylabel"), self.keep_awake and "Allow screen sleep" or "Keep screen awake")
+				else
+					print("defos: Keep-awake / Wake Lock is not supported on this platform.")
+				end
+			end
 		end)
 	end
 
@@ -106,6 +115,7 @@ function init(self)
 	self.cursor_visible = true
 	self.cursor_clipped = false
 	self.cursor_locked = false
+	self.keep_awake = false
 	msg.post(".", "acquire_input_focus")
 
 	-- Console related commands only work on Windows and in bundled builds not in editor builds
@@ -252,5 +262,13 @@ function on_input(self, action_id, action)
 		end
 
 		defos.set_cursor(self.cursors[self.current_cursor])
+	end)
+
+	dirtylarry:button("toggle_keep_awake", action_id, action, function()
+		if system_name ~= "HTML5" then
+			self.keep_awake = not self.keep_awake
+			defos.set_keep_awake(self.keep_awake)
+			gui.set_text(gui.get_node("toggle_keep_awake/larrylabel"), self.keep_awake and "Allow screen sleep" or "Keep screen awake")
+		end
 	end)
 end

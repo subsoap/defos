@@ -292,8 +292,3 @@ function defos.set_window_icon(path) end
 ---Returns command line arguments used to run the app. Platforms - Linux, Windows, OSX, HTML5.
 ---@return table arguments Table of command line arguments
 function defos.get_arguments() end
-
----Checks whether a process with the given executable name is running, case-insensitively. Only the fact is returned. On Linux the name is matched against /proc/<pid>/comm, which is truncated to 15 characters; on HTML5 always false. Platforms - Linux, Windows, OSX, HTML5.
----@param executable_name string Executable name, e.g. "obs64.exe"
----@return boolean running
-function defos.is_process_running(executable_name) end

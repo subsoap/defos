@@ -415,17 +415,6 @@ arguments = defos.get_arguments()
 
 ---
 
-**Check whether a process is running** by its executable name, case-insensitively. Only the
-fact is returned, the process list is not exposed. Useful, for example, to hide a popup while
-streaming software is running. On Linux the name is matched against `/proc/<pid>/comm`, which the
-kernel truncates to 15 characters. On HTML5 always returns `false`.
-
-```lua
-bool_value = defos.is_process_running("obs64.exe")
-```
-
----
-
 If you'd like to see any other features, open an issue.
 
 ## Example

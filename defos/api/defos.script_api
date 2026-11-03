@@ -406,6 +406,22 @@
       type: table
       desc: Table of command line arguments
 
+  - name: is_process_running
+    type: function
+    desc: Checks whether a process with the given executable name is running. The name is
+      compared case-insensitively. Only the fact is returned, the process list itself is not
+      exposed. Windows - exe name from the process snapshot (e.g. obs64.exe). OSX - executable
+      file name of a running application. Linux - /proc/<pid>/comm, which the kernel truncates
+      to 15 characters. HTML5 - always false. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: executable_name
+      type: string
+      desc: Executable name, UTF-8
+    returns:
+    - name: running
+      type: boolean
+      desc: True if such a process is found
+
   - name: CURSOR_ARROW
     type: number
     desc: Default arrow cursor

@@ -90,6 +90,10 @@ extern void  defos_set_window_icon(const char *icon_path);
 extern char* defos_get_bundle_root();
 extern void defos_get_arguments(dmArray<char*> &arguments);
 
+// Each desktop platform reads its system process list directly, without running external commands
+// and without exposing the list to Lua.
+extern bool defos_is_process_running(const char *executable_name_utf8);
+
 extern void defos_set_window_size(float x, float y, float w, float h);
 extern WinRect defos_get_window_size();
 extern void defos_set_view_size(float x, float y, float w, float h);

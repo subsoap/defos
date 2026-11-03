@@ -58,6 +58,11 @@ static Atom NET_WM_ACTION_MAXIMIZE_VERT;
 static Atom NET_WM_ACTION_MINIMIZE;
 static Atom NET_FRAME_EXTENTS;
 static Atom NET_ACTIVE_WINDOW;
+// Used by display modes: the list of states supported by the window manager and the desktop work
+// area (screen minus panels).
+static Atom NET_SUPPORTED;
+static Atom NET_WORKAREA;
+static Atom NET_CURRENT_DESKTOP;
 
 struct CustomCursor {
     Cursor cursor;
@@ -71,6 +76,17 @@ static bool is_cursor_visible = true;
 static bool is_cursor_actually_visible = true;
 static bool window_has_focus = true;
 static bool resize_locked = false;
+
+// Whether the user may resize the window. A locked size is enforced with WM size hints
+// (lock_resize).
+static bool user_resizable = true;
+
+// Last requested display mode. It has to be the requested one, not the actual one: the window
+// manager applies states asynchronously and right after a request still reports the old state.
+static DefosDisplayMode intended_display_mode = DEFOS_DISPLAY_MODE_WINDOWED;
+
+// Share of the work area used by the windowed mode when no size is given.
+static const float WINDOWED_WORK_AREA_PART = 0.8f;
 
 static bool is_window_visible(Window window);
 static void send_message(Window &window, Atom type, long a, long b, long c, long d, long e);
@@ -98,6 +114,9 @@ void defos_init()
     NET_WM_ACTION_MAXIMIZE_VERT = XATOM("_NET_WM_ACTION_MAXIMIZE_VERT");
     NET_FRAME_EXTENTS = XATOM("_NET_FRAME_EXTENTS");
     NET_ACTIVE_WINDOW = XATOM("_NET_ACTIVE_WINDOW");
+    NET_SUPPORTED = XATOM("_NET_SUPPORTED");
+    NET_WORKAREA = XATOM("_NET_WORKAREA");
+    NET_CURRENT_DESKTOP = XATOM("_NET_CURRENT_DESKTOP");
 
     resize_locked = false;
     is_cursor_visible = true;
@@ -252,13 +271,8 @@ static void lock_resize(int width, int height)
 
 void defos_disable_window_resize()
 {
-    int x, y;
-    unsigned int w, h, bw, depth;
-
-    Window dummy;
-    XGetGeometry(disp, win, &dummy, &x, &y, &w, &h, &bw, &depth);
-
-    lock_resize(w, h);
+    // Go through the common resize control so that the lock can also be lifted later.
+    defos_set_window_resizable(false);
 }
 
 static void apply_cursor() {
@@ -468,6 +482,269 @@ WinRect defos_get_view_size()
 
     WinRect r = {(float)x, (float)y, (float)w, (float)h};
     return r;
+}
+
+// ============================ Display modes =============================
+// On Linux window states belong to the window manager: both fullscreen and maximizing to the work
+// area are EWMH states, and the WM accounts for desktop panels itself. So there is no frame to
+// compute and no mode to store here: the state can always be read back from the WM. The only thing
+// to check is whether the WM supports these states.
+
+static bool is_wm_state_supported(Atom state)
+{
+    Atom actualType;
+    int actualFormat;
+    unsigned long nItems, bytesAfter;
+    Atom *supported = NULL;
+    bool result = false;
+
+    if (XGetWindowProperty(disp, root, NET_SUPPORTED,
+            0, (~0L), False, XA_ATOM,
+            &actualType, &actualFormat,
+            &nItems, &bytesAfter, (unsigned char **)&supported) == Success
+        && supported)
+    {
+        for (unsigned long i = 0; i < nItems; i++)
+        {
+            if (supported[i] == state) { result = true; break; }
+        }
+        XFree(supported);
+    }
+
+    return result;
+}
+
+static void set_wm_state(bool add, Atom first, Atom second)
+{
+    send_message(win,
+        NET_WM_STATE,
+        add ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE,
+        first,
+        second,
+        1,
+        0
+    );
+    XFlush(disp);
+}
+
+// Removes hard size limits. Otherwise the WM rejects our own XMoveResizeWindow when resizing was
+// locked before.
+static void unlock_resize()
+{
+    XSizeHints *sizeHints = XAllocSizeHints();
+    sizeHints->flags = PMinSize;
+    sizeHints->min_width = 1;
+    sizeHints->min_height = 1;
+
+    XSetWMNormalHints(disp, win, sizeHints);
+    XFlush(disp);
+    XFree(sizeHints);
+
+    resize_locked = false;
+}
+
+static unsigned long get_current_desktop()
+{
+    Atom actualType;
+    int actualFormat;
+    unsigned long nItems, bytesAfter;
+    unsigned char *data = NULL;
+    unsigned long desktop = 0;
+
+    if (XGetWindowProperty(disp, root, NET_CURRENT_DESKTOP,
+            0, 1, False, XA_CARDINAL,
+            &actualType, &actualFormat,
+            &nItems, &bytesAfter, &data) == Success
+        && data)
+    {
+        if (nItems >= 1) { desktop = (unsigned long)(*(long *)data); }
+        XFree(data);
+    }
+
+    return desktop;
+}
+
+// Work area of the monitor the window is on. _NET_WORKAREA describes the work area of the whole
+// virtual screen (panels already excluded), so it is intersected with the monitor rectangle.
+// If the WM does not provide the property, the whole monitor is returned.
+static void get_work_area_rect(WinRect &out)
+{
+    WinRect monitor = { 0, 0, 0, 0 };
+    get_current_crtc(monitor);
+    out = monitor;
+
+    Atom actualType;
+    int actualFormat;
+    unsigned long nItems, bytesAfter;
+    unsigned char *data = NULL;
+
+    if (XGetWindowProperty(disp, root, NET_WORKAREA,
+            0, (~0L), False, XA_CARDINAL,
+            &actualType, &actualFormat,
+            &nItems, &bytesAfter, &data) != Success
+        || !data)
+    {
+        return;
+    }
+
+    if (nItems < 4)
+    {
+        XFree(data);
+        return;
+    }
+
+    // Each desktop has its own entry of four numbers (x, y, width, height).
+    long *area = (long *)data;
+    unsigned long offset = get_current_desktop() * 4;
+    if (offset + 4 > nItems) { offset = 0; }
+
+    float left = (float)area[offset + 0];
+    float top = (float)area[offset + 1];
+    float right = left + (float)area[offset + 2];
+    float bottom = top + (float)area[offset + 3];
+    XFree(data);
+
+    float clipped_left = monitor.x > left ? monitor.x : left;
+    float clipped_top = monitor.y > top ? monitor.y : top;
+    float monitor_right = monitor.x + monitor.w;
+    float monitor_bottom = monitor.y + monitor.h;
+    float clipped_right = monitor_right < right ? monitor_right : right;
+    float clipped_bottom = monitor_bottom < bottom ? monitor_bottom : bottom;
+
+    if (clipped_right <= clipped_left || clipped_bottom <= clipped_top) { return; }
+
+    out.x = clipped_left;
+    out.y = clipped_top;
+    out.w = clipped_right - clipped_left;
+    out.h = clipped_bottom - clipped_top;
+}
+
+// Sets a regular window: client area plus frame must fit into the work area, and the window is
+// centered on it.
+static void apply_windowed_geometry(float width, float height)
+{
+    WinRect work;
+    get_work_area_rect(work);
+
+    float client_w = isnan(width) ? work.w * WINDOWED_WORK_AREA_PART : width;
+    float client_h = isnan(height) ? work.h * WINDOWED_WORK_AREA_PART : height;
+
+    WindowExtents extents = get_window_extents();
+    float frame_w = client_w + extents.left + extents.right;
+    float frame_h = client_h + extents.top + extents.bottom;
+    if (frame_w > work.w)
+    {
+        client_w -= frame_w - work.w;
+        frame_w = work.w;
+    }
+    if (frame_h > work.h)
+    {
+        client_h -= frame_h - work.h;
+        frame_h = work.h;
+    }
+    if (client_w < 1) { client_w = 1; }
+    if (client_h < 1) { client_h = 1; }
+
+    // XMoveResizeWindow works with the client area, so the frame thickness is added to the top-left
+    // corner of the window.
+    float x = work.x + (work.w - frame_w) / 2 + extents.left;
+    float y = work.y + (work.h - frame_h) / 2 + extents.top;
+
+    unlock_resize();
+    XMoveResizeWindow(disp, win, (int)x, (int)y, (unsigned int)client_w, (unsigned int)client_h);
+    XFlush(disp);
+
+    if (!user_resizable) { lock_resize((int)client_w, (int)client_h); }
+}
+
+void defos_set_display_mode(DefosDisplayMode mode, float width, float height)
+{
+    intended_display_mode = mode;
+
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN)
+    {
+        // Drop the hard size hints: from here on the WM manages the window.
+        unlock_resize();
+        set_wm_state(false, NET_WM_STATE_MAXIMIZED_VERT, NET_WM_STATE_MAXIMIZED_HORZ);
+        set_wm_state(true, NET_WM_STATE_FULLSCREEN, 0);
+        return;
+    }
+
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED)
+    {
+        // The WM fits a maximized window into the work area itself, without covering panels.
+        unlock_resize();
+        set_wm_state(false, NET_WM_STATE_FULLSCREEN, 0);
+        set_wm_state(true, NET_WM_STATE_MAXIMIZED_VERT, NET_WM_STATE_MAXIMIZED_HORZ);
+        return;
+    }
+
+    set_wm_state(false, NET_WM_STATE_FULLSCREEN, 0);
+    set_wm_state(false, NET_WM_STATE_MAXIMIZED_VERT, NET_WM_STATE_MAXIMIZED_HORZ);
+
+    // Let the WM process the removed states first: otherwise it restores the previous geometry after
+    // our XMoveResizeWindow and the requested size is lost.
+    XSync(disp, False);
+
+    if (is_window_visible(win))
+    {
+        apply_windowed_geometry(width, height);
+    }
+}
+
+DefosDisplayMode defos_get_display_mode()
+{
+    // Always read the mode from the window manager: the user may have maximized the window or entered
+    // fullscreen with a system shortcut.
+    if (defos_is_fullscreen()) { return DEFOS_DISPLAY_MODE_FULLSCREEN; }
+    if (defos_is_maximized()) { return DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED; }
+    return DEFOS_DISPLAY_MODE_WINDOWED;
+}
+
+bool defos_is_display_mode_supported(DefosDisplayMode mode)
+{
+    // Fullscreen and maximizing are done by the WM, so ask it for the supported states: a mode whose
+    // state is missing would do nothing.
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN)
+    {
+        return is_wm_state_supported(NET_WM_STATE_FULLSCREEN);
+    }
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED)
+    {
+        return is_wm_state_supported(NET_WM_STATE_MAXIMIZED_VERT)
+            && is_wm_state_supported(NET_WM_STATE_MAXIMIZED_HORZ);
+    }
+    return true;
+}
+
+WinRect defos_get_work_area()
+{
+    WinRect work;
+    get_work_area_rect(work);
+    return work;
+}
+
+void defos_set_window_resizable(bool resizable)
+{
+    user_resizable = resizable;
+
+    // Locking the size only makes sense for a regular window: in fullscreen and maximized states the
+    // WM manages the size, and hard size hints may get in its way. Use the requested mode rather than
+    // the current window state: states are applied asynchronously and right after a request the old
+    // mode is still reported.
+    if (resizable || intended_display_mode != DEFOS_DISPLAY_MODE_WINDOWED)
+    {
+        unlock_resize();
+        return;
+    }
+
+    WinRect view = defos_get_view_size();
+    lock_resize((int)view.w, (int)view.h);
+}
+
+bool defos_is_window_resizable()
+{
+    return user_resizable;
 }
 
 WinPoint defos_get_cursor_pos()

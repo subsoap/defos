@@ -76,6 +76,40 @@ bool_value = defos.is_borderless()
 
 ---
 
+**Display mode**. Three explicit screen modes instead of separate fullscreen and borderless toggles.
+
+```lua
+defos.set_display_mode("windowed", client_width, client_height) -- size is optional
+defos.set_display_mode("fullscreen_windowed") -- covers the work area, taskbar / Dock stay visible
+defos.set_display_mode("fullscreen") -- covers the whole monitor
+mode = defos.get_display_mode()
+bool_value = defos.is_display_mode_supported(mode)
+x, y, w, h = defos.get_work_area()
+```
+
+`client_width` / `client_height` are the size of the game view (client area) in platform units:
+physical pixels on Windows, points on macOS. The window frame is added by DefOS. Without them the
+window gets 80% of the work area. Other modes ignore the size.
+
+On Linux window states are performed by the window manager, so check
+`is_display_mode_supported()` before offering a mode in a settings menu.
+On HTML5 `"fullscreen_windowed"` is not supported and `get_work_area()` returns the view size.
+
+`set_fullscreen` / `toggle_fullscreen` / `is_fullscreen` keep working and share the same code.
+
+---
+
+**Allow or forbid resizing the window by the player**. Forbidding it also removes the maximize
+button. The style is reapplied on every switch to the windowed mode, so call it once, before
+`set_display_mode()`. Not supported on HTML5.
+
+```lua
+defos.set_window_resizable(bool_value)
+bool_value = defos.is_window_resizable()
+```
+
+---
+
 **Keep window on top**. Not supported on HTML5.
 
 ```lua
@@ -377,6 +411,17 @@ returns a table with a single string: the query string part of the URL
 
 ```lua
 arguments = defos.get_arguments()
+```
+
+---
+
+**Check whether a process is running** by its executable name, case-insensitively. Only the
+fact is returned, the process list is not exposed. Useful, for example, to hide a popup while
+streaming software is running. On Linux the name is matched against `/proc/<pid>/comm`, which the
+kernel truncates to 15 characters. On HTML5 always returns `false`.
+
+```lua
+bool_value = defos.is_process_running("obs64.exe")
 ```
 
 ---

@@ -33,6 +33,18 @@ static bool is_cursor_visible = true;
 static bool is_custom_cursor_loaded;
 static bool is_unicode_window = false;
 
+// Current display mode. "Fullscreen" and "fullscreen windowed" cannot be told apart by the window
+// style (both have no frame), so the selected mode is stored here. Until a mode has been set
+// explicitly, the window style is used, see defos_get_display_mode().
+static DefosDisplayMode current_display_mode = DEFOS_DISPLAY_MODE_WINDOWED;
+static bool is_display_mode_known = false;
+
+// Whether the user may resize the window by dragging its edge.
+static bool is_window_resizable = true;
+
+// Share of the work area used by the windowed mode when no size is given.
+static const float WINDOWED_WORK_AREA_PART = 0.8f;
+
 struct CustomCursor {
     HCURSOR cursor;
     int ref_count;
@@ -47,6 +59,9 @@ LONG_PTR get_window_style();
 LRESULT __stdcall custom_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
 void restore_window_class();
 void subclass_window();
+static bool get_monitor_rects(HWND window, RECT &monitor_rect, RECT &work_rect);
+static void apply_windowed_geometry(HWND window, const RECT &work_rect, float width, float height);
+static void sanitize_startup_window_geometry();
 
 /******************
  * exposed functions
@@ -61,6 +76,7 @@ void defos_init()
     current_cursor = NULL;
     memset(default_cursors, 0, DEFOS_CURSOR_INTMAX * sizeof(CustomCursor*));
     GetClipCursor(&originalRect);  // keep the original clip for restore
+    sanitize_startup_window_geometry();
     GetWindowPlacement(dmGraphics::GetNativeWindowsHWND(), &placement);
     subclass_window();
 }
@@ -111,7 +127,9 @@ void defos_disable_minimize_button()
 
 void defos_disable_window_resize()
 {
-    set_window_style(get_window_style() & ~WS_SIZEBOX);
+    // Go through the common resize control so that the maximize button is removed together with the
+    // sizing frame: otherwise a double click on the title bar still maximizes the window.
+    defos_set_window_resizable(false);
 }
 
 void defos_set_cursor_visible(bool visible)
@@ -128,6 +146,278 @@ bool defos_is_cursor_visible()
     return is_cursor_visible;
 }
 
+// Windows 10 1607 and later can compute the window frame for the DPI of a specific monitor. The old
+// AdjustWindowRect always uses 96 DPI, so with 200% system scaling it underestimates the title bar
+// by half and the window no longer fits the bounds it was given. The functions are loaded with
+// GetProcAddress; without them the previous behavior is used.
+typedef UINT(WINAPI *GetDpiForWindowFn)(HWND);
+typedef BOOL(WINAPI *AdjustWindowRectExForDpiFn)(LPRECT, DWORD, BOOL, DWORD, UINT);
+
+static UINT get_window_dpi(HWND window)
+{
+    static bool is_resolved = false;
+    static GetDpiForWindowFn get_dpi_for_window = NULL;
+    if (!is_resolved)
+    {
+        is_resolved = true;
+        HMODULE user32 = GetModuleHandleA("user32.dll");
+        if (user32)
+        {
+            get_dpi_for_window = (GetDpiForWindowFn)GetProcAddress(user32, "GetDpiForWindow");
+        }
+    }
+
+    UINT dpi = get_dpi_for_window ? get_dpi_for_window(window) : 0;
+    return dpi ? dpi : 96; // 96 DPI is 100% scaling
+}
+
+static void adjust_window_rect(HWND window, RECT *rect, DWORD style, DWORD ex_style)
+{
+    static bool is_resolved = false;
+    static AdjustWindowRectExForDpiFn adjust_for_dpi = NULL;
+    if (!is_resolved)
+    {
+        is_resolved = true;
+        HMODULE user32 = GetModuleHandleA("user32.dll");
+        if (user32)
+        {
+            adjust_for_dpi = (AdjustWindowRectExForDpiFn)GetProcAddress(user32, "AdjustWindowRectExForDpi");
+        }
+    }
+
+    if (adjust_for_dpi)
+    {
+        adjust_for_dpi(rect, style, FALSE, ex_style, get_window_dpi(window));
+    }
+    else
+    {
+        AdjustWindowRectEx(rect, style, FALSE, ex_style);
+    }
+}
+
+// Rectangles of the monitor the window is on: the whole monitor and its work area (without the
+// taskbar). Using only rcMonitor puts the bottom of the window under the taskbar.
+static bool get_monitor_rects(HWND window, RECT &monitor_rect, RECT &work_rect)
+{
+    MONITORINFO mi = {sizeof(mi)};
+    if (!GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST), &mi))
+    {
+        return false;
+    }
+
+    monitor_rect = mi.rcMonitor;
+    work_rect = mi.rcWork;
+    return true;
+}
+
+// Style of a regular window. When resizing is locked, WS_THICKFRAME (no dragging the edge) and
+// WS_MAXIMIZEBOX (no maximizing by a double click on the title bar) are removed.
+static LONG_PTR make_windowed_style(LONG_PTR style)
+{
+    style |= WS_OVERLAPPEDWINDOW;
+    if (!is_window_resizable)
+    {
+        style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+    }
+    return style;
+}
+
+// Sets a regular window: takes the client area size, adds the frame for the monitor DPI, shrinks
+// the result to the work area and centers it. Without these three steps a 4K monitor at 200%
+// scaling got a 3840x2160 client area that did not fit the screen.
+static void apply_windowed_geometry(HWND window, const RECT &work_rect, float width, float height)
+{
+    LONG work_w = work_rect.right - work_rect.left;
+    LONG work_h = work_rect.bottom - work_rect.top;
+
+    LONG client_w = isnan(width) ? (LONG)(work_w * WINDOWED_WORK_AREA_PART) : (LONG)width;
+    LONG client_h = isnan(height) ? (LONG)(work_h * WINDOWED_WORK_AREA_PART) : (LONG)height;
+    if (client_w < 1) { client_w = 1; }
+    if (client_h < 1) { client_h = 1; }
+
+    DWORD style = (DWORD)get_window_style();
+    DWORD ex_style = (DWORD)GetWindowLongPtrA(window, GWL_EXSTYLE);
+
+    // First pass: find out how far the window with its frame goes beyond the work area.
+    RECT frame;
+    frame.left = 0;
+    frame.top = 0;
+    frame.right = client_w;
+    frame.bottom = client_h;
+    adjust_window_rect(window, &frame, style, ex_style);
+
+    LONG excess_w = (frame.right - frame.left) - work_w;
+    LONG excess_h = (frame.bottom - frame.top) - work_h;
+    if (excess_w > 0) { client_w -= excess_w; }
+    if (excess_h > 0) { client_h -= excess_h; }
+    if (client_w < 1) { client_w = 1; }
+    if (client_h < 1) { client_h = 1; }
+
+    // Second pass: final window size including the frame.
+    frame.left = 0;
+    frame.top = 0;
+    frame.right = client_w;
+    frame.bottom = client_h;
+    adjust_window_rect(window, &frame, style, ex_style);
+
+    LONG frame_w = frame.right - frame.left;
+    LONG frame_h = frame.bottom - frame.top;
+    LONG x = work_rect.left + (work_w - frame_w) / 2;
+    LONG y = work_rect.top + (work_h - frame_h) / 2;
+
+    SetWindowPos(window, NULL, (int)x, (int)y, (int)frame_w, (int)frame_h,
+                 SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+}
+
+// Fixes the startup window. Defold creates the window as display.width/height from game.project
+// multiplied by the display scale: on a 4K monitor at 200% scaling that is a 3840x2160 client area,
+// so the window with its frame is larger than the screen, the title bar goes above the top edge and
+// the bottom hides under the taskbar. The engine does not clamp it to the work area. This runs at
+// extension initialization, the earliest point in the process, before Lua modules are loaded and
+// before the first init(), so the broken window is never shown. The mode the game will select is
+// not known yet, so the window is touched only when it does not fit the work area, and it gets the
+// same geometry as the windowed mode.
+static void sanitize_startup_window_geometry()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+    if (!window) { return; }
+
+    // A window without a frame is left alone: that is a fullscreen mode set on purpose.
+    if (!(get_window_style() & WS_OVERLAPPEDWINDOW)) { return; }
+
+    RECT monitor_rect, work_rect;
+    if (!get_monitor_rects(window, monitor_rect, work_rect)) { return; }
+
+    RECT window_rect;
+    if (!GetWindowRect(window, &window_rect)) { return; }
+
+    bool fits_work_area = window_rect.left >= work_rect.left
+        && window_rect.top >= work_rect.top
+        && window_rect.right <= work_rect.right
+        && window_rect.bottom <= work_rect.bottom;
+    if (fits_work_area) { return; }
+
+    apply_windowed_geometry(window, work_rect, nanf(""), nanf(""));
+}
+
+void defos_set_display_mode(DefosDisplayMode mode, float width, float height)
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    // A maximized window ignores SetWindowPos, so restore it first.
+    if (IsZoomed(window))
+    {
+        ShowWindow(window, SW_RESTORE);
+    }
+
+    RECT monitor_rect, work_rect;
+    if (!get_monitor_rects(window, monitor_rect, work_rect))
+    {
+        return;
+    }
+
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN || mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED)
+    {
+        // Fullscreen covers the whole monitor (taskbar hidden), "fullscreen windowed" only the work area,
+        // so the taskbar stays visible and clickable.
+        const RECT &target = (mode == DEFOS_DISPLAY_MODE_FULLSCREEN) ? monitor_rect : work_rect;
+
+        // Keep the regular window geometry for the old toggle_maximized API, which restores the window
+        // with SetWindowPlacement.
+        if (!defos_is_fullscreen())
+        {
+            GetWindowPlacement(window, &placement);
+        }
+
+        set_window_style(get_window_style() & ~WS_OVERLAPPEDWINDOW);
+        SetWindowPos(window, HWND_TOP,
+                     target.left,
+                     target.top,
+                     target.right - target.left,
+                     target.bottom - target.top,
+                     SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
+    else
+    {
+        set_window_style(make_windowed_style(get_window_style()));
+        apply_windowed_geometry(window, work_rect, width, height);
+    }
+
+    current_display_mode = mode;
+    is_display_mode_known = true;
+}
+
+DefosDisplayMode defos_get_display_mode()
+{
+    // The window style is the only reliable sign after the user may have changed the mode by system
+    // means. It is also used while no mode has been set from the game.
+    bool has_frame = (get_window_style() & WS_OVERLAPPEDWINDOW) != 0;
+
+    if (!is_display_mode_known)
+    {
+        return has_frame ? DEFOS_DISPLAY_MODE_WINDOWED : DEFOS_DISPLAY_MODE_FULLSCREEN;
+    }
+
+    if (has_frame && current_display_mode != DEFOS_DISPLAY_MODE_WINDOWED)
+    {
+        return DEFOS_DISPLAY_MODE_WINDOWED;
+    }
+    if (!has_frame && current_display_mode == DEFOS_DISPLAY_MODE_WINDOWED)
+    {
+        return DEFOS_DISPLAY_MODE_FULLSCREEN;
+    }
+    return current_display_mode;
+}
+
+bool defos_is_display_mode_supported(DefosDisplayMode mode)
+{
+    // On Windows all three modes are done by the application itself, no restrictions.
+    return true;
+}
+
+WinRect defos_get_work_area()
+{
+    HWND window = dmGraphics::GetNativeWindowsHWND();
+
+    RECT monitor_rect, work_rect;
+    if (!get_monitor_rects(window, monitor_rect, work_rect))
+    {
+        return defos_get_window_size();
+    }
+
+    WinRect result = {
+        .x = (float)work_rect.left,
+        .y = (float)work_rect.top,
+        .w = (float)(work_rect.right - work_rect.left),
+        .h = (float)(work_rect.bottom - work_rect.top),
+    };
+    return result;
+}
+
+void defos_set_window_resizable(bool resizable)
+{
+    if (is_window_resizable == resizable)
+    {
+        return;
+    }
+    is_window_resizable = resizable;
+
+    // The style only needs updating for a regular window: fullscreen modes have no frame at all, and
+    // the style is rebuilt on the next switch back to the windowed mode.
+    if (defos_get_display_mode() == DEFOS_DISPLAY_MODE_WINDOWED)
+    {
+        HWND window = dmGraphics::GetNativeWindowsHWND();
+        set_window_style(make_windowed_style(get_window_style()));
+        SetWindowPos(window, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
+}
+
+bool defos_is_window_resizable()
+{
+    return is_window_resizable;
+}
+
 // https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353/
 void defos_toggle_fullscreen()
 {
@@ -136,27 +426,11 @@ void defos_toggle_fullscreen()
         defos_toggle_maximized();
     }
 
-    HWND window = dmGraphics::GetNativeWindowsHWND();
-    if (!defos_is_fullscreen())
-    {
-        MONITORINFO mi = {sizeof(mi)};
-        if (GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY), &mi))
-        {
-            set_window_style(get_window_style() & ~WS_OVERLAPPEDWINDOW);
-            GetWindowPlacement(window, &placement);
-            SetWindowPos(window, HWND_TOP,
-                         mi.rcMonitor.left,
-                         mi.rcMonitor.top,
-                         mi.rcMonitor.right - mi.rcMonitor.left,
-                         mi.rcMonitor.bottom - mi.rcMonitor.top,
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-        }
-    }
-    else
-    {
-        set_window_style(get_window_style() | WS_OVERLAPPEDWINDOW);
-        SetWindowPlacement(window, &placement);
-    }
+    // The old API keeps working for backward compatibility: it switches between fullscreen and a
+    // regular window, and the window geometry now comes from the common display mode code.
+    defos_set_display_mode(
+        defos_is_fullscreen() ? DEFOS_DISPLAY_MODE_WINDOWED : DEFOS_DISPLAY_MODE_FULLSCREEN,
+        nanf(""), nanf(""));
 }
 
 void defos_toggle_borderless()
@@ -241,12 +515,14 @@ void defos_set_window_size(float x, float y, float w, float h)
 
     if (isnan(x) || isnan(y))
     {
-        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-        MONITORINFO monitorInfo;
-        monitorInfo.cbSize = sizeof(monitorInfo);
-        GetMonitorInfo(hMonitor, &monitorInfo);
-        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
-        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
+        // Center on the work area, not on the whole monitor: centering on the monitor puts the bottom of
+        // the window under the taskbar.
+        RECT monitor_rect, work_rect;
+        if (get_monitor_rects(window, monitor_rect, work_rect))
+        {
+            if (isnan(x)) { x = (work_rect.left + work_rect.right - w) / 2; }
+            if (isnan(y)) { y = (work_rect.top + work_rect.bottom - h) / 2; }
+        }
     }
 
     SetWindowPos(window, window, (int)x, (int)y, (int)w, (int)h, SWP_NOZORDER);
@@ -258,20 +534,23 @@ void defos_set_view_size(float x, float y, float w, float h)
 
     if (isnan(x) || isnan(y))
     {
-        HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-        MONITORINFO monitorInfo;
-        monitorInfo.cbSize = sizeof(monitorInfo);
-        GetMonitorInfo(hMonitor, &monitorInfo);
-        if (isnan(x)) { x = (monitorInfo.rcMonitor.left + monitorInfo.rcMonitor.right - w) / 2; }
-        if (isnan(y)) { y = (monitorInfo.rcMonitor.top + monitorInfo.rcMonitor.bottom - h) / 2; }
+        RECT monitor_rect, work_rect;
+        if (get_monitor_rects(window, monitor_rect, work_rect))
+        {
+            if (isnan(x)) { x = (work_rect.left + work_rect.right - w) / 2; }
+            if (isnan(y)) { y = (work_rect.top + work_rect.bottom - h) / 2; }
+        }
     }
 
     RECT rect = {0, 0, (int)w, (int)h};
 
     DWORD style = (DWORD)get_window_style();
+    DWORD ex_style = (DWORD)GetWindowLongPtrA(window, GWL_EXSTYLE);
 
     // TODO: we are assuming the window have no menu, maybe it is better to expose it as parameter later
-    AdjustWindowRect(&rect, style, false);
+    // Compute the frame for the monitor DPI: the old AdjustWindowRect always used 96 DPI and with
+    // 200% system scaling underestimated the title bar by half.
+    adjust_window_rect(window, &rect, style, ex_style);
 
     SetWindowPos(window, window, (int)x, (int)y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 }

@@ -25,6 +25,27 @@ static bool has_pending_borderless_change = false;
 static NSRect previous_state;
 static NSUInteger windowed_style_mask = 0;
 
+// Current display mode. On macOS fullscreen is visible in the window style mask, but a window
+// covering the visible screen area looks exactly like a regular window, so the selected mode is
+// stored here.
+static DefosDisplayMode current_display_mode = DEFOS_DISPLAY_MODE_WINDOWED;
+static bool is_display_mode_known = false;
+
+// Whether the user may resize the window. On macOS the lock is done with minSize/maxSize and NOT
+// by removing NSResizableWindowMask: without that mask toggleFullScreen: stops working, so the
+// window could not enter fullscreen anymore.
+static bool user_resizable = true;
+
+// Leaving native fullscreen is animated and asynchronous: a frame set right after
+// toggleFullScreen: is overwritten by the system. So the target geometry is stored and applied on
+// the notification that fullscreen has actually been left.
+static bool has_pending_frame = false;
+static NSRect pending_frame;
+static id fullscreen_exit_observer = nil;
+
+// Share of the visible screen area used by the windowed mode by default.
+static const float WINDOWED_VISIBLE_FRAME_PART = 0.8f;
+
 static void enable_mouse_tracking();
 static void disable_mouse_tracking();
 static NSUInteger default_windowed_style_mask();
@@ -101,6 +122,7 @@ static void apply_pending_borderless_state() {
     apply_borderless_state(desired_borderless);
     has_pending_borderless_change = false;
 }
+static void set_window_frame(NSRect frame);
 
 /*
 * Convert the mode string to the more convinient bits per pixel value
@@ -152,6 +174,20 @@ void defos_init() {
     current_cursor = default_cursor;
     [current_cursor retain];
     enable_mouse_tracking();
+
+    // Wait until native fullscreen has actually been left to apply the geometry of the selected
+    // mode: the transition is animated, and a frame set before it ends is lost.
+    fullscreen_exit_observer = [[NSNotificationCenter defaultCenter]
+        addObserverForName:NSWindowDidExitFullScreenNotification
+                    object:window
+                     queue:[NSOperationQueue mainQueue]
+                usingBlock:^(NSNotification *notification) {
+                    if (has_pending_frame) {
+                        has_pending_frame = false;
+                        set_window_frame(pending_frame);
+                    }
+                }];
+    [fullscreen_exit_observer retain];
 }
 
 void defos_final() {
@@ -160,6 +196,11 @@ void defos_final() {
         [[NSNotificationCenter defaultCenter] removeObserver:window_observer];
         [window_observer release];
         window_observer = nil;
+    }
+    if (fullscreen_exit_observer) {
+        [[NSNotificationCenter defaultCenter] removeObserver:fullscreen_exit_observer];
+        [fullscreen_exit_observer release];
+        fullscreen_exit_observer = nil;
     }
     [default_cursor release];
     [current_cursor release];
@@ -182,16 +223,57 @@ void defos_disable_minimize_button() {
     [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
 }
 
+// Screen the window is currently on. Using [NSScreen mainScreen] here would move the window to the
+// main screen on multi-monitor setups.
+static NSScreen* current_screen() {
+    return window.screen ? window.screen : [NSScreen mainScreen];
+}
+
+// Converts an AppKit rectangle (origin at the bottom left) to defos coordinates, where y is counted
+// from the top edge of the main screen, as in defos_get_window_size().
+static WinRect to_win_rect(NSRect rect) {
+    WinRect result;
+    result.x = rect.origin.x;
+    result.y = NSMaxY(NSScreen.screens[0].frame) - NSMaxY(rect);
+    result.w = rect.size.width;
+    result.h = rect.size.height;
+    return result;
+}
+
+// Removes size limits: otherwise setFrame: clamps the new frame to the minSize/maxSize used to
+// lock resizing.
+static void release_resize_limits() {
+    [window setMinSize:NSMakeSize(1, 1)];
+    [window setMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+}
+
+static void apply_resize_limits(NSSize size) {
+    // No limits in fullscreen: the system manages the window there, and minSize/maxSize pinned to the
+    // screen size would break both the enter animation and the way back.
+    if (user_resizable || defos_is_fullscreen()) {
+        release_resize_limits();
+    } else {
+        [window setMinSize:size];
+        [window setMaxSize:size];
+    }
+}
+
+static void set_window_frame(NSRect frame) {
+    release_resize_limits();
+    [window setFrame:frame display:YES];
+    apply_resize_limits(frame.size);
+}
+
 void defos_disable_window_resize() {
-    [window setStyleMask:[window styleMask] & ~NSWindowStyleMaskResizable];
+    // Keep NSResizableWindowMask: without it macOS does not let the window enter fullscreen.
+    defos_set_window_resizable(false);
 }
 
 void defos_toggle_fullscreen() {
-    if (is_maximized){
-        defos_toggle_maximized();
-    }
-    [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-    [window toggleFullScreen:window];
+    // The old API keeps working: it switches between fullscreen and a regular window.
+    defos_set_display_mode(
+        defos_is_fullscreen() ? DEFOS_DISPLAY_MODE_WINDOWED : DEFOS_DISPLAY_MODE_FULLSCREEN,
+        nanf(""), nanf(""));
 }
 
 void defos_toggle_borderless() {
@@ -212,18 +294,117 @@ void defos_toggle_borderless() {
 
 void defos_toggle_maximized() {
     if (defos_is_fullscreen()){
-        defos_toggle_fullscreen();
+        // Leaving fullscreen on macOS is asynchronous, so the target geometry goes through the common
+        // display mode code, which applies it once fullscreen has actually been left.
+        defos_set_display_mode(
+            is_maximized ? DEFOS_DISPLAY_MODE_WINDOWED : DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED,
+            nanf(""), nanf(""));
+        return;
     }
     if (is_maximized){
         is_maximized = false;
-        [window setFrame:previous_state display:YES];
+        set_window_frame(previous_state);
     }
     else
     {
         is_maximized = true;
         previous_state = [window frame];
-        [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
+        set_window_frame(current_screen().visibleFrame);
     }
+}
+
+void defos_set_display_mode(DefosDisplayMode mode, float width, float height) {
+    NSRect visible = current_screen().visibleFrame;
+
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN) {
+        has_pending_frame = false;
+        if (!defos_is_fullscreen()) {
+            // Remove size limits before the transition: the system expands the window to the whole screen
+            // itself and would hit maxSize.
+            release_resize_limits();
+            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+            [window toggleFullScreen:window];
+        }
+        is_maximized = false;
+        current_display_mode = mode;
+        is_display_mode_known = true;
+        return;
+    }
+
+    NSRect target;
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED) {
+        // On macOS this is a titled window covering the visible screen area: the menu bar and the Dock
+        // stay available. A borderless window is avoided on purpose, it may stop receiving keyboard input
+        // (canBecomeKeyWindow returns NO for a window without a title bar).
+        target = visible;
+    } else {
+        float client_w = isnan(width) ? visible.size.width * WINDOWED_VISIBLE_FRAME_PART : width;
+        float client_h = isnan(height) ? visible.size.height * WINDOWED_VISIBLE_FRAME_PART : height;
+
+        // frameRectForContentRect adds the frame and the title bar to the client area, so the whole
+        // window, title bar included, fits into the visible screen area.
+        target = [window frameRectForContentRect:NSMakeRect(0, 0, client_w, client_h)];
+        if (target.size.width > visible.size.width) { target.size.width = visible.size.width; }
+        if (target.size.height > visible.size.height) { target.size.height = visible.size.height; }
+        target.origin.x = visible.origin.x + (visible.size.width - target.size.width) * 0.5f;
+        target.origin.y = visible.origin.y + (visible.size.height - target.size.height) * 0.5f;
+    }
+
+    bool was_fullscreen = defos_is_fullscreen();
+
+    // previous_state is the regular window geometry restored by the old toggle_maximized API. Store it
+    // before maximizing and update it when returning to the windowed mode.
+    if (mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED) {
+        if (!was_fullscreen && !is_maximized) {
+            previous_state = [window frame];
+        }
+    } else {
+        previous_state = target;
+    }
+
+    if (was_fullscreen) {
+        // Fullscreen is left asynchronously, the notification observer applies the frame.
+        pending_frame = target;
+        has_pending_frame = true;
+        release_resize_limits();
+        [window toggleFullScreen:window];
+    } else {
+        set_window_frame(target);
+    }
+
+    is_maximized = (mode == DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED);
+    current_display_mode = mode;
+    is_display_mode_known = true;
+}
+
+DefosDisplayMode defos_get_display_mode() {
+    // Always read the fullscreen state from the system: the user may have entered it with the green
+    // window button or a keyboard shortcut.
+    if (defos_is_fullscreen()) {
+        return DEFOS_DISPLAY_MODE_FULLSCREEN;
+    }
+    if (!is_display_mode_known || current_display_mode == DEFOS_DISPLAY_MODE_FULLSCREEN) {
+        return DEFOS_DISPLAY_MODE_WINDOWED;
+    }
+    return current_display_mode;
+}
+
+bool defos_is_display_mode_supported(DefosDisplayMode mode) {
+    // All three modes are native on macOS.
+    return true;
+}
+
+WinRect defos_get_work_area() {
+    return to_win_rect(current_screen().visibleFrame);
+}
+
+void defos_set_window_resizable(bool resizable) {
+    user_resizable = resizable;
+    apply_resize_limits(window.frame.size);
+}
+
+bool defos_is_window_resizable() {
+    return user_resizable;
 }
 
 void defos_toggle_always_on_top() {

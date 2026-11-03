@@ -179,6 +179,35 @@ bool defos_is_maximized() {
     return is_maximized;
 }
 
+// The browser has no "fullscreen windowed" mode: fullscreen maps to the browser fullscreen API,
+// everything else is the regular canvas.
+void defos_set_display_mode(DefosDisplayMode mode, float width, float height) {
+    bool wants_fullscreen = (mode == DEFOS_DISPLAY_MODE_FULLSCREEN);
+    if (wants_fullscreen != defos_is_fullscreen()) {
+        defos_toggle_fullscreen();
+    }
+}
+
+DefosDisplayMode defos_get_display_mode() {
+    return defos_is_fullscreen() ? DEFOS_DISPLAY_MODE_FULLSCREEN : DEFOS_DISPLAY_MODE_WINDOWED;
+}
+
+bool defos_is_display_mode_supported(DefosDisplayMode mode) {
+    return mode != DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED;
+}
+
+WinRect defos_get_work_area() {
+    return defos_get_view_size();
+}
+
+void defos_set_window_resizable(bool resizable) {
+    dmLogWarning("Method 'set_window_resizable' is not supported in HTML5");
+}
+
+bool defos_is_window_resizable() {
+    return false;
+}
+
 void defos_toggle_always_on_top() {
     dmLogWarning("Method 'toggle_always_on_top' is not supported in HTML5");
 }

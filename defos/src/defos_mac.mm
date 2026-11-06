@@ -290,6 +290,28 @@ void defos_get_arguments(dmArray<char*> &arguments) {
     }
 }
 
+bool defos_is_process_running(const char *executable_name_utf8)
+{
+    // NSWorkspace is available through the linked AppKit and lists only running applications.
+    // Compare the executable file name, not the localized application name: it does not depend on the
+    // system language.
+    NSString *wanted_name = [NSString stringWithUTF8String:executable_name_utf8];
+    if (!wanted_name)
+    {
+        return false;
+    }
+
+    for (NSRunningApplication *application in [[NSWorkspace sharedWorkspace] runningApplications])
+    {
+        NSString *running_name = [[application executableURL] lastPathComponent];
+        if (running_name && [running_name caseInsensitiveCompare:wanted_name] == NSOrderedSame)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     if (isnan(x)) {
         NSRect frame = window.screen.frame;

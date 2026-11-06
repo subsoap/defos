@@ -227,6 +227,15 @@ static int get_arguments(lua_State *L)
     return 1;
 }
 
+// Lua only gets whether such a process exists, the process list itself is never exposed.
+// Each platform enumerates processes with its own system API; HTML5 always answers false.
+static int is_process_running(lua_State *L)
+{
+    const char *executable_name = luaL_checkstring(L, 1);
+    lua_pushboolean(L, defos_is_process_running(executable_name));
+    return 1;
+}
+
 // Windows console
 
 static int set_console_visible(lua_State *L)
@@ -685,6 +694,7 @@ static const luaL_reg Module_methods[] =
         {"get_bundle_root", get_bundle_root},
         {"get_arguments", get_arguments},
         {"get_parameters", get_arguments}, // For backwards compatibility
+        {"is_process_running", is_process_running},
         {0, 0}};
 
 static void LuaInit(lua_State *L)

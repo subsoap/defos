@@ -32,6 +32,11 @@
 #include <libgen.h>
 #include <sys/auxv.h>
 #include <limits.h>
+#include <ctype.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
 
 //static GC gc;
 #define _NET_WM_STATE_REMOVE 0
@@ -905,6 +910,52 @@ void defos_get_arguments(dmArray<char*> &arguments)
     {
         arguments.Push(copy_string(shared_argv[i]));
     }
+}
+
+bool defos_is_process_running(const char *executable_name_utf8)
+{
+    // On Linux every numeric directory in /proc is a process, and its comm file holds the short name
+    // of the executable. Only that field is read.
+    DIR *process_directory = opendir("/proc");
+    if (!process_directory)
+    {
+        return false;
+    }
+
+    bool found = false;
+    struct dirent *entry = NULL;
+    while ((entry = readdir(process_directory)) != NULL)
+    {
+        if (!isdigit((unsigned char)entry->d_name[0]))
+        {
+            continue;
+        }
+
+        char comm_path[64];
+        snprintf(comm_path, sizeof(comm_path), "/proc/%s/comm", entry->d_name);
+        FILE *comm_file = fopen(comm_path, "r");
+        if (!comm_file)
+        {
+            continue;
+        }
+
+        char process_name[256];
+        if (fgets(process_name, sizeof(process_name), comm_file))
+        {
+            // comm ends with a newline; strip it before the case-insensitive comparison.
+            process_name[strcspn(process_name, "\r\n")] = '\0';
+            found = strcasecmp(process_name, executable_name_utf8) == 0;
+        }
+        fclose(comm_file);
+
+        if (found)
+        {
+            break;
+        }
+    }
+
+    closedir(process_directory);
+    return found;
 }
 
 //from glfw/x11_window.c

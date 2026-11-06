@@ -10,6 +10,7 @@
 #include <atlconv.h>
 #include <WinUser.h>
 #include <Windows.h>
+#include <TlHelp32.h>
 #include <stringapiset.h>
 
 // keep track of window placement when going to/from fullscreen or maximized
@@ -332,6 +333,58 @@ void defos_get_arguments(dmArray<char*> &arguments) {
         }
     }
     LocalFree(szArglist);
+}
+
+bool defos_is_process_running(const char *executable_name_utf8)
+{
+    // PROCESSENTRY32W gives the exe name in UTF-16. Compute the exact buffer size first, so that the
+    // name is not truncated and the comparison is correct for any UTF-8 argument.
+    int wide_length = MultiByteToWideChar(CP_UTF8, 0, executable_name_utf8, -1, NULL, 0);
+    if (wide_length <= 0)
+    {
+        return false;
+    }
+
+    wchar_t *executable_name = (wchar_t *)malloc(wide_length * sizeof(wchar_t));
+    if (!executable_name)
+    {
+        return false;
+    }
+    if (MultiByteToWideChar(CP_UTF8, 0, executable_name_utf8, -1, executable_name, wide_length) <= 0)
+    {
+        free(executable_name);
+        return false;
+    }
+
+    // The snapshot holds only process metadata and does not open process handles, so it works with
+    // regular user rights and does not interfere with other processes.
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE)
+    {
+        free(executable_name);
+        return false;
+    }
+
+    PROCESSENTRY32W process_entry = {0};
+    process_entry.dwSize = sizeof(process_entry);
+    bool found = false;
+    if (Process32FirstW(snapshot, &process_entry))
+    {
+        do
+        {
+            // Windows exe names are case-insensitive, so the comparison is case-insensitive too.
+            if (_wcsicmp(process_entry.szExeFile, executable_name) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+        while (Process32NextW(snapshot, &process_entry));
+    }
+
+    CloseHandle(snapshot);
+    free(executable_name);
+    return found;
 }
 
 WinRect defos_get_window_size()

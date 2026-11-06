@@ -229,6 +229,14 @@ void defos_get_arguments(dmArray<char*> &arguments) {
     arguments.Push(param);
 }
 
+bool defos_is_process_running(const char *executable_name_utf8)
+{
+    // A web page cannot read the operating system process list. Keep the same Lua API on all
+    // platforms and report the process as not running.
+    (void)executable_name_utf8;
+    return false;
+}
+
 void defos_set_window_size(float x, float y, float w, float h) {
     defos_set_view_size(x, y, w, h);
 }

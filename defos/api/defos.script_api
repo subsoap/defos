@@ -80,6 +80,81 @@
     - name: borderless
       type: boolean
 
+  - name: set_display_mode
+    type: function
+    desc: 'Sets the screen mode of the game window. Mode is one of "windowed",
+      "fullscreen_windowed" (covers the work area, taskbar and dock stay visible) or
+      "fullscreen" (covers the whole monitor). Width and height are the requested CLIENT area
+      size for the windowed mode in platform units (physical pixels on Windows, points on macOS);
+      the window frame is added by the extension. Omit them to get 80% of the work area. Both are
+      ignored by the other modes. On HTML5 "fullscreen_windowed" is not supported.
+      Platforms - Linux, Windows, OSX, HTML5.'
+    parameters:
+    - name: mode
+      type: string
+      desc: '"windowed", "fullscreen_windowed" or "fullscreen"'
+    - name: width
+      type: number
+      desc: Optional client area width for the windowed mode
+      optional: true
+    - name: height
+      type: number
+      desc: Optional client area height for the windowed mode
+      optional: true
+
+  - name: get_display_mode
+    type: function
+    desc: Returns the current screen mode of the game window. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: mode
+      type: string
+
+  - name: is_display_mode_supported
+    type: function
+    desc: Checks whether a screen mode can be used on this platform. On Linux window states are
+      performed by the window manager, so a mode it does not implement should be hidden from the
+      settings menu instead of being offered as a broken option. Platforms - Linux, Windows, OSX, HTML5.
+    parameters:
+    - name: mode
+      type: string
+      desc: '"windowed", "fullscreen_windowed" or "fullscreen"'
+    returns:
+    - name: supported
+      type: boolean
+
+  - name: get_work_area
+    type: function
+    desc: Returns the work area of the display the window is currently on - the monitor minus the
+      taskbar on Windows, minus the menu bar and the Dock on macOS, minus the desktop panels on
+      Linux. On HTML5 returns the view size. Platforms - Linux, Windows, OSX, HTML5.
+    returns:
+    - name: x
+      type: number
+    - name: y
+      type: number
+    - name: width
+      type: number
+    - name: height
+      type: number
+
+  - name: set_window_resizable
+    type: function
+    desc: Allows or forbids resizing the window by dragging its edge. Forbidding it also removes
+      the maximize button, otherwise the window is still resized by it. The style is reapplied on
+      every switch back to the windowed mode, so a single call keeps working across mode changes.
+      Call it before set_display_mode. Platforms - Linux, Windows, OSX.
+    parameters:
+    - name: resizable
+      type: boolean
+      desc: Whether the player may resize the window
+
+  - name: is_window_resizable
+    type: function
+    desc: Checks whether the window may be resized by the player. Platforms - Linux, Windows, OSX.
+    returns:
+    - name: resizable
+      type: boolean
+
   - name: set_always_on_top
     type: function
     desc: Sets whether the window should always stay on top. Platforms - Linux, Windows, OSX.

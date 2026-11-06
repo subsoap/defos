@@ -105,6 +105,36 @@ function defos.toggle_borderless() end
 ---@return boolean borderless
 function defos.is_borderless() end
 
+---Sets the screen mode of the game window. Width and height are the requested client area size for the windowed mode in platform units (physical pixels on Windows, points on macOS); omit them to get 80% of the work area. Other modes ignore them. Platforms - Linux, Windows, OSX, HTML5.
+---@param mode "windowed"|"fullscreen_windowed"|"fullscreen" Screen mode
+---@param width? number Client area width for the windowed mode
+---@param height? number Client area height for the windowed mode
+function defos.set_display_mode(mode, width, height) end
+
+---Returns the current screen mode of the game window. Platforms - Linux, Windows, OSX, HTML5.
+---@return "windowed"|"fullscreen_windowed"|"fullscreen" mode
+function defos.get_display_mode() end
+
+---Checks whether a screen mode can be used on this platform. Platforms - Linux, Windows, OSX, HTML5.
+---@param mode "windowed"|"fullscreen_windowed"|"fullscreen" Screen mode
+---@return boolean supported
+function defos.is_display_mode_supported(mode) end
+
+---Returns the work area of the display the window is currently on (monitor minus taskbar, menu bar, Dock or desktop panels). Platforms - Linux, Windows, OSX, HTML5.
+---@return number x
+---@return number y
+---@return number width
+---@return number height
+function defos.get_work_area() end
+
+---Allows or forbids resizing the window by the player. Forbidding it also removes the maximize button. Call it before set_display_mode. Platforms - Linux, Windows, OSX.
+---@param resizable boolean Whether the player may resize the window
+function defos.set_window_resizable(resizable) end
+
+---Checks whether the window may be resized by the player. Platforms - Linux, Windows, OSX.
+---@return boolean resizable
+function defos.is_window_resizable() end
+
 ---Sets whether the window should always stay on top. Platforms - Linux, Windows, OSX.
 ---@param always_on_top boolean Whether to keep window on top
 function defos.set_always_on_top(always_on_top) end

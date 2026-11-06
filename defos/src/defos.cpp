@@ -11,6 +11,7 @@
 
 #include "defos_private.h"
 #include <stdlib.h>
+#include <string.h> // strcmp for display mode names
 
 static bool checkboolean(lua_State *L, int index)
 {
@@ -142,6 +143,75 @@ static int set_borderless(lua_State *L)
 static int is_borderless(lua_State *L)
 {
     lua_pushboolean(L, defos_is_borderless());
+    return 1;
+}
+
+// Display modes are exposed to Lua as strings, which are easy to store in settings and to map to
+// menu items. The order must match DefosDisplayMode.
+static const char *DISPLAY_MODE_NAMES[] = {"windowed", "fullscreen_windowed", "fullscreen"};
+static const int DISPLAY_MODE_COUNT = sizeof(DISPLAY_MODE_NAMES) / sizeof(DISPLAY_MODE_NAMES[0]);
+
+static DefosDisplayMode check_display_mode(lua_State *L, int index)
+{
+    const char *name = luaL_checkstring(L, index);
+    for (int i = 0; i < DISPLAY_MODE_COUNT; i++)
+    {
+        if (strcmp(name, DISPLAY_MODE_NAMES[i]) == 0)
+        {
+            return (DefosDisplayMode)i;
+        }
+    }
+
+    luaL_error(L, "Unknown display mode: %s", name);
+    return DEFOS_DISPLAY_MODE_WINDOWED;
+}
+
+static int set_display_mode(lua_State *L)
+{
+    DefosDisplayMode mode = check_display_mode(L, 1);
+
+    // The size is optional and used only by the windowed mode: without it the native side uses
+    // 80% of the work area.
+    float w = nanf("");
+    float h = nanf("");
+    if (!lua_isnoneornil(L, 2)) { w = luaL_checknumber(L, 2); }
+    if (!lua_isnoneornil(L, 3)) { h = luaL_checknumber(L, 3); }
+
+    defos_set_display_mode(mode, w, h);
+    return 0;
+}
+
+static int get_display_mode(lua_State *L)
+{
+    lua_pushstring(L, DISPLAY_MODE_NAMES[defos_get_display_mode()]);
+    return 1;
+}
+
+static int is_display_mode_supported(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_display_mode_supported(check_display_mode(L, 1)));
+    return 1;
+}
+
+static int get_work_area(lua_State *L)
+{
+    WinRect rect = defos_get_work_area();
+    lua_pushnumber(L, rect.x);
+    lua_pushnumber(L, rect.y);
+    lua_pushnumber(L, rect.w);
+    lua_pushnumber(L, rect.h);
+    return 4;
+}
+
+static int set_window_resizable(lua_State *L)
+{
+    defos_set_window_resizable(checkboolean(L, 1));
+    return 0;
+}
+
+static int is_window_resizable(lua_State *L)
+{
+    lua_pushboolean(L, defos_is_window_resizable());
     return 1;
 }
 
@@ -654,6 +724,12 @@ static const luaL_reg Module_methods[] =
         {"toggle_borderless", toggle_borderless},
         {"set_borderless", set_borderless},
         {"is_borderless", is_borderless},
+        {"set_display_mode", set_display_mode},
+        {"get_display_mode", get_display_mode},
+        {"is_display_mode_supported", is_display_mode_supported},
+        {"get_work_area", get_work_area},
+        {"set_window_resizable", set_window_resizable},
+        {"is_window_resizable", is_window_resizable},
         {"toggle_always_on_top", toggle_always_on_top},
         {"set_always_on_top", set_always_on_top},
         {"is_always_on_top", is_always_on_top},

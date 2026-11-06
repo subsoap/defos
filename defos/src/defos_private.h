@@ -35,6 +35,17 @@ typedef enum {
     DEFOS_CURSOR_INTMAX,
 } DefosCursor;
 
+// Display modes of the game window. toggle_fullscreen only knows two states: "borderless over the
+// whole monitor" and "restore the geometry from startup". On Windows that startup geometry is often
+// broken (the engine creates the window as display.width * display scale, which may not fit the
+// screen), and there was no "maximized to the work area, taskbar visible" state at all. Hence an
+// explicit mode instead of a toggle.
+typedef enum {
+    DEFOS_DISPLAY_MODE_WINDOWED = 0,        // regular window with frame and title bar
+    DEFOS_DISPLAY_MODE_FULLSCREEN_WINDOWED, // covers the work area (taskbar / Dock stay visible)
+    DEFOS_DISPLAY_MODE_FULLSCREEN,          // covers the whole monitor, above system panels
+} DefosDisplayMode;
+
 #ifdef DM_PLATFORM_WINDOWS
 typedef const char* DisplayID;
 #else
@@ -80,6 +91,21 @@ extern void defos_toggle_maximized();
 extern void defos_toggle_always_on_top();
 extern bool defos_is_fullscreen();
 extern bool defos_is_borderless();
+
+// width/height is the requested CLIENT area size for the windowed mode in platform units
+// (physical pixels on Windows, points on macOS); NAN means "pick a size" (80% of the work area).
+// Other modes ignore the size.
+extern void defos_set_display_mode(DefosDisplayMode mode, float width, float height);
+extern DefosDisplayMode defos_get_display_mode();
+// Not every mode is available everywhere: on Linux window states are performed by the window
+// manager, and a mode whose EWMH state it does not support should be hidden, not offered broken.
+extern bool defos_is_display_mode_supported(DefosDisplayMode mode);
+// Work area of the monitor the window is on: monitor minus taskbar (Windows), minus menu bar and
+// Dock (macOS), minus desktop panels (Linux).
+extern WinRect defos_get_work_area();
+// Whether the user may resize the window by dragging its edge.
+extern void defos_set_window_resizable(bool resizable);
+extern bool defos_is_window_resizable();
 extern bool defos_is_maximized();
 extern bool defos_is_always_on_top();
 extern void defos_minimize();
